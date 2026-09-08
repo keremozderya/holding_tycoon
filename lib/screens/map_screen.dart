@@ -6,6 +6,7 @@ import '../theme/app_theme.dart';
 import '../widgets/prestige_dialog.dart';
 import 'main_menu_screen.dart';
 import 'research_screen.dart';
+import 'stock_screen.dart'; // Borsa ekranını içeri aktardık
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -138,6 +139,33 @@ class _MapScreenState extends State<MapScreen> {
                         },
                       ),
                     ),
+                    const SizedBox(height: 12),
+                    
+                    // YENİ EKLENEN BORSA TEST BUTONU
+                    SizedBox(
+                      width: double.infinity,
+                      height: 48,
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.surfaceElevated,
+                          foregroundColor: AppColors.textPrimary,
+                          side: const BorderSide(color: AppColors.border),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          elevation: 0,
+                        ),
+                        icon: const Icon(Icons.candlestick_chart_rounded, color: AppColors.profit, size: 20),
+                        label: const Text(
+                          'Küresel Borsa (Test)',
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                        ),
+                        onPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(builder: (context) => const StockScreen()),
+                          );
+                        },
+                      ),
+                    ),
+                    
                     const SizedBox(height: 12),
                     SizedBox(
                       width: double.infinity,
