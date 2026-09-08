@@ -1,7 +1,10 @@
-// lib/screens/settings_screen.dart (Dosyanın en başı)
+// lib/screens/settings_screen.dart
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../theme/app_theme.dart'; // Doğru yol: Bir üst klasöre çıkıp theme klasörüne girer
+import '../providers/game_state.dart';
+import '../services/translation_service.dart';
+import '../theme/app_theme.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -13,16 +16,15 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   double _musicVolume = 0.8;
   double _sfxVolume = 0.8;
-  String _selectedLanguage = 'TR';
   bool _isLanguageExpanded = false;
 
   final List<Map<String, String>> _languages = const [
-    {'code': 'TR', 'name': 'Türkçe', 'flag': '🇹🇷'},
-    {'code': 'EN', 'name': 'English', 'flag': '🇬🇧'},
-    {'code': 'DE', 'name': 'Deutsch', 'flag': '🇩🇪'},
-    {'code': 'ES', 'name': 'Español', 'flag': '🇪🇸'},
-    {'code': 'FR', 'name': 'Français', 'flag': '🇫🇷'},
-    {'code': 'IT', 'name': 'Italiano', 'flag': '🇮🇹'},
+    {'code': 'tr', 'name': 'Türkçe', 'flag': '🇹🇷'},
+    {'code': 'en', 'name': 'English', 'flag': '🇬🇧'},
+    {'code': 'de', 'name': 'Deutsch', 'flag': '🇩🇪'},
+    {'code': 'es', 'name': 'Español', 'flag': '🇪🇸'},
+    {'code': 'fr', 'name': 'Français', 'flag': '🇫🇷'},
+    {'code': 'it', 'name': 'Italiano', 'flag': '🇮🇹'},
   ];
 
   @override
@@ -36,7 +38,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     setState(() {
       _musicVolume = prefs.getDouble('music_volume') ?? 0.8;
       _sfxVolume = prefs.getDouble('sfx_volume') ?? 0.8;
-      _selectedLanguage = prefs.getString('language') ?? 'TR';
     });
   }
 
@@ -52,28 +53,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
     await prefs.setDouble('sfx_volume', value);
   }
 
-  Future<void> _saveLanguage(String langCode) async {
-    setState(() {
-      _selectedLanguage = langCode;
-      _isLanguageExpanded = false;
-    });
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('language', langCode);
-  }
-
-  Map<String, String> get _currentLangMap {
+  Map<String, String> _getCurrentLangMap(String currentCode) {
     return _languages.firstWhere(
-      (lang) => lang['code'] == _selectedLanguage,
+      (lang) => lang['code'] == currentCode.toLowerCase(),
       orElse: () => _languages.first,
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final gameState = context.watch<GameState>();
+    final currentLangMap = _getCurrentLangMap(gameState.language);
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text('Ayarlar', style: AppTheme.titleStyle(fontSize: 20)),
+        title: Text('settings.title'.tr(), style: AppTheme.titleStyle(fontSize: 20)),
         backgroundColor: AppColors.surface,
         centerTitle: true,
         elevation: 0,
@@ -85,9 +80,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
         children: [
-          const Text(
-            'SES AYARLARI',
-            style: TextStyle(
+          Text(
+            'settings.sound_settings'.tr(),
+            style: const TextStyle(
               color: AppColors.gold,
               fontWeight: FontWeight.bold,
               letterSpacing: 1.4,
@@ -96,22 +91,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const SizedBox(height: 12),
           _buildVolumeCard(
-            title: 'Müzik Sesi',
+            title: 'settings.music_volume'.tr(),
             value: _musicVolume,
             icon: Icons.music_note_rounded,
             onChanged: _saveMusicVolume,
           ),
           const SizedBox(height: 12),
           _buildVolumeCard(
-            title: 'Efekt Sesleri',
+            title: 'settings.sfx_volume'.tr(),
             value: _sfxVolume,
             icon: Icons.volume_up_rounded,
             onChanged: _saveSfxVolume,
           ),
           const SizedBox(height: 32),
-          const Text(
-            'DİL SEÇENEKLERİ',
-            style: TextStyle(
+          Text(
+            'settings.language_options'.tr(),
+            style: const TextStyle(
               color: AppColors.gold,
               fontWeight: FontWeight.bold,
               letterSpacing: 1.4,
@@ -119,13 +114,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          _buildAnimatedLanguageAccordion(),
+          _buildAnimatedLanguageAccordion(currentLangMap),
         ],
       ),
     );
   }
 
-  Widget _buildAnimatedLanguageAccordion() {
+  Widget _buildAnimatedLanguageAccordion(Map<String, String> currentLangMap) {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
@@ -152,21 +147,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
               child: Row(
                 children: [
-                  Text(_currentLangMap['flag']!, style: const TextStyle(fontSize: 26)),
+                  Text(currentLangMap['flag']!, style: const TextStyle(fontSize: 26)),
                   const SizedBox(width: 12),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Oyun Dili',
-                        style: TextStyle(
+                      Text(
+                        'settings.game_language'.tr(),
+                        style: const TextStyle(
                           color: AppColors.textSecondary,
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
                       Text(
-                        _currentLangMap['name']!,
+                        currentLangMap['name']!,
                         style: const TextStyle(
                           color: AppColors.textPrimary,
                           fontSize: 16,
@@ -213,12 +208,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           separatorBuilder: (_, __) => const Divider(color: AppColors.border, height: 1),
                           itemBuilder: (context, index) {
                             final lang = _languages[index];
-                            final bool isSelected = _selectedLanguage == lang['code'];
+                            final currentLang = context.read<GameState>().language;
+                            final bool isSelected = currentLang == lang['code'];
 
                             return Material(
                               color: Colors.transparent,
                               child: InkWell(
-                                onTap: () => _saveLanguage(lang['code']!),
+                                onTap: () async {
+                                  await context.read<GameState>().setLanguage(lang['code']!);
+                                  setState(() {
+                                    _isLanguageExpanded = false;
+                                  });
+                                },
                                 child: Padding(
                                   padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
                                   child: Row(

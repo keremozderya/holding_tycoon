@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../providers/game_state.dart';
+import '../services/translation_service.dart';
 import 'settings_screen.dart';
 import '../theme/app_theme.dart';
 import 'map_screen.dart';
@@ -27,18 +28,17 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
   ];
 
   final List<Map<String, String>> _languages = const [
-    {'code': 'TR', 'name': 'Türkçe', 'flag': '🇹🇷'},
-    {'code': 'EN', 'name': 'English', 'flag': '🇬🇧'},
-    {'code': 'DE', 'name': 'Deutsch', 'flag': '🇩🇪'},
-    {'code': 'ES', 'name': 'Español', 'flag': '🇪🇸'},
-    {'code': 'FR', 'name': 'Français', 'flag': '🇫🇷'},
-    {'code': 'IT', 'name': 'Italiano', 'flag': '🇮🇹'},
+    {'code': 'tr', 'name': 'Türkçe', 'flag': '🇹🇷'},
+    {'code': 'en', 'name': 'English', 'flag': '🇬🇧'},
+    {'code': 'de', 'name': 'Deutsch', 'flag': '🇩🇪'},
+    {'code': 'es', 'name': 'Español', 'flag': '🇪🇸'},
+    {'code': 'fr', 'name': 'Français', 'flag': '🇫🇷'},
+    {'code': 'it', 'name': 'Italiano', 'flag': '🇮🇹'},
   ];
 
   @override
   void initState() {
     super.initState();
-    // SADECE ilk açılışta dil seçimini getirir.
     if (widget.isInitialLaunch) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _showLanguageSelectionDialog();
@@ -54,10 +54,10 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
         return AlertDialog(
           backgroundColor: AppColors.surface,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          title: const Text(
-            'Select Language\nDil Seçimi',
+          title: Text(
+            'menu.select_language'.tr(),
             textAlign: TextAlign.center,
-            style: TextStyle(color: AppColors.neonCyan, fontWeight: FontWeight.bold, fontSize: 18),
+            style: const TextStyle(color: AppColors.neonCyan, fontWeight: FontWeight.bold, fontSize: 18),
           ),
           content: SizedBox(
             width: double.maxFinite,
@@ -75,9 +75,7 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                   ),
                   trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: AppColors.neonCyan),
                   onTap: () async {
-                    final prefs = await SharedPreferences.getInstance();
-                    await prefs.setString('language', lang['code']!);
-                    
+                    await context.read<GameState>().setLanguage(lang['code']!);
                     if (!context.mounted) return;
                     Navigator.pop(context); 
                     _showNewGameDialog();   
@@ -97,7 +95,6 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
 
     showDialog(
       context: context,
-      // Eğer ilk kurulumsa dışarı tıklayıp kapatılamaz, yeni oyunsa kapatılabilir
       barrierDismissible: !widget.isInitialLaunch,
       builder: (context) {
         return StatefulBuilder(
@@ -105,17 +102,17 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
             return AlertDialog(
               backgroundColor: AppColors.surface,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-              title: const Text(
-                'Holdingini Kur',
+              title: Text(
+                'menu.setup_holding'.tr(),
                 textAlign: TextAlign.center,
-                style: TextStyle(color: AppColors.gold, fontWeight: FontWeight.bold, fontSize: 22),
+                style: const TextStyle(color: AppColors.gold, fontWeight: FontWeight.bold, fontSize: 22),
               ),
               content: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Şirket İsmi', style: TextStyle(color: AppColors.textSecondary, fontSize: 14)),
+                    Text('menu.company_name'.tr(), style: const TextStyle(color: AppColors.textSecondary, fontSize: 14)),
                     const SizedBox(height: 6),
                     TextField(
                       controller: nameController,
@@ -124,7 +121,7 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                         filled: true,
                         fillColor: AppColors.background,
                         hintText: 'MyHolding',
-                        hintStyle: const TextStyle(color: AppColors.textMuted), // Dark temaya uyarlandı
+                        hintStyle: const TextStyle(color: AppColors.textMuted),
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -133,7 +130,7 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                       ),
                     ),
                     const SizedBox(height: 20),
-                    const Text('Holding Logosu Seç', style: TextStyle(color: AppColors.textSecondary, fontSize: 14)),
+                    Text('menu.choose_logo'.tr(), style: const TextStyle(color: AppColors.textSecondary, fontSize: 14)),
                     const SizedBox(height: 10),
                     Wrap(
                       spacing: 12,
@@ -195,9 +192,9 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                         MaterialPageRoute(builder: (context) => const MapScreen()),
                       );
                     },
-                    child: const Text(
-                      'BAŞLA',
-                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                    child: Text(
+                      'menu.start'.tr(),
+                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
                     ),
                   ),
                 ),
@@ -211,6 +208,8 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<GameState>();
+
     return Scaffold(
       body: Container(
         width: double.infinity,
@@ -249,12 +248,12 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
               ),
               const SizedBox(height: 16),
               Text(
-                'HOLDING TYCOON',
+                'app_title'.tr(),
                 style: AppTheme.titleStyle(fontSize: 32).copyWith(color: Colors.white),
               ),
               const SizedBox(height: 6),
               Text(
-                'Küresel Bir İmparatorluk Kur!',
+                'menu.subtitle'.tr(),
                 style: AppTheme.subtitleStyle(fontSize: 14).copyWith(color: AppColors.goldMuted),
               ),
               const Spacer(),
@@ -264,7 +263,7 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                   children: [
                     if (!widget.isInitialLaunch) ...[
                       _buildMenuButton(
-                        label: 'OYUNA DÖN',
+                        label: 'menu.return_to_game'.tr(),
                         icon: Icons.play_arrow_rounded,
                         isPrimary: true,
                         onPressed: () {
@@ -276,15 +275,14 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                       const SizedBox(height: 14),
                     ],
                     _buildMenuButton(
-                      label: 'YENİ OYUN',
+                      label: 'menu.new_game'.tr(),
                       icon: Icons.fiber_new_rounded,
                       isPrimary: widget.isInitialLaunch,
-                      // DÜZELTME: Sadece holding kurma ekranını açar, dil sormaz
-                      onPressed: _showNewGameDialog, 
+                      onPressed: _showNewGameDialog,
                     ),
                     const SizedBox(height: 14),
                     _buildMenuButton(
-                      label: 'AYARLAR',
+                      label: 'menu.settings'.tr(),
                       icon: Icons.settings_rounded,
                       isPrimary: false,
                       onPressed: () {
@@ -339,4 +337,4 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
       ),
     );
   }
-}
+} 

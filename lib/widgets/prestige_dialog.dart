@@ -1,6 +1,7 @@
 // lib/widgets/prestige_dialog.dart
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import '../services/translation_service.dart';
 import '../theme/app_theme.dart';
 
 class PrestigeDialog extends StatelessWidget {
@@ -67,7 +68,7 @@ class PrestigeDialog extends StatelessWidget {
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.12),
+              color: Colors.black.withValues(alpha: 0.3),
               blurRadius: 25,
               spreadRadius: 2,
             ),
@@ -86,14 +87,14 @@ class PrestigeDialog extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(color: AppColors.gold.withValues(alpha: 0.3)),
                   ),
-                  child: const Row(
+                  child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.workspace_premium_rounded, color: AppColors.gold, size: 14),
-                      SizedBox(width: 4),
+                      const Icon(Icons.workspace_premium_rounded, color: AppColors.gold, size: 14),
+                      const SizedBox(width: 4),
                       Text(
-                        'TASFİYE KONSOLU',
-                        style: TextStyle(
+                        'prestige.badge'.tr(),
+                        style: const TextStyle(
                           color: AppColors.gold,
                           fontSize: 10,
                           fontWeight: FontWeight.w900,
@@ -115,14 +116,14 @@ class PrestigeDialog extends StatelessWidget {
             ),
             const SizedBox(height: 14),
             Text(
-              'Holding Tasfiyesi',
+              'prestige.title'.tr(),
               style: AppTheme.titleStyle(fontSize: 18),
             ),
             const SizedBox(height: 4),
-            const Text(
-              'Ciro eşiğine ulaştığınızda tüm holdingi tasfiye edip Ar-Ge puanı kazanın.',
+            Text(
+              'prestige.description'.tr(),
               textAlign: TextAlign.center,
-              style: TextStyle(color: AppColors.textSecondary, fontSize: 11, height: 1.3),
+              style: const TextStyle(color: AppColors.textSecondary, fontSize: 11, height: 1.3),
             ),
             const SizedBox(height: 16),
             Container(
@@ -137,9 +138,9 @@ class PrestigeDialog extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
-                        'Mevcut Ciro',
-                        style: TextStyle(color: AppColors.textSecondary, fontSize: 11),
+                      Text(
+                        'prestige.current_turnover'.tr(),
+                        style: const TextStyle(color: AppColors.textSecondary, fontSize: 11),
                       ),
                       Text(
                         '\$${_formatTurnover(currentTurnover)} / 100 Qi',
@@ -170,9 +171,9 @@ class PrestigeDialog extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
-                        'Kazanılacak RP',
-                        style: TextStyle(color: AppColors.textSecondary, fontSize: 11),
+                      Text(
+                        'prestige.earnable_rp'.tr(),
+                        style: const TextStyle(color: AppColors.textSecondary, fontSize: 11),
                       ),
                       Text(
                         '+$earnableRP RP',
@@ -192,17 +193,17 @@ class PrestigeDialog extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
-                color: AppColors.loss.withValues(alpha: 0.08),
+                color: AppColors.loss.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Row(
+              child: Row(
                 children: [
-                  Icon(Icons.info_outline_rounded, color: AppColors.loss, size: 14),
-                  SizedBox(width: 6),
+                  const Icon(Icons.info_outline_rounded, color: AppColors.loss, size: 14),
+                  const SizedBox(width: 6),
                   Expanded(
                     child: Text(
-                      'Nakit ve tesisler sıfırlanır, Ar-Ge kalıcıdır.',
-                      style: TextStyle(color: AppColors.loss, fontSize: 10, fontWeight: FontWeight.bold),
+                      'prestige.warning'.tr(),
+                      style: const TextStyle(color: AppColors.loss, fontSize: 10, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ],
@@ -226,7 +227,9 @@ class PrestigeDialog extends StatelessWidget {
                       }
                     : null,
                 child: Text(
-                  canPrestige ? 'TASFİYE ET (+$earnableRP RP)' : '%${(progress * 100).toInt()} CİROYA ULAŞILDI',
+                  canPrestige 
+                      ? 'prestige.btn_action'.tr(params: {'rp': earnableRP.toString()})
+                      : 'prestige.btn_progress'.tr(params: {'percent': (progress * 100).toInt().toString()}),
                   style: const TextStyle(
                     fontWeight: FontWeight.w900,
                     letterSpacing: 1.0,

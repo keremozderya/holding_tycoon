@@ -1,6 +1,7 @@
+# pubspec.yaml
 name: holding_tycoon
 description: "A mobile holding tycoon game built in Flutter."
-publish_to: "none" # Remove this line if you wish to publish to pub.dev.
+publish_to: "none"
 
 version: 1.0.0+1
 
@@ -10,8 +11,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  shared_preferences: ^2.3.2
-  google_fonts: ^6.2.1
+  shared_preferences: ^2.5.5
+  google_fonts: ^6.3.3
   provider: ^6.1.2
 
 dev_dependencies:
@@ -22,7 +23,7 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
-  # Resimlerin ve assetlerin projede tanitilmasi
   assets:
     - assets/images/logo.png
     - assets/images/background.jpg
+    - assets/translations/

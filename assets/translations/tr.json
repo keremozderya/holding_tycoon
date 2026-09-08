@@ -1,0 +1,83 @@
+{
+  "app_title": "Holding Tycoon",
+  "menu": {
+    "subtitle": "Küresel Bir İmparatorluk Kur!",
+    "return_to_game": "OYUNA DÖN",
+    "new_game": "YENİ OYUN",
+    "settings": "AYARLAR",
+    "setup_holding": "Holdingini Kur",
+    "company_name": "Şirket İsmi",
+    "choose_logo": "Holding Logosu Seç",
+    "start": "BAŞLA",
+    "select_language": "Dil Seçimi"
+  },
+  "settings": {
+    "title": "Ayarlar",
+    "sound_settings": "SES AYARLARI",
+    "music_volume": "Müzik Sesi",
+    "sfx_volume": "Efekt Sesleri",
+    "language_options": "DİL SEÇENEKLERİ",
+    "game_language": "Oyun Dili"
+  },
+  "stock": {
+    "title": "KÜRESEL BORSA",
+    "header_title": "Küresel Borsa",
+    "cash_balance": "Nakit Bakiye",
+    "portfolio_value": "Portföy Değeri",
+    "info_text": "Hisse fiyatları 5 saniyede bir güncellenir.\nKomisyon: %0.5 (Yüksek Kâr!)",
+    "owned_shares": "Sahip Olunan: {amount} Hisse",
+    "net_pnl": "Net Kâr/Zarar: {amount}",
+    "buy_button": "HİSSE AL",
+    "sell_button": "SAT (HEPSİ)",
+    "insufficient_funds": "Yetersiz Bakiye!"
+  },
+  "achievements": {
+    "title": "BAŞARIMLAR",
+    "completed_count": "{completed} / {total} Tamamlandı",
+    "claim": "AL",
+    "claimed": "ALINDI",
+    "locked": "KİLİTLİ",
+    "reward_toast": "Ödül Alındı! {reward}"
+  },
+  "tasks": {
+    "title": "GÜNLÜK GÖREVLER",
+    "refresh_info": "Her 24 saatte bir yenilenir",
+    "claim": "AL",
+    "claimed": "ALINDI",
+    "in_progress": "SÜRÜYOR",
+    "locked_title": "GÖREVLER KİLİTLİ",
+    "locked_desc": "Günlük görevlerin açılması için en az 1 fabrikayı Seviye 30 yapmalısın.",
+    "current_progress": "Mevcut İlerleme: Lvl {level} / 30",
+    "reward_toast": "Görev Ödülü Alındı! {reward}"
+  },
+  "prestige": {
+    "badge": "TASFİYE KONSOLU",
+    "title": "Holding Tasfiyesi",
+    "description": "Ciro eşiğine ulaştığınızda tüm holdingi tasfiye edip Ar-Ge puanı kazanın.",
+    "current_turnover": "Mevcut Ciro",
+    "earnable_rp": "Kazanılacak RP",
+    "warning": "Nakit ve tesisler sıfırlanır, Ar-Ge kalıcıdır.",
+    "btn_action": "TASFİYE ET (+{rp} RP)",
+    "btn_progress": "%{percent} CİROYA ULAŞILDI"
+  },
+  "research": {
+    "app_bar_title": "AR-GE TEKNOLOJİ AĞACI",
+    "industry_col": "🏭 SANAYİ & OPERASYON",
+    "finance_col": "📈 FİNANS & BORSA",
+    "scroll_top": "Başa Dön",
+    "scroll_bottom": "Zirveye İn (Dünyaların Sahibi)",
+    "not_active": "Henüz Aktif Değil",
+    "max_level_reached": "Maksimum Seviyeye Ulaşıldı",
+    "next_effect": "Sonraki: {effect}",
+    "completed": "TAMAMLANDI",
+    "max": "MAKS",
+    "current_level": "Mevcut Seviye ({level}. Seviye)",
+    "next_level": "Sonraki Seviye ({level}. Seviye)",
+    "lock_warning": "Bu araştırmayı açmak için üst basamaktaki öncül yükseltmeyi tamamlayın.",
+    "btn_upgrade": "GELİŞTİR ({cost} RP)",
+    "btn_req_unmet": "ÖNCEKİ YÜKSELTMEYİ TAMAMLAYIN"
+  },
+  "common": {
+    "back_to_menu": "Ana Menüye Dön"
+  }
+}

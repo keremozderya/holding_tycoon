@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/game_state.dart';
+import '../services/translation_service.dart';
 import '../theme/app_theme.dart';
 
 class Achievement {
@@ -46,7 +47,6 @@ class AchievementsDialog extends StatefulWidget {
 }
 
 class _AchievementsDialogState extends State<AchievementsDialog> {
-  // Örnek Başarım Listesi (GDD mantığına göre kurgulanmıştır)
   late final List<Achievement> _achievements = [
     Achievement(
       id: 'ach_01',
@@ -128,11 +128,13 @@ class _AchievementsDialogState extends State<AchievementsDialog> {
       }
     });
 
+    final rewardText = '${achievement.rewardMoney > 0 ? "+\$${achievement.rewardMoney.toStringAsFixed(0)} " : ""}${achievement.rewardRp > 0 ? "+${achievement.rewardRp} RP" : ""}';
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         backgroundColor: AppColors.surfaceElevated,
         content: Text(
-          'Ödül Alındı! ${achievement.rewardMoney > 0 ? "+\$${achievement.rewardMoney.toStringAsFixed(0)} " : ""}${achievement.rewardRp > 0 ? "+${achievement.rewardRp} RP" : ""}',
+          'achievements.reward_toast'.tr(params: {'reward': rewardText}),
           style: const TextStyle(color: AppColors.profit, fontWeight: FontWeight.bold),
         ),
       ),
@@ -141,6 +143,7 @@ class _AchievementsDialogState extends State<AchievementsDialog> {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<GameState>();
     final completedCount = _achievements.where((a) => a.isCompleted).length;
 
     return Dialog(
@@ -163,7 +166,6 @@ class _AchievementsDialogState extends State<AchievementsDialog> {
         ),
         child: Column(
           children: [
-            // Üst Başlık Barı
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 18, 14, 14),
               child: Row(
@@ -181,9 +183,9 @@ class _AchievementsDialogState extends State<AchievementsDialog> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'BAŞARIMLAR',
-                          style: TextStyle(
+                        Text(
+                          'achievements.title'.tr(),
+                          style: const TextStyle(
                             color: AppColors.textPrimary,
                             fontWeight: FontWeight.w900,
                             fontSize: 16,
@@ -191,7 +193,10 @@ class _AchievementsDialogState extends State<AchievementsDialog> {
                           ),
                         ),
                         Text(
-                          '$completedCount / ${_achievements.length} Tamamlandı',
+                          'achievements.completed_count'.tr(params: {
+                            'completed': completedCount.toString(),
+                            'total': _achievements.length.toString(),
+                          }),
                           style: const TextStyle(color: AppColors.gold, fontSize: 11, fontWeight: FontWeight.bold),
                         ),
                       ],
@@ -205,8 +210,6 @@ class _AchievementsDialogState extends State<AchievementsDialog> {
               ),
             ),
             const Divider(color: AppColors.border, height: 1),
-
-            // Başarımlar Listesi
             Expanded(
               child: ListView.separated(
                 padding: const EdgeInsets.all(16),
@@ -294,7 +297,6 @@ class _AchievementsDialogState extends State<AchievementsDialog> {
                           ),
                         ),
                         const SizedBox(width: 12),
-                        // Ödül ve Buton
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
@@ -324,7 +326,7 @@ class _AchievementsDialogState extends State<AchievementsDialog> {
                                   ? () => _claimReward(ach)
                                   : null,
                               child: Text(
-                                ach.isClaimed ? 'ALINDI' : (ach.isCompleted ? 'AL' : 'KİLİTLİ'),
+                                ach.isClaimed ? 'achievements.claimed'.tr() : (ach.isCompleted ? 'achievements.claim'.tr() : 'achievements.locked'.tr()),
                                 style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900),
                               ),
                             ),

@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/game_state.dart';
+import '../services/translation_service.dart';
 import '../theme/app_theme.dart';
 
 class StockScreen extends StatelessWidget {
@@ -36,14 +37,15 @@ class StockScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Ekranda değişiklik olduğunda otomatik güncellenmesini sağlar
     final gameState = context.watch<GameState>();
     final stocks = gameState.stocks;
 
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
+        title: Text('stock.title'.tr(), style: AppTheme.titleStyle(fontSize: 18)),
         backgroundColor: AppColors.background,
+        centerTitle: true,
         elevation: 0,
         scrolledUnderElevation: 0,
         leading: IconButton(
@@ -72,9 +74,9 @@ class StockScreen extends StatelessWidget {
             ),
             child: Column(
               children: [
-                const Text(
-                  'Küresel Borsa',
-                  style: TextStyle(color: AppColors.neonCyan, fontSize: 18, fontWeight: FontWeight.w800, letterSpacing: 1.2),
+                Text(
+                  'stock.header_title'.tr(),
+                  style: const TextStyle(color: AppColors.neonCyan, fontSize: 18, fontWeight: FontWeight.w800, letterSpacing: 1.2),
                 ),
                 const SizedBox(height: 6),
                 Text(
@@ -88,10 +90,10 @@ class StockScreen extends StatelessWidget {
                     color: AppColors.background.withValues(alpha: 0.5),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Text(
-                    'Hisse fiyatları 5 saniyede bir güncellenir.\nKomisyon: %0.5 (Yüksek Kâr!)',
+                  child: Text(
+                    'stock.info_text'.tr(),
                     textAlign: TextAlign.center,
-                    style: TextStyle(color: AppColors.textSecondary, fontSize: 10, height: 1.4),
+                    style: const TextStyle(color: AppColors.textSecondary, fontSize: 10, height: 1.4),
                   ),
                 ),
               ],
@@ -147,9 +149,15 @@ class StockScreen extends StatelessWidget {
                                 ],
                               ),
                               const SizedBox(height: 8),
-                              Text('Sahip Olunan: ${_formatBigNum(stock.ownedShares)} Hisse', style: const TextStyle(color: AppColors.textSecondary, fontSize: 11, fontWeight: FontWeight.w500)),
+                              Text(
+                                'stock.owned_shares'.tr(params: {'amount': _formatBigNum(stock.ownedShares)}),
+                                style: const TextStyle(color: AppColors.textSecondary, fontSize: 11, fontWeight: FontWeight.w500),
+                              ),
                               const SizedBox(height: 2),
-                              Text('Net Kâr/Zarar: ${_formatBigNum(stock.netPnl, isMoney: true)}', style: TextStyle(color: pnlColor, fontSize: 11, fontWeight: FontWeight.bold)),
+                              Text(
+                                'stock.net_pnl'.tr(params: {'amount': _formatBigNum(stock.netPnl, isMoney: true)}),
+                                style: TextStyle(color: pnlColor, fontSize: 11, fontWeight: FontWeight.bold),
+                              ),
                             ],
                           ),
                         ),
@@ -175,17 +183,16 @@ class StockScreen extends StatelessWidget {
                       children: [
                         Expanded(
                           child: _buildGameButton(
-                            label: 'HİSSE AL',
+                            label: 'stock.buy_button'.tr(),
                             colors: const [Color(0xFF34D399), AppColors.profit],
                             isActive: gameState.money >= stock.currentPrice,
-                            // Artık doğrudan GameState'teki fonksiyonu çağırıyoruz
                             onTap: () => context.read<GameState>().buyStock(stock.id),
                           ),
                         ),
                         const SizedBox(width: 14),
                         Expanded(
                           child: _buildGameButton(
-                            label: 'SAT (HEPSİ)',
+                            label: 'stock.sell_button'.tr(),
                             colors: const [Color(0xFFFBBF24), AppColors.gold],
                             isActive: stock.ownedShares > 0,
                             onTap: () => context.read<GameState>().sellAllStock(stock.id),

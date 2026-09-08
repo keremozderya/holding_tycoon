@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/game_state.dart';
+import '../services/translation_service.dart';
 import '../theme/app_theme.dart';
 
 class DailyTask {
@@ -94,11 +95,13 @@ class _TasksDialogState extends State<TasksDialog> {
       if (task.rewardRp > 0) gameState.updateResearchPoints(task.rewardRp);
     });
 
+    final rewardText = '${task.rewardMoney > 0 ? "+\$${task.rewardMoney.toStringAsFixed(0)} " : ""}${task.rewardRp > 0 ? "+${task.rewardRp} RP" : ""}';
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         backgroundColor: AppColors.surfaceElevated,
         content: Text(
-          'Görev Ödülü Alındı! ${task.rewardMoney > 0 ? "+\$${task.rewardMoney.toStringAsFixed(0)} " : ""}${task.rewardRp > 0 ? "+${task.rewardRp} RP" : ""}',
+          'tasks.reward_toast'.tr(params: {'reward': rewardText}),
           style: const TextStyle(color: AppColors.profit, fontWeight: FontWeight.bold),
         ),
       ),
@@ -107,6 +110,7 @@ class _TasksDialogState extends State<TasksDialog> {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<GameState>();
     final bool isUnlocked = widget.highestFactoryLevel >= requiredUnlockLevel;
 
     return Dialog(
@@ -132,7 +136,6 @@ class _TasksDialogState extends State<TasksDialog> {
         ),
         child: Column(
           children: [
-            // Üst Başlık Barı
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 18, 14, 14),
               child: Row(
@@ -152,13 +155,13 @@ class _TasksDialogState extends State<TasksDialog> {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  const Expanded(
+                  Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'GÜNLÜK GÖREVLER',
-                          style: TextStyle(
+                          'tasks.title'.tr(),
+                          style: const TextStyle(
                             color: AppColors.textPrimary,
                             fontWeight: FontWeight.w900,
                             fontSize: 16,
@@ -166,8 +169,8 @@ class _TasksDialogState extends State<TasksDialog> {
                           ),
                         ),
                         Text(
-                          'Her 24 saatte bir yenilenir',
-                          style: TextStyle(color: AppColors.textSecondary, fontSize: 11),
+                          'tasks.refresh_info'.tr(),
+                          style: const TextStyle(color: AppColors.textSecondary, fontSize: 11),
                         ),
                       ],
                     ),
@@ -180,8 +183,6 @@ class _TasksDialogState extends State<TasksDialog> {
               ),
             ),
             const Divider(color: AppColors.border, height: 1),
-
-            // Kilit Durumu veya Görev Listesi
             Expanded(
               child: isUnlocked
                   ? ListView.separated(
@@ -293,7 +294,7 @@ class _TasksDialogState extends State<TasksDialog> {
                                         ? () => _claimTask(task)
                                         : null,
                                     child: Text(
-                                      task.isClaimed ? 'ALINDI' : (task.isCompleted ? 'AL' : 'SÜRÜYOR'),
+                                      task.isClaimed ? 'tasks.claimed'.tr() : (task.isCompleted ? 'tasks.claim'.tr() : 'tasks.in_progress'.tr()),
                                       style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900),
                                     ),
                                   ),
@@ -320,9 +321,9 @@ class _TasksDialogState extends State<TasksDialog> {
                               child: const Icon(Icons.lock_clock_rounded, color: AppColors.loss, size: 48),
                             ),
                             const SizedBox(height: 16),
-                            const Text(
-                              'GÖREVLER KİLİTLİ',
-                              style: TextStyle(
+                            Text(
+                              'tasks.locked_title'.tr(),
+                              style: const TextStyle(
                                 color: AppColors.textPrimary,
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
@@ -330,10 +331,10 @@ class _TasksDialogState extends State<TasksDialog> {
                               ),
                             ),
                             const SizedBox(height: 8),
-                            const Text(
-                              'Günlük görevlerin açılması için en az 1 fabrikayı Seviye 30 yapmalısın.',
+                            Text(
+                              'tasks.locked_desc'.tr(),
                               textAlign: TextAlign.center,
-                              style: TextStyle(color: AppColors.textSecondary, fontSize: 12, height: 1.4),
+                              style: const TextStyle(color: AppColors.textSecondary, fontSize: 12, height: 1.4),
                             ),
                             const SizedBox(height: 20),
                             ClipRRect(
@@ -347,7 +348,7 @@ class _TasksDialogState extends State<TasksDialog> {
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              'Mevcut İlerleme: Lvl ${widget.highestFactoryLevel} / 30',
+                              'tasks.current_progress'.tr(params: {'level': widget.highestFactoryLevel.toString()}),
                               style: const TextStyle(
                                 color: AppColors.gold,
                                 fontWeight: FontWeight.bold,

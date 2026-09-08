@@ -4,8 +4,8 @@ import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../services/translation_service.dart';
 
-// --- HİSSE SENEDİ MODELİ ---
 class Stock {
   final String id;
   final String name;
@@ -31,46 +31,49 @@ class Stock {
 }
 
 class GameState extends ChangeNotifier {
-  // --- OYUN VERİLERİ (STATE) ---
   double _money = 0.0;
   int _researchPoints = 0;
   bool _isFirstLaunch = true;
+  String _language = 'tr';
 
-  // Borsa Verileri
   Timer? _marketTimer;
   final Random _random = Random();
   static const int _historyLength = 40;
   
   List<Stock> _stocks = [];
 
-  // --- GETTER METOTLARI ---
   double get money => _money;
   int get researchPoints => _researchPoints;
   bool get isFirstLaunch => _isFirstLaunch;
+  String get language => _language;
   List<Stock> get stocks => _stocks;
 
-  // --- 1. VERİLERİ YÜKLEME VE OYUNU BAŞLATMA ---
   Future<void> loadData() async {
     final prefs = await SharedPreferences.getInstance();
     
     _money = prefs.getDouble('money') ?? 1000.0; 
     _researchPoints = prefs.getInt('researchPoints') ?? 0;
     _isFirstLaunch = prefs.getBool('is_initial_launch') ?? true;
-    
-    // Borsayı Yükle
+    _language = prefs.getString('language') ?? 'tr';
+
+    await TranslationService.instance.loadLanguage(_language);
+
     _loadStocks(prefs);
-
     notifyListeners(); 
-
-    // Veriler yüklendikten sonra global oyun döngülerini başlat
     _startGlobalTimers();
   }
 
-  // --- 2. BORSA HAFIZA YÖNETİMİ (JSON) ---
+  Future<void> setLanguage(String langCode) async {
+    _language = langCode.toLowerCase();
+    await TranslationService.instance.loadLanguage(_language);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('language', _language);
+    notifyListeners();
+  }
+
   void _loadStocks(SharedPreferences prefs) {
     String? savedStocksJson = prefs.getString('saved_stocks');
     
-    // Temel Şirket Şablonları (İkonlar ve Renkler JSON'a kaydedilemediği için burada eşleştiriyoruz)
     _stocks = [
       Stock(id: '1', name: 'Redof Tech', icon: Icons.smart_toy_rounded, iconColor: Colors.blueAccent, currentPrice: 71.0, history: List.generate(_historyLength, (_) => 71.0)),
       Stock(id: '2', name: 'Titan Ağır Sanayi', icon: Icons.factory_rounded, iconColor: Colors.pinkAccent, currentPrice: 24280.0, history: List.generate(_historyLength, (_) => 24280.0)),
@@ -79,7 +82,6 @@ class GameState extends ChangeNotifier {
       Stock(id: '5', name: 'Nova Enerji', icon: Icons.bolt_rounded, iconColor: Colors.amberAccent, currentPrice: 85.0, history: List.generate(_historyLength, (_) => 85.0)),
     ];
 
-    // Eğer daha önce kaydedilmiş bir borsa verisi varsa, fiyatları ve sahip olunan lotları üzerine yaz
     if (savedStocksJson != null) {
       List<dynamic> decoded = jsonDecode(savedStocksJson);
       for (var savedStock in decoded) {
@@ -94,7 +96,6 @@ class GameState extends ChangeNotifier {
 
   Future<void> _saveStocks() async {
     final prefs = await SharedPreferences.getInstance();
-    // Borsa listesini JSON formatına dönüştürüp kaydediyoruz
     String encoded = jsonEncode(_stocks.map((s) => {
       'id': s.id,
       'currentPrice': s.currentPrice,
@@ -105,9 +106,7 @@ class GameState extends ChangeNotifier {
     await prefs.setString('saved_stocks', encoded);
   }
 
-  // --- 3. OYUN DÖNGÜLERİ (ARKAPLAN İŞLEMLERİ) ---
   void _startGlobalTimers() {
-    // Haritada dolaşırken bile borsa 5 saniyede bir güncellenir
     _marketTimer ??= Timer.periodic(const Duration(seconds: 5), (timer) {
       _updateMarket();
     });
@@ -127,11 +126,10 @@ class GameState extends ChangeNotifier {
         stock.history.removeAt(0);
       }
     }
-    _saveStocks(); // Fiyatlar her değiştiğinde telefona kaydet
-    notifyListeners(); // Ekranı güncelle
+    _saveStocks();
+    notifyListeners();
   }
 
-  // --- 4. HİSSE AL / SAT İŞLEMLERİ ---
   void buyStock(String stockId) {
     var stock = _stocks.firstWhere((s) => s.id == stockId);
     double budget = _money * 0.1;
@@ -170,7 +168,6 @@ class GameState extends ChangeNotifier {
     }
   }
 
-  // --- TEMEL KAYIT İŞLEMLERİ ---
   Future<void> completeFirstLaunch() async {
     _isFirstLaunch = false;
     notifyListeners();

@@ -23,7 +23,7 @@ class _MapScreenState extends State<MapScreen> {
   double _currentTurnover = 2.45e20;
 
   // Test amacıyla fabrika seviyesi (Görevlerin açılma sınırını denemek için)
-  int _testHighestFactoryLevel = 30;
+  final int _testHighestFactoryLevel = 30;
 
   final List<IconData> _defaultLogos = const [
     Icons.domain_rounded,

@@ -40,15 +40,19 @@ class HoldingTycoonApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isFirstLaunch = context.read<GameState>().isFirstLaunch;
-
-    return MaterialApp(
-      title: 'Holding Tycoon',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.darkTheme, // Ortak premium koyu tema
-      home: isFirstLaunch 
-          ? const MainMenuScreen(isInitialLaunch: true)
-          : const MapScreen(),
+    // Consumer ile GameState dinlenir; dil değiştiğinde tüm uygulama anında yeniden çizilir
+    return Consumer<GameState>(
+      builder: (context, gameState, child) {
+        return MaterialApp(
+          key: ValueKey(gameState.language), // Dil değiştiğinde widget ağacını yeniler
+          title: 'Holding Tycoon',
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.darkTheme,
+          home: gameState.isFirstLaunch 
+              ? const MainMenuScreen(isInitialLaunch: true)
+              : const MapScreen(),
+        );
+      },
     );
   }
 }
