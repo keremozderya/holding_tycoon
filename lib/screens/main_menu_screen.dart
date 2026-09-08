@@ -1,6 +1,8 @@
 // lib/screens/main_menu_screen.dart
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../providers/game_state.dart';
 import 'settings_screen.dart';
 import '../theme/app_theme.dart';
 import 'map_screen.dart';
@@ -24,14 +26,68 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
     Icons.bolt_rounded,
   ];
 
+  final List<Map<String, String>> _languages = const [
+    {'code': 'TR', 'name': 'Türkçe', 'flag': '🇹🇷'},
+    {'code': 'EN', 'name': 'English', 'flag': '🇬🇧'},
+    {'code': 'DE', 'name': 'Deutsch', 'flag': '🇩🇪'},
+    {'code': 'ES', 'name': 'Español', 'flag': '🇪🇸'},
+    {'code': 'FR', 'name': 'Français', 'flag': '🇫🇷'},
+    {'code': 'IT', 'name': 'Italiano', 'flag': '🇮🇹'},
+  ];
+
   @override
   void initState() {
     super.initState();
     if (widget.isInitialLaunch) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        _showNewGameDialog();
+        _showLanguageSelectionDialog();
       });
     }
+  }
+
+  void _showLanguageSelectionDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false, 
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: AppColors.surface,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: const Text(
+            'Select Language\nDil Seçimi',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: AppColors.gold, fontWeight: FontWeight.bold, fontSize: 18),
+          ),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: ListView.separated(
+              shrinkWrap: true,
+              itemCount: _languages.length,
+              separatorBuilder: (_, __) => const Divider(color: AppColors.border, height: 1),
+              itemBuilder: (context, index) {
+                final lang = _languages[index];
+                return ListTile(
+                  leading: Text(lang['flag']!, style: const TextStyle(fontSize: 24)),
+                  title: Text(
+                    lang['name']!,
+                    style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
+                  ),
+                  trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: AppColors.gold),
+                  onTap: () async {
+                    final prefs = await SharedPreferences.getInstance();
+                    await prefs.setString('language', lang['code']!);
+                    
+                    if (!context.mounted) return;
+                    Navigator.pop(context); 
+                    _showNewGameDialog();   
+                  },
+                );
+              },
+            ),
+          ),
+        );
+      },
+    );
   }
 
   void _showNewGameDialog() {
@@ -125,10 +181,14 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
 
                       await prefs.setString('holding_name', holdingName);
                       await prefs.setInt('holding_logo_index', selectedLogoIndex);
-                      await prefs.setBool('is_first_time', false);
+                      
+                      if (!context.mounted) return;
+
+                      await context.read<GameState>().completeFirstLaunch();
 
                       if (!context.mounted) return;
                       Navigator.pop(context);
+
                       Navigator.of(context).pushReplacement(
                         MaterialPageRoute(builder: (context) => const MapScreen()),
                       );
@@ -158,7 +218,7 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
             image: const AssetImage('assets/images/background.jpg'),
             fit: BoxFit.cover,
             colorFilter: ColorFilter.mode(
-              Colors.black.withValues(alpha: 0.65), // Arka planın karanlık mod filtresi (yazıların okunabilirliği için)
+              Colors.black.withValues(alpha: 0.65), 
               BlendMode.darken,
             ),
           ),
@@ -168,14 +228,12 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Spacer(),
-              // Logo Görseli
               Image.asset(
                 'assets/images/logo.png',
                 width: 140,
                 height: 140,
                 fit: BoxFit.contain,
                 errorBuilder: (context, error, stackTrace) {
-                  // Görsel yüklenemezse yedek ikon gösterir
                   return Container(
                     padding: const EdgeInsets.all(18),
                     decoration: BoxDecoration(
@@ -219,7 +277,7 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                       label: 'YENİ OYUN',
                       icon: Icons.fiber_new_rounded,
                       isPrimary: widget.isInitialLaunch,
-                      onPressed: _showNewGameDialog,
+                      onPressed: _showLanguageSelectionDialog, // Yeni oyun da dil seçimi ile başlar
                     ),
                     const SizedBox(height: 14),
                     _buildMenuButton(
