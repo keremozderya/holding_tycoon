@@ -3,10 +3,12 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../theme/app_theme.dart';
+import '../widgets/achievements.dart'; // Başarımlar eklendi
 import '../widgets/prestige_dialog.dart';
+import '../widgets/tasks.dart'; // Görevler eklendi
 import 'main_menu_screen.dart';
 import 'research_screen.dart';
-import 'stock_screen.dart'; // Borsa ekranını içeri aktardık
+import 'stock_screen.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -19,6 +21,9 @@ class _MapScreenState extends State<MapScreen> {
   String _holdingName = 'Holding';
   int _logoIndex = 0;
   double _currentTurnover = 2.45e20;
+
+  // Test amacıyla fabrika seviyesi (Görevlerin açılma sınırını denemek için)
+  int _testHighestFactoryLevel = 30;
 
   final List<IconData> _defaultLogos = const [
     Icons.domain_rounded,
@@ -98,7 +103,7 @@ class _MapScreenState extends State<MapScreen> {
                   border: Border.all(color: AppColors.border),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.04),
+                      color: Colors.black.withValues(alpha: 0.2),
                       blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),
@@ -140,8 +145,6 @@ class _MapScreenState extends State<MapScreen> {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    
-                    // YENİ EKLENEN BORSA TEST BUTONU
                     SizedBox(
                       width: double.infinity,
                       height: 48,
@@ -165,7 +168,57 @@ class _MapScreenState extends State<MapScreen> {
                         },
                       ),
                     ),
-                    
+                    const SizedBox(height: 12),
+
+                    // YENİ EKLENEN: BAŞARIMLAR TEST BUTONU
+                    SizedBox(
+                      width: double.infinity,
+                      height: 48,
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.surfaceElevated,
+                          foregroundColor: AppColors.textPrimary,
+                          side: const BorderSide(color: AppColors.border),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          elevation: 0,
+                        ),
+                        icon: const Icon(Icons.emoji_events_rounded, color: AppColors.gold, size: 20),
+                        label: const Text(
+                          'Başarımlar (Test)',
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                        ),
+                        onPressed: () {
+                          AchievementsDialog.show(context);
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // YENİ EKLENEN: GÜNLÜK GÖREVLER TEST BUTONU
+                    SizedBox(
+                      width: double.infinity,
+                      height: 48,
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.surfaceElevated,
+                          foregroundColor: AppColors.textPrimary,
+                          side: const BorderSide(color: AppColors.border),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          elevation: 0,
+                        ),
+                        icon: const Icon(Icons.task_alt_rounded, color: AppColors.neonCyan, size: 20),
+                        label: Text(
+                          'Günlük Görevler (Test - Lvl $_testHighestFactoryLevel)',
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                        ),
+                        onPressed: () {
+                          TasksDialog.show(
+                            context,
+                            highestFactoryLevel: _testHighestFactoryLevel,
+                          );
+                        },
+                      ),
+                    ),
                     const SizedBox(height: 12),
                     SizedBox(
                       width: double.infinity,
