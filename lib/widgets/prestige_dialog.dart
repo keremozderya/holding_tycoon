@@ -67,7 +67,7 @@ class PrestigeDialog extends StatelessWidget {
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.12),
+              color: Colors.black.withValues(alpha: 0.12),
               blurRadius: 25,
               spreadRadius: 2,
             ),
@@ -82,9 +82,9 @@ class PrestigeDialog extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: AppColors.gold.withOpacity(0.12),
+                    color: AppColors.gold.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: AppColors.gold.withOpacity(0.3)),
+                    border: Border.all(color: AppColors.gold.withValues(alpha: 0.3)),
                   ),
                   child: const Row(
                     mainAxisSize: MainAxisSize.min,
@@ -158,7 +158,7 @@ class PrestigeDialog extends StatelessWidget {
                     child: LinearProgressIndicator(
                       value: progress,
                       minHeight: 6,
-                      backgroundColor: AppColors.border.withOpacity(0.5),
+                      backgroundColor: AppColors.border.withValues(alpha: 0.5),
                       valueColor: AlwaysStoppedAnimation<Color>(
                         canPrestige ? AppColors.profit : AppColors.gold,
                       ),
@@ -192,7 +192,7 @@ class PrestigeDialog extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
-                color: AppColors.loss.withOpacity(0.08),
+                color: AppColors.loss.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Row(

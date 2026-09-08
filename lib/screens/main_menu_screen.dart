@@ -89,7 +89,7 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                             width: 64,
                             height: 64,
                             decoration: BoxDecoration(
-                              color: isSelected ? AppColors.gold.withOpacity(0.2) : AppColors.background,
+                              color: isSelected ? AppColors.gold.withValues(alpha: 0.2) : AppColors.background,
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
                                 color: isSelected ? AppColors.gold : AppColors.border,
@@ -158,7 +158,7 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
             image: const AssetImage('assets/images/background.jpg'),
             fit: BoxFit.cover,
             colorFilter: ColorFilter.mode(
-              Colors.black.withOpacity(0.65), // Arka planın karanlık mod filtresi (yazıların okunabilirliği için)
+              Colors.black.withValues(alpha: 0.65), // Arka planın karanlık mod filtresi (yazıların okunabilirliği için)
               BlendMode.darken,
             ),
           ),
@@ -180,7 +180,7 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                     padding: const EdgeInsets.all(18),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: AppColors.gold.withOpacity(0.2),
+                      color: AppColors.gold.withValues(alpha: 0.2),
                       border: Border.all(color: AppColors.gold, width: 2),
                     ),
                     child: const Icon(Icons.domain_rounded, size: 76, color: AppColors.gold),
@@ -256,7 +256,7 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
       height: 52,
       child: ElevatedButton.icon(
         style: ElevatedButton.styleFrom(
-          backgroundColor: isPrimary ? AppColors.gold : AppColors.surface.withOpacity(0.9),
+          backgroundColor: isPrimary ? AppColors.gold : AppColors.surface.withValues(alpha: 0.9),
           foregroundColor: isPrimary ? Colors.white : AppColors.textPrimary,
           elevation: isPrimary ? 6 : 0,
           shape: RoundedRectangleBorder(

@@ -276,7 +276,7 @@ List<ResearchNode> build100Nodes() {
     _n('node_099', 'Sermaye Sütun Zirvesi', 'Apex Kol 2', 'Kol 2 Apex: Borsa, kâr ve nakit akışını kalıcı olarak ikiye katlar.', Icons.account_balance_rounded, 40, 1, ['node_098'],
       (lvl) => 'Borsa ve Nakit Akışı Kalıcı 2.0x'),
 
-    _n('node_100', 'Dünyaların Sahibi Doktrini', 'Apex', '10^33 Ciroya Giden Zirve: Tüm sistemleri maksimum verimle taçlandırır.', Icons.diamond_rounded, 100, 1, ['node_050', 'node_099'],
+    _n('node_100', 'Dünyaların Sahibi', 'Apex', '10^33 Ciroya Giden Zirve: Tüm sistemleri maksimum verimle taçlandırır.', Icons.diamond_rounded, 100, 1, ['node_050', 'node_099'],
       (lvl) => '10^33 Zirvesi: Maliyetler -%50, Saniyelik Gelir 5x ve Prestij RP Kazanımı 3x!'),
   ];
 }
@@ -372,7 +372,7 @@ class _ResearchScreenState extends State<ResearchScreen> {
             decoration: BoxDecoration(
               color: AppColors.background,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.gold.withOpacity(0.3)),
+              border: Border.all(color: AppColors.gold.withValues(alpha: 0.3)),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -544,11 +544,11 @@ class _ResearchScreenState extends State<ResearchScreen> {
       borderColor = isApex ? const Color(0xFFB38B38) : AppColors.gold;
       bgColor = AppColors.surface;
     } else if (accessible) {
-      borderColor = AppColors.gold.withOpacity(0.5);
+      borderColor = AppColors.gold.withValues(alpha: 0.5);
       bgColor = AppColors.surface;
     } else {
-      borderColor = AppColors.border.withOpacity(0.5);
-      bgColor = AppColors.surfaceElevated.withOpacity(0.5);
+      borderColor = AppColors.border.withValues(alpha: 0.5);
+      bgColor = AppColors.surfaceElevated.withValues(alpha: 0.5);
     }
 
     return InkWell(
@@ -568,7 +568,7 @@ class _ResearchScreenState extends State<ResearchScreen> {
           boxShadow: unlocked
               ? [
                   BoxShadow(
-                    color: (maxed ? AppColors.profit : AppColors.gold).withOpacity(isApex ? 0.25 : 0.08),
+                    color: (maxed ? AppColors.profit : AppColors.gold).withValues(alpha: isApex ? 0.25 : 0.08),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   )
@@ -588,7 +588,7 @@ class _ResearchScreenState extends State<ResearchScreen> {
                     color: unlocked ? AppColors.background : Colors.black12,
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
-                      color: unlocked ? AppColors.gold.withOpacity(0.3) : Colors.transparent,
+                      color: unlocked ? AppColors.gold.withValues(alpha: 0.3) : Colors.transparent,
                     ),
                   ),
                   child: Icon(
@@ -648,7 +648,7 @@ class _ResearchScreenState extends State<ResearchScreen> {
               decoration: BoxDecoration(
                 color: AppColors.background,
                 borderRadius: BorderRadius.circular(6),
-                border: Border.all(color: AppColors.border.withOpacity(0.4)),
+                border: Border.all(color: AppColors.border.withValues(alpha: 0.4)),
               ),
               child: Text(
                 node.isUnlocked ? node.currentEffectText : 'Sonraki: ${node.nextEffectText}',
@@ -689,7 +689,7 @@ class _ResearchScreenState extends State<ResearchScreen> {
       child: Container(
         width: 2,
         height: double.infinity,
-        color: (isLeftUnlocked || isRightUnlocked) ? AppColors.gold.withOpacity(0.4) : AppColors.border,
+        color: (isLeftUnlocked || isRightUnlocked) ? AppColors.gold.withValues(alpha: 0.4) : AppColors.border,
       ),
     );
   }
@@ -742,7 +742,7 @@ class _ResearchScreenState extends State<ResearchScreen> {
             border: Border.all(color: AppColors.border),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.1),
+                color: Colors.black.withValues(alpha: 0.1),
                 blurRadius: 20,
                 spreadRadius: 4,
               ),
@@ -759,7 +759,7 @@ class _ResearchScreenState extends State<ResearchScreen> {
                     decoration: BoxDecoration(
                       color: AppColors.background,
                       shape: BoxShape.circle,
-                      border: Border.all(color: AppColors.gold.withOpacity(0.3)),
+                      border: Border.all(color: AppColors.gold.withValues(alpha: 0.3)),
                     ),
                     child: Icon(node.icon, color: AppColors.gold, size: 26),
                   ),
@@ -853,9 +853,9 @@ class _ResearchScreenState extends State<ResearchScreen> {
                   margin: const EdgeInsets.only(bottom: 14),
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: AppColors.loss.withOpacity(0.1),
+                    color: AppColors.loss.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AppColors.loss.withOpacity(0.3)),
+                    border: Border.all(color: AppColors.loss.withValues(alpha: 0.3)),
                   ),
                   child: const Row(
                     children: [
@@ -907,7 +907,7 @@ class ForkLinesPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = AppColors.gold.withOpacity(0.5)
+      ..color = AppColors.gold.withValues(alpha: 0.5)
       ..strokeWidth = 2.0
       ..style = PaintingStyle.stroke;
 

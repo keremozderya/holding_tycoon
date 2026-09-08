@@ -134,7 +134,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
           color: _isLanguageExpanded
-              ? AppColors.gold.withOpacity(0.6)
+              ? AppColors.gold.withValues(alpha: 0.6)
               : AppColors.border,
           width: _isLanguageExpanded ? 1.5 : 1,
         ),
@@ -307,7 +307,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               activeTrackColor: AppColors.gold,
               inactiveTrackColor: AppColors.border,
               thumbColor: AppColors.gold,
-              overlayColor: AppColors.gold.withOpacity(0.2),
+              overlayColor: AppColors.gold.withValues(alpha: 0.2),
               trackHeight: 4,
             ),
             child: Slider(

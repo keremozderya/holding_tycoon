@@ -97,7 +97,7 @@ class _MapScreenState extends State<MapScreen> {
                   border: Border.all(color: AppColors.border),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.04),
+                      color: Colors.black.withValues(alpha: 0.04),
                       blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),
@@ -144,7 +144,7 @@ class _MapScreenState extends State<MapScreen> {
                       height: 48,
                       child: ElevatedButton.icon(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.gold.withOpacity(0.12),
+                          backgroundColor: AppColors.gold.withValues(alpha: 0.12),
                           foregroundColor: AppColors.gold,
                           side: const BorderSide(color: AppColors.gold),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
