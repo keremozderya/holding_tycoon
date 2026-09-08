@@ -1,6 +1,7 @@
+// lib/screens/main_menu_screen.dart
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../settings_screen.dart';
+import 'settings_screen.dart';
 import '../theme/app_theme.dart';
 import 'map_screen.dart';
 
@@ -65,7 +66,7 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                         filled: true,
                         fillColor: AppColors.background,
                         hintText: 'MyHolding',
-                        hintStyle: const TextStyle(color: Colors.white30),
+                        hintStyle: const TextStyle(color: Colors.black26),
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -88,16 +89,16 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                             width: 64,
                             height: 64,
                             decoration: BoxDecoration(
-                              color: isSelected ? AppColors.gold.withValues(alpha: 0.2) : AppColors.background,
+                              color: isSelected ? AppColors.gold.withOpacity(0.2) : AppColors.background,
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
-                                color: isSelected ? AppColors.gold : Colors.white12,
+                                color: isSelected ? AppColors.gold : AppColors.border,
                                 width: isSelected ? 2 : 1,
                               ),
                             ),
                             child: Icon(
                               _defaultLogos[index],
-                              color: isSelected ? AppColors.gold : Colors.white60,
+                              color: isSelected ? AppColors.gold : AppColors.textSecondary,
                               size: 32,
                             ),
                           ),
@@ -134,7 +135,7 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                     },
                     child: const Text(
                       'BAŞLA',
-                      style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 16),
+                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
                     ),
                   ),
                 ),
@@ -157,7 +158,7 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
             image: const AssetImage('assets/images/background.jpg'),
             fit: BoxFit.cover,
             colorFilter: ColorFilter.mode(
-              Colors.black.withValues(alpha: 0.72),
+              Colors.black.withOpacity(0.65), // Arka planın karanlık mod filtresi (yazıların okunabilirliği için)
               BlendMode.darken,
             ),
           ),
@@ -167,17 +168,19 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Spacer(),
+              // Logo Görseli
               Image.asset(
                 'assets/images/logo.png',
-                width: 130,
-                height: 130,
+                width: 140,
+                height: 140,
                 fit: BoxFit.contain,
                 errorBuilder: (context, error, stackTrace) {
+                  // Görsel yüklenemezse yedek ikon gösterir
                   return Container(
                     padding: const EdgeInsets.all(18),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: AppColors.gold.withValues(alpha: 0.1),
+                      color: AppColors.gold.withOpacity(0.2),
                       border: Border.all(color: AppColors.gold, width: 2),
                     ),
                     child: const Icon(Icons.domain_rounded, size: 76, color: AppColors.gold),
@@ -187,12 +190,12 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
               const SizedBox(height: 16),
               Text(
                 'HOLDING TYCOON',
-                style: AppTheme.titleStyle(fontSize: 32),
+                style: AppTheme.titleStyle(fontSize: 32).copyWith(color: Colors.white),
               ),
               const SizedBox(height: 6),
               Text(
-                'İmparatorluğunu İnşa Et',
-                style: AppTheme.subtitleStyle(fontSize: 14),
+                'Küresel Bir İmparatorluk Kur!',
+                style: AppTheme.subtitleStyle(fontSize: 14).copyWith(color: AppColors.goldMuted),
               ),
               const Spacer(),
               Padding(
@@ -233,7 +236,7 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                 ),
               ),
               const Spacer(),
-              const Text('v0.1.0', style: TextStyle(color: Colors.white38, fontSize: 12)),
+              const Text('v0.1.0', style: TextStyle(color: Colors.white54, fontSize: 12)),
               const SizedBox(height: 16),
             ],
           ),
@@ -253,22 +256,22 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
       height: 52,
       child: ElevatedButton.icon(
         style: ElevatedButton.styleFrom(
-          backgroundColor: isPrimary ? AppColors.gold : AppColors.surface.withValues(alpha: 0.85),
-          foregroundColor: isPrimary ? Colors.black : Colors.white,
+          backgroundColor: isPrimary ? AppColors.gold : AppColors.surface.withOpacity(0.9),
+          foregroundColor: isPrimary ? Colors.white : AppColors.textPrimary,
           elevation: isPrimary ? 6 : 0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
-            side: isPrimary ? BorderSide.none : const BorderSide(color: Colors.white24),
+            side: isPrimary ? BorderSide.none : const BorderSide(color: AppColors.border),
           ),
         ),
-        icon: Icon(icon),
+        icon: Icon(icon, color: isPrimary ? Colors.white : AppColors.gold),
         label: Text(
           label,
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
             letterSpacing: 1.2,
-            color: isPrimary ? Colors.black : Colors.white,
+            color: isPrimary ? Colors.white : AppColors.textPrimary,
           ),
         ),
         onPressed: onPressed,
