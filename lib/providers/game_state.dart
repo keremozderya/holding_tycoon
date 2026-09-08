@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/translation_service.dart';
 
+// --- HİSSE SENEDİ MODELİ ---
 class Stock {
   final String id;
   final String name;
@@ -31,49 +32,79 @@ class Stock {
 }
 
 class GameState extends ChangeNotifier {
-  double _money = 0.0;
+  // --- OYUN VERİLERİ (STATE) ---
+  double _money = 1000.0;
   int _researchPoints = 0;
   bool _isFirstLaunch = true;
   String _language = 'tr';
 
+  // Borsa Verileri
   Timer? _marketTimer;
   final Random _random = Random();
   static const int _historyLength = 40;
-  
   List<Stock> _stocks = [];
 
+  // Getterlar
   double get money => _money;
   int get researchPoints => _researchPoints;
   bool get isFirstLaunch => _isFirstLaunch;
   String get language => _language;
   List<Stock> get stocks => _stocks;
 
+  // --- 1. OYUNU YÜKLEME (LOAD) ---
   Future<void> loadData() async {
     final prefs = await SharedPreferences.getInstance();
     
-    _money = prefs.getDouble('money') ?? 1000.0; 
-    _researchPoints = prefs.getInt('researchPoints') ?? 0;
-    _isFirstLaunch = prefs.getBool('is_initial_launch') ?? true;
-    _language = prefs.getString('language') ?? 'tr';
+    // Temel Ayarları ve Verileri Okuma
+    String? savedGameJson = prefs.getString('game_save_data');
+
+    if (savedGameJson != null) {
+      // Eğer daha önceden kaydedilmiş bir JSON varsa, paketi açıp verileri yerine koyuyoruz
+      Map<String, dynamic> data = jsonDecode(savedGameJson);
+      _money = data['money'] ?? 1000.0;
+      _researchPoints = data['researchPoints'] ?? 0;
+      _isFirstLaunch = data['isFirstLaunch'] ?? true;
+      _language = data['language'] ?? 'tr';
+
+      // Borsayı JSON'dan gelen verilerle yükle
+      _loadStocksFromJson(data['stocks']);
+    } else {
+      // İlk kez açılıyorsa varsayılan borsa verilerini oluştur
+      _initDefaultStocks();
+    }
 
     await TranslationService.instance.loadLanguage(_language);
-
-    _loadStocks(prefs);
-    notifyListeners(); 
+    notifyListeners();
     _startGlobalTimers();
   }
 
-  Future<void> setLanguage(String langCode) async {
-    _language = langCode.toLowerCase();
-    await TranslationService.instance.loadLanguage(_language);
+  // --- 2. OYUNU KAYDETME (SAVE - TEK JSON KUTUSU) ---
+  Future<void> _saveGame() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('language', _language);
-    notifyListeners();
+
+    // Tüm oyun verilerini tek bir harita (Map) yapısında topluyoruz
+    Map<String, dynamic> gameData = {
+      'money': _money,
+      'researchPoints': _researchPoints,
+      'isFirstLaunch': _isFirstLaunch,
+      'language': _language,
+      'stocks': _stocks.map((s) => {
+        'id': s.id,
+        'currentPrice': s.currentPrice,
+        'history': s.history,
+        'ownedShares': s.ownedShares,
+        'totalSpent': s.totalSpent,
+      }).toList(),
+      // İleride fabrikalar buraya eklenebilir: 'factories': [...]
+    };
+
+    // Tek bir satır metin (JSON) haline getirip telefona kaydediyoruz
+    String jsonString = jsonEncode(gameData);
+    await prefs.setString('game_save_data', jsonString);
   }
 
-  void _loadStocks(SharedPreferences prefs) {
-    String? savedStocksJson = prefs.getString('saved_stocks');
-    
+  // --- Borsa Başlangıç ve JSON Eşleme Yardımcıları ---
+  void _initDefaultStocks() {
     _stocks = [
       Stock(id: '1', name: 'Redof Tech', icon: Icons.smart_toy_rounded, iconColor: Colors.blueAccent, currentPrice: 71.0, history: List.generate(_historyLength, (_) => 71.0)),
       Stock(id: '2', name: 'Titan Ağır Sanayi', icon: Icons.factory_rounded, iconColor: Colors.pinkAccent, currentPrice: 24280.0, history: List.generate(_historyLength, (_) => 24280.0)),
@@ -81,31 +112,24 @@ class GameState extends ChangeNotifier {
       Stock(id: '4', name: 'Apex Biyoteknoloji', icon: Icons.biotech_rounded, iconColor: Colors.greenAccent, currentPrice: 150.0, history: List.generate(_historyLength, (_) => 150.0)),
       Stock(id: '5', name: 'Nova Enerji', icon: Icons.bolt_rounded, iconColor: Colors.amberAccent, currentPrice: 85.0, history: List.generate(_historyLength, (_) => 85.0)),
     ];
+  }
 
-    if (savedStocksJson != null) {
-      List<dynamic> decoded = jsonDecode(savedStocksJson);
-      for (var savedStock in decoded) {
-        var existingStock = _stocks.firstWhere((s) => s.id == savedStock['id']);
-        existingStock.currentPrice = savedStock['currentPrice'];
-        existingStock.history = List<double>.from(savedStock['history']);
-        existingStock.ownedShares = savedStock['ownedShares'];
-        existingStock.totalSpent = savedStock['totalSpent'];
+  void _loadStocksFromJson(dynamic savedStocksList) {
+    _initDefaultStocks(); // Önce şablonu kur
+    if (savedStocksList != null) {
+      for (var savedStock in savedStocksList) {
+        try {
+          var existingStock = _stocks.firstWhere((s) => s.id == savedStock['id']);
+          existingStock.currentPrice = savedStock['currentPrice'];
+          existingStock.history = List<double>.from(savedStock['history']);
+          existingStock.ownedShares = savedStock['ownedShares'];
+          existingStock.totalSpent = savedStock['totalSpent'];
+        } catch (_) {}
       }
     }
   }
 
-  Future<void> _saveStocks() async {
-    final prefs = await SharedPreferences.getInstance();
-    String encoded = jsonEncode(_stocks.map((s) => {
-      'id': s.id,
-      'currentPrice': s.currentPrice,
-      'history': s.history,
-      'ownedShares': s.ownedShares,
-      'totalSpent': s.totalSpent,
-    }).toList());
-    await prefs.setString('saved_stocks', encoded);
-  }
-
+  // --- OYUN DÖNGÜLERİ ---
   void _startGlobalTimers() {
     _marketTimer ??= Timer.periodic(const Duration(seconds: 5), (timer) {
       _updateMarket();
@@ -126,7 +150,35 @@ class GameState extends ChangeNotifier {
         stock.history.removeAt(0);
       }
     }
-    _saveStocks();
+    _saveGame(); // Her borsa değişiminde otomatik kaydet
+    notifyListeners();
+  }
+
+  // --- İŞLEM FONKSİYONLARI ---
+  Future<void> setLanguage(String langCode) async {
+    _language = langCode.toLowerCase();
+    await TranslationService.instance.loadLanguage(_language);
+    await _saveGame();
+    notifyListeners();
+  }
+
+  Future<void> completeFirstLaunch() async {
+    _isFirstLaunch = false;
+    await _saveGame();
+    notifyListeners();
+  }
+
+  Future<void> updateMoney(double amount) async {
+    _money += amount;
+    if (_money < 0) _money = 0; 
+    await _saveGame();
+    notifyListeners(); 
+  }
+
+  Future<void> updateResearchPoints(int amount) async {
+    _researchPoints += amount;
+    if (_researchPoints < 0) _researchPoints = 0;
+    await _saveGame();
     notifyListeners();
   }
 
@@ -145,10 +197,12 @@ class GameState extends ChangeNotifier {
 
       double totalCost = sharesToBuy * stock.currentPrice;
 
-      updateMoney(-totalCost);
+      _money -= totalCost;
+      if (_money < 0) _money = 0;
       stock.ownedShares += sharesToBuy;
       stock.totalSpent += totalCost;
-      _saveStocks();
+
+      _saveGame();
       notifyListeners();
     }
   }
@@ -160,34 +214,12 @@ class GameState extends ChangeNotifier {
       double commission = gross * 0.005; 
       double net = gross - commission;
 
-      updateMoney(net);
+      _money += net;
       stock.ownedShares = 0;
       stock.totalSpent = 0;
-      _saveStocks();
+
+      _saveGame();
       notifyListeners();
     }
-  }
-
-  Future<void> completeFirstLaunch() async {
-    _isFirstLaunch = false;
-    notifyListeners();
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('is_initial_launch', false);
-  }
-
-  Future<void> updateMoney(double amount) async {
-    _money += amount;
-    if (_money < 0) _money = 0; 
-    notifyListeners(); 
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setDouble('money', _money); 
-  }
-
-  Future<void> updateResearchPoints(int amount) async {
-    _researchPoints += amount;
-    if (_researchPoints < 0) _researchPoints = 0;
-    notifyListeners();
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('researchPoints', _researchPoints);
   }
 }
