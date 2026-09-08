@@ -1,6 +1,8 @@
 // lib/screens/research_screen.dart
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/game_state.dart';
 import '../theme/app_theme.dart';
 import '../widgets/prestige_dialog.dart';
 
@@ -31,39 +33,20 @@ class ResearchNode {
 
   bool get isUnlocked => currentLevel > 0;
   bool get isMaxed => currentLevel >= maxLevel;
-
   int get cost => isMaxed ? baseCost * maxLevel : baseCost * (currentLevel + 1);
-
   String get currentEffectText => currentLevel == 0 ? 'Henüz Aktif Değil' : effectBuilder(currentLevel);
   String get nextEffectText => isMaxed ? 'Maksimum Seviyeye Ulaşıldı' : effectBuilder(currentLevel + 1);
 }
 
 ResearchNode _n(
-  String id,
-  String title,
-  String category,
-  String description,
-  IconData icon,
-  int baseCost,
-  int maxLevel,
-  List<String> parentIds,
-  String Function(int lvl) effectBuilder, {
-  int currentLevel = 0,
-}) {
+  String id, String title, String category, String description, IconData icon, int baseCost, int maxLevel, List<String> parentIds, String Function(int lvl) effectBuilder, {int currentLevel = 0}
+) {
   return ResearchNode(
-    id: id,
-    title: title,
-    category: category,
-    description: description,
-    icon: icon,
-    baseCost: baseCost,
-    maxLevel: maxLevel,
-    currentLevel: currentLevel,
-    parentIds: parentIds,
-    effectBuilder: effectBuilder,
+    id: id, title: title, category: category, description: description, icon: icon, baseCost: baseCost, maxLevel: maxLevel, currentLevel: currentLevel, parentIds: parentIds, effectBuilder: effectBuilder,
   );
 }
 
+// 100 Düğümlük devasa Ar-Ge Ağacı
 List<ResearchNode> build100Nodes() {
   return [
     _n('node_001', 'Holding Beratı', 'Temel', 'Tüm fabrikaların taban üretim gelirini kalıcı olarak artırır.', Icons.account_balance_rounded, 1, 1, [],
@@ -289,9 +272,6 @@ class ResearchScreen extends StatefulWidget {
 }
 
 class _ResearchScreenState extends State<ResearchScreen> {
-  int _researchPoints = 75;
-  double _currentTurnover = 2.45e20;
-
   final ScrollController _scrollController = ScrollController();
   late List<ResearchNode> _nodes;
 
@@ -318,10 +298,11 @@ class _ResearchScreenState extends State<ResearchScreen> {
     });
   }
 
-  void _upgradeNode(ResearchNode node) {
-    if (_researchPoints >= node.cost && !node.isMaxed && _canUnlock(node)) {
+  void _upgradeNode(ResearchNode node, BuildContext context) {
+    final gameState = context.read<GameState>();
+    if (gameState.researchPoints >= node.cost && !node.isMaxed && _canUnlock(node)) {
       setState(() {
-        _researchPoints -= node.cost;
+        gameState.updateResearchPoints(-node.cost); // Gerçek RP'den harcıyoruz
         node.currentLevel++;
       });
       Navigator.pop(context);
@@ -335,6 +316,9 @@ class _ResearchScreenState extends State<ResearchScreen> {
     final leftNodes = _nodes.sublist(1, 50);
     final rightNodes = _nodes.sublist(50, 99);
     final apexNode = _nodes[99];
+    
+    // Anlık Ar-Ge Puanını GameState üzerinden çekiyoruz
+    final currentRP = context.watch<GameState>().researchPoints;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -348,24 +332,6 @@ class _ResearchScreenState extends State<ResearchScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.workspace_premium_rounded, color: AppColors.gold),
-            tooltip: 'Holding Tasfiyesi (Prestij)',
-            onPressed: () {
-              PrestigeDialog.show(
-                context,
-                currentTurnover: _currentTurnover,
-                onPrestigeConfirmed: () {
-                  setState(() {
-                    final ratio = _currentTurnover / 1.0e20;
-                    final int rp = (10 * math.sqrt(ratio)).floor();
-                    _researchPoints += rp;
-                    _currentTurnover = 0;
-                  });
-                },
-              );
-            },
-          ),
           Container(
             margin: const EdgeInsets.only(right: 16, top: 10, bottom: 10),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -380,7 +346,7 @@ class _ResearchScreenState extends State<ResearchScreen> {
                 const Icon(Icons.science_rounded, color: AppColors.gold, size: 18),
                 const SizedBox(width: 6),
                 Text(
-                  '$_researchPoints RP',
+                  '$currentRP RP',
                   style: const TextStyle(
                     color: AppColors.gold,
                     fontWeight: FontWeight.w900,
@@ -487,7 +453,7 @@ class _ResearchScreenState extends State<ResearchScreen> {
               children: [
                 FloatingActionButton.small(
                   heroTag: 'scroll_top',
-                  backgroundColor: AppColors.surface,
+                  backgroundColor: AppColors.surfaceElevated,
                   foregroundColor: AppColors.gold,
                   elevation: 4,
                   tooltip: 'Başa Dön',
@@ -503,7 +469,7 @@ class _ResearchScreenState extends State<ResearchScreen> {
                 const SizedBox(height: 8),
                 FloatingActionButton.small(
                   heroTag: 'scroll_bottom',
-                  backgroundColor: AppColors.surface,
+                  backgroundColor: AppColors.surfaceElevated,
                   foregroundColor: AppColors.gold,
                   elevation: 4,
                   tooltip: 'Zirveye İn (Dünyaların Sahibi)',
@@ -539,7 +505,8 @@ class _ResearchScreenState extends State<ResearchScreen> {
 
     if (maxed) {
       borderColor = AppColors.profit;
-      bgColor = const Color(0xFFF0FDF4);
+      // DÜZELTME: Maksimum seviyeye ulaşan kartların beyaz metinleri boğmaması için arka plan hafif koyu yeşile çekildi
+      bgColor = AppColors.profit.withValues(alpha: 0.1); 
     } else if (unlocked) {
       borderColor = isApex ? const Color(0xFFB38B38) : AppColors.gold;
       bgColor = AppColors.surface;
@@ -548,6 +515,7 @@ class _ResearchScreenState extends State<ResearchScreen> {
       bgColor = AppColors.surface;
     } else {
       borderColor = AppColors.border.withValues(alpha: 0.5);
+      // DÜZELTME: İnaktif kartlar için Karanlık temaya özel Surface Elevate kullanıldı
       bgColor = AppColors.surfaceElevated.withValues(alpha: 0.5);
     }
 
@@ -585,7 +553,8 @@ class _ResearchScreenState extends State<ResearchScreen> {
                   width: 36,
                   height: 36,
                   decoration: BoxDecoration(
-                    color: unlocked ? AppColors.background : Colors.black12,
+                    // DÜZELTME: İkon zemini karanlık temada okunabilir yapıldı
+                    color: unlocked ? AppColors.background : AppColors.surfaceElevated,
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
                       color: unlocked ? AppColors.gold.withValues(alpha: 0.3) : Colors.transparent,
@@ -646,7 +615,7 @@ class _ResearchScreenState extends State<ResearchScreen> {
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
               decoration: BoxDecoration(
-                color: AppColors.background,
+                color: AppColors.background.withValues(alpha: 0.6),
                 borderRadius: BorderRadius.circular(6),
                 border: Border.all(color: AppColors.border.withValues(alpha: 0.4)),
               ),
@@ -728,7 +697,10 @@ class _ResearchScreenState extends State<ResearchScreen> {
 
   void _showNodeDetailsModal(ResearchNode node) {
     final bool accessible = _canUnlock(node);
-    final bool canAfford = _researchPoints >= node.cost && !node.isMaxed && accessible;
+    
+    // Gerçek RP kontrolü (GameState)
+    final int currentRP = context.read<GameState>().researchPoints;
+    final bool canAfford = currentRP >= node.cost && !node.isMaxed && accessible;
 
     showModalBottomSheet(
       context: context,
@@ -742,7 +714,7 @@ class _ResearchScreenState extends State<ResearchScreen> {
             border: Border.all(color: AppColors.border),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.1),
+                color: Colors.black.withValues(alpha: 0.2),
                 blurRadius: 20,
                 spreadRadius: 4,
               ),
@@ -882,7 +854,7 @@ class _ResearchScreenState extends State<ResearchScreen> {
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     elevation: canAfford ? 3 : 0,
                   ),
-                  onPressed: canAfford ? () => _upgradeNode(node) : null,
+                  onPressed: canAfford ? () => _upgradeNode(node, context) : null,
                   child: Text(
                     node.isMaxed
                         ? 'MAKSİMUM SEVİYEYE ULAŞILDI'

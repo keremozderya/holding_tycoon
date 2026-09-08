@@ -38,6 +38,7 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
   @override
   void initState() {
     super.initState();
+    // SADECE ilk açılışta dil seçimini getirir.
     if (widget.isInitialLaunch) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _showLanguageSelectionDialog();
@@ -56,7 +57,7 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
           title: const Text(
             'Select Language\nDil Seçimi',
             textAlign: TextAlign.center,
-            style: TextStyle(color: AppColors.gold, fontWeight: FontWeight.bold, fontSize: 18),
+            style: TextStyle(color: AppColors.neonCyan, fontWeight: FontWeight.bold, fontSize: 18),
           ),
           content: SizedBox(
             width: double.maxFinite,
@@ -72,7 +73,7 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                     lang['name']!,
                     style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
                   ),
-                  trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: AppColors.gold),
+                  trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: AppColors.neonCyan),
                   onTap: () async {
                     final prefs = await SharedPreferences.getInstance();
                     await prefs.setString('language', lang['code']!);
@@ -96,6 +97,7 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
 
     showDialog(
       context: context,
+      // Eğer ilk kurulumsa dışarı tıklayıp kapatılamaz, yeni oyunsa kapatılabilir
       barrierDismissible: !widget.isInitialLaunch,
       builder: (context) {
         return StatefulBuilder(
@@ -122,7 +124,7 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                         filled: true,
                         fillColor: AppColors.background,
                         hintText: 'MyHolding',
-                        hintStyle: const TextStyle(color: Colors.black26),
+                        hintStyle: const TextStyle(color: AppColors.textMuted), // Dark temaya uyarlandı
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -277,7 +279,8 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                       label: 'YENİ OYUN',
                       icon: Icons.fiber_new_rounded,
                       isPrimary: widget.isInitialLaunch,
-                      onPressed: _showLanguageSelectionDialog, // Yeni oyun da dil seçimi ile başlar
+                      // DÜZELTME: Sadece holding kurma ekranını açar, dil sormaz
+                      onPressed: _showNewGameDialog, 
                     ),
                     const SizedBox(height: 14),
                     _buildMenuButton(
