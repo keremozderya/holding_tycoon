@@ -1,432 +1,418 @@
-// lib/screens/main_menu_screen.dart
+// lib/screens/stock_screen.dart
 import 'dart:math' as math;
-import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
 import '../providers/game_state.dart';
-import '../services/translation_service.dart';
 import '../theme/app_theme.dart';
-import 'map_screen.dart';
-import 'settings_screen.dart';
 
-class MainMenuScreen extends StatefulWidget {
-  final bool isInitialLaunch;
-  const MainMenuScreen({super.key, this.isInitialLaunch = true});
+class StockScreen extends StatelessWidget {
+  const StockScreen({super.key});
 
-  @override
-  State<MainMenuScreen> createState() => _MainMenuScreenState();
-}
+  String _formatNum(double value) {
+    double absVal = value.abs();
 
-class _MainMenuScreenState extends State<MainMenuScreen> {
-  bool _isAutoStarting = true; 
-
-  @override
-  void initState() {
-    super.initState();
+    if (absVal >= 1e33) return '${(absVal / 1e33).toStringAsFixed(2)} Dc';
+    if (absVal >= 1e30) return '${(absVal / 1e30).toStringAsFixed(2)} No';
+    if (absVal >= 1e27) return '${(absVal / 1e27).toStringAsFixed(2)} Oc';
+    if (absVal >= 1e24) return '${(absVal / 1e24).toStringAsFixed(2)} Sp';
+    if (absVal >= 1e21) return '${(absVal / 1e21).toStringAsFixed(2)} Sx';
+    if (absVal >= 1e18) return '${(absVal / 1e18).toStringAsFixed(2)} Qi';
+    if (absVal >= 1e15) return '${(absVal / 1e15).toStringAsFixed(2)} Qa';
+    if (absVal >= 1e12) return '${(absVal / 1e12).toStringAsFixed(2)} T';
+    if (absVal >= 1e9) return '${(absVal / 1e9).toStringAsFixed(2)} B';
+    if (absVal >= 1e6) return '${(absVal / 1e6).toStringAsFixed(2)} M';
+    if (absVal >= 1e3) return '${(absVal / 1e3).toStringAsFixed(1)} K';
     
-    if (widget.isInitialLaunch) {
-      WidgetsBinding.instance.addPostFrameCallback((_) async {
-        await context.read<GameState>().loadData();
-        if (!mounted) return;
-        
-        final state = context.read<GameState>();
-        
-        if (!state.isFirstLaunch) {
-          Future.delayed(const Duration(milliseconds: 1200), () {
-            if (mounted) _goToMap();
-          });
-        } else {
-          setState(() {
-            _isAutoStarting = false;
-          });
-        }
-      });
-    } else {
-      _isAutoStarting = false;
+    return absVal.toStringAsFixed(0);
+  }
+
+  double _parseInput(String input) {
+    String cleaned = input.trim().toLowerCase().replaceAll(',', '.');
+    if (cleaned.isEmpty) return 0.0;
+
+    int letterIndex = cleaned.indexOf(RegExp(r'[a-z]'));
+
+    if (letterIndex == -1) {
+      return double.tryParse(cleaned) ?? 0.0;
+    }
+
+    double numberPart = double.tryParse(cleaned.substring(0, letterIndex)) ?? 0.0;
+    String suffix = cleaned.substring(letterIndex);
+
+    switch (suffix) {
+      case 'k': return numberPart * 1e3;
+      case 'm': return numberPart * 1e6;
+      case 'b': return numberPart * 1e9;
+      case 't': return numberPart * 1e12;
+      case 'qa': return numberPart * 1e15;
+      case 'qi': return numberPart * 1e18;
+      case 'sx': return numberPart * 1e21;
+      case 'sp': return numberPart * 1e24;
+      case 'oc': return numberPart * 1e27;
+      case 'no': return numberPart * 1e30;
+      case 'dc': return numberPart * 1e33;
+      default: return numberPart;
     }
   }
 
-  void _goToMap() {
-    Navigator.of(context).pushReplacement(
-      PageRouteBuilder(
-        transitionDuration: const Duration(milliseconds: 600),
-        pageBuilder: (context, animation, secondaryAnimation) => const MapScreen(),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          return FadeTransition(opacity: animation, child: child);
-        },
-      ),
-    );
-  }
+  void _showBuyDialog(BuildContext context, GameState state, Stock stock) {
+    final TextEditingController amountCtrl = TextEditingController();
 
-  // YENİ EKLENDİ: Tüm kayıtları silip sıfırdan oyun başlatma mekanizması
-  void _confirmAndStartNewGame() {
     showDialog(
       context: context,
       builder: (c) => AlertDialog(
         backgroundColor: AppColors.surface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: const BorderSide(color: AppColors.loss)),
-        title: const Text('ŞİRKETİ TASFİYE ET', style: TextStyle(color: AppColors.loss, fontWeight: FontWeight.bold)),
-        content: const Text('Yeni bir oyun başlatmak mevcut holdinginizi, tüm fabrikalarınızı ve kasanızı kalıcı olarak silecektir. Emin misiniz?', style: TextStyle(color: AppColors.textPrimary, fontSize: 13)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(c), 
-            child: const Text('İPTAL', style: TextStyle(color: AppColors.textMuted))
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.loss, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
-            onPressed: () async {
-              Navigator.pop(c);
-              // Tüm kayıtları sil ve yeni oyun kurulum ekranını aç
-              final prefs = await SharedPreferences.getInstance();
-              await prefs.clear();
-              if (mounted) {
-                await context.read<GameState>().loadData();
-                _showHoldingSetupDialog();
-              }
-            }, 
-            child: const Text('SİL VE YENİDEN BAŞLA', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-          ),
-        ],
-      )
-    );
-  }
-
-  void _showHoldingSetupDialog() {
-    String compName = 'Köse Holding';
-    int logoIndex = 0;
-    final List<IconData> logos = [
-      Icons.domain_rounded, Icons.account_balance_rounded, Icons.factory_rounded,
-      Icons.rocket_launch_rounded, Icons.local_shipping_rounded, Icons.bolt_rounded,
-    ];
-
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setDialogState) {
-          return Dialog(
-            backgroundColor: Colors.transparent,
-            insetPadding: const EdgeInsets.symmetric(horizontal: 20),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: BackdropFilter(
-                filter: ui.ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-                child: Container(
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    color: AppColors.surface.withValues(alpha: 0.95),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppColors.border, width: 1.5),
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: const BorderSide(color: AppColors.border, width: 1.5)),
+        title: Row(
+          children: [
+            Icon(stock.icon, color: stock.iconColor, size: 24),
+            const SizedBox(width: 8),
+            Expanded(child: Text('${stock.name} Yatırımı', style: const TextStyle(color: AppColors.textPrimary, fontSize: 16, fontWeight: FontWeight.bold))),
+          ],
+        ),
+        // YENİ: Klavye açıldığında taşmayı engellemek için SingleChildScrollView eklendi
+        content: SizedBox(
+          width: double.maxFinite,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(color: AppColors.background, borderRadius: BorderRadius.circular(8), border: Border.all(color: AppColors.border)),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Icon(Icons.assignment_rounded, color: AppColors.gold, size: 36),
-                      const SizedBox(height: 12),
-                      Text('KURUMSAL KAYIT', textAlign: TextAlign.center, style: AppTheme.titleStyle(fontSize: 18).copyWith(color: AppColors.textPrimary, letterSpacing: 2.0)),
-                      const SizedBox(height: 8),
-                      const Text('Lütfen holdinginizin resmi adını ve tescilli amblemini belirleyin.', textAlign: TextAlign.center, style: TextStyle(color: AppColors.textSecondary, fontSize: 11)),
-                      const SizedBox(height: 24),
-                      
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: AppColors.background,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: AppColors.border),
-                        ),
-                        child: TextField(
-                          style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 14),
-                          decoration: const InputDecoration(
-                            labelText: 'Holding Adı',
-                            labelStyle: TextStyle(color: AppColors.textMuted, fontSize: 12),
-                            border: InputBorder.none,
-                          ),
-                          onChanged: (val) => compName = val,
-                        ),
-                      ),
-                      
-                      const SizedBox(height: 24),
-                      const Align(alignment: Alignment.centerLeft, child: Text('Tescilli Logo Seçimi', style: TextStyle(color: AppColors.textMuted, fontSize: 11, fontWeight: FontWeight.bold))),
-                      const SizedBox(height: 12),
-                      
-                      Wrap(
-                        spacing: 12, runSpacing: 12, alignment: WrapAlignment.center,
-                        children: List.generate(logos.length, (i) {
-                          bool isSel = logoIndex == i;
-                          return GestureDetector(
-                            onTap: () => setDialogState(() => logoIndex = i),
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 200),
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: isSel ? AppColors.gold.withValues(alpha: 0.1) : AppColors.background,
-                                borderRadius: BorderRadius.circular(10),
-                                border: Border.all(color: isSel ? AppColors.gold : AppColors.border, width: isSel ? 2 : 1),
-                              ),
-                              child: Icon(logos[i], color: isSel ? AppColors.gold : AppColors.textMuted, size: 28),
-                            ),
-                          );
-                        }),
-                      ),
-                      
-                      const SizedBox(height: 32),
-                      
-                      SizedBox(
-                        width: double.infinity,
-                        height: 50,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.gold, 
-                            foregroundColor: AppColors.darkBrown,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                            elevation: 0,
-                          ),
-                          onPressed: () async {
-                            final prefs = await SharedPreferences.getInstance();
-                            await prefs.setString('holding_name', compName.isEmpty ? 'Köse Holding' : compName);
-                            await prefs.setInt('holding_logo_index', logoIndex);
-                            
-                            if (context.mounted) {
-                              context.read<GameState>().completeFirstLaunch();
-                              Navigator.pop(context);
-                              _goToMap(); 
-                            }
-                          },
-                          child: const Text('TİCARİ FAALİYETE BAŞLA', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 1.0)),
-                        ),
-                      ),
+                      const Text('Birim Fiyat:', style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+                      Text('\$${_formatNum(stock.currentPrice)}', style: const TextStyle(color: AppColors.gold, fontWeight: FontWeight.bold, fontSize: 14)),
                     ],
                   ),
                 ),
-              ),
+                const SizedBox(height: 16),
+                const Text('Yatırılacak Tutar:', style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: amountCtrl,
+                  // YENİ: Harf klavyesini engellemek için sadece sayısal klavye açtırıyoruz
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9.,a-zA-Z]'))],
+                  style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontFamily: 'SpaceMono'),
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: AppColors.background,
+                    prefixIcon: const Icon(Icons.attach_money_rounded, color: AppColors.textMuted),
+                    hintText: 'Miktar girin...',
+                    hintStyle: const TextStyle(color: AppColors.textMuted),
+                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: AppColors.border)),
+                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: AppColors.gold)),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                
+                // YENİ: Kısaltma Butonları (Yatay kaydırılabilir)
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      _buildSuffixButton('K', amountCtrl),
+                      _buildSuffixButton('M', amountCtrl),
+                      _buildSuffixButton('B', amountCtrl),
+                      _buildSuffixButton('T', amountCtrl),
+                      _buildSuffixButton('Qa', amountCtrl),
+                      _buildSuffixButton('Qi', amountCtrl),
+                      _buildSuffixButton('Sx', amountCtrl),
+                      _buildSuffixButton('Sp', amountCtrl),
+                      _buildSuffixButton('Oc', amountCtrl),
+                      _buildSuffixButton('No', amountCtrl),
+                      _buildSuffixButton('Dc', amountCtrl),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                // Hızlı Yatırım Butonları
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _buildQuickButton('25%', () => amountCtrl.text = _formatNum(state.money * 0.25).replaceAll(' ', '')),
+                    _buildQuickButton('50%', () => amountCtrl.text = _formatNum(state.money * 0.50).replaceAll(' ', '')),
+                    _buildQuickButton('MAX', () => amountCtrl.text = _formatNum(state.money).replaceAll(' ', '')),
+                  ],
+                ),
+              ],
             ),
-          );
-        }
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(c), child: const Text('İPTAL', style: TextStyle(color: AppColors.textMuted))),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.gold, foregroundColor: AppColors.darkBrown, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+            onPressed: () {
+              double inputAmount = _parseInput(amountCtrl.text); 
+              
+              if (inputAmount >= stock.currentPrice) {
+                state.buyStockWithAmount(stock.id, inputAmount);
+                Navigator.pop(c);
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Tutar en az 1 hisse almaya yetmelidir!'), backgroundColor: AppColors.loss));
+              }
+            },
+            // YENİ: EMİR VER yerine SATIN AL yazıldı
+            child: const Text('SATIN AL', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // YENİ: Text alanına basılan harfi (K, M, B vb.) ekleyen buton widget'ı
+  Widget _buildSuffixButton(String label, TextEditingController ctrl) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 6.0),
+      child: OutlinedButton(
+        style: OutlinedButton.styleFrom(
+          minimumSize: const Size(40, 32),
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          foregroundColor: AppColors.gold, // Harf rengini oyuna uygun altın sarısı yaptım
+          side: const BorderSide(color: AppColors.border),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+        ),
+        onPressed: () {
+          // Eğer içinde zaten harf varsa onu silip yenisini ekler, böylece "1.5km" gibi hatalar olmaz
+          String current = ctrl.text.replaceAll(RegExp(r'[a-zA-Z]'), '').trim();
+          if (current.isNotEmpty) {
+            ctrl.text = '$current${label.toLowerCase()}';
+            // İmleci yazının sonuna taşır
+            ctrl.selection = TextSelection.fromPosition(TextPosition(offset: ctrl.text.length));
+          }
+        },
+        child: Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+      ),
+    );
+  }
+
+  Widget _buildQuickButton(String label, VoidCallback onTap) {
+    return Expanded(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+        child: OutlinedButton(
+          style: OutlinedButton.styleFrom(
+            foregroundColor: AppColors.textSecondary,
+            side: const BorderSide(color: AppColors.border),
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+          ),
+          onPressed: onTap,
+          child: Text(label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+        ),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final state = context.watch<GameState>();
+    final gameState = context.watch<GameState>();
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: Stack(
+      appBar: AppBar(
+        title: Text('MENKUL KIYMETLER', style: AppTheme.titleStyle(fontSize: 18).copyWith(color: AppColors.textPrimary)),
+        backgroundColor: AppColors.surface,
+        centerTitle: true,
+        elevation: 0,
+        leading: IconButton(icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textPrimary, size: 20), onPressed: () => Navigator.pop(context)),
+      ),
+      body: Column(
         children: [
+          // PORTFÖY ÖZETİ EKRANI
           Container(
+            padding: const EdgeInsets.all(20),
             decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft, 
-                end: Alignment.bottomRight,
-                colors: [Color(0xFF14141C), Color(0xFF0A0A10)], 
-              ),
+              color: AppColors.surface,
+              border: Border(bottom: BorderSide(color: AppColors.border, width: 1.5)),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Kullanılabilir Bakiye', style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+                      const SizedBox(height: 4),
+                      Text('\$${_formatNum(gameState.money)}', style: const TextStyle(color: AppColors.gold, fontSize: 24, fontWeight: FontWeight.bold, fontFamily: 'SpaceMono')),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(color: AppColors.background, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.border)),
+                  child: const Icon(Icons.account_balance_wallet_rounded, color: AppColors.textSecondary, size: 32),
+                )
+              ],
             ),
           ),
           
-          const CorporateBackgroundAnimation(),
+          // HİSSE LİSTESİ
+          Expanded(
+            child: ListView.separated(
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.all(16),
+              itemCount: gameState.stocks.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 12),
+              itemBuilder: (context, index) {
+                final stock = gameState.stocks[index];
+                
+                bool isGoingUp = stock.history.isNotEmpty && stock.currentPrice >= stock.history.first;
+                Color trendColor = isGoingUp ? AppColors.profit : AppColors.loss;
 
-          SafeArea(
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // DÜZELTME: İkon silindi, Kendi özel logon (assets/images/logo.png) eklendi
-                  Container(
-                    width: 130, height: 130,
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: AppColors.surface.withValues(alpha: 0.8),
-                      shape: BoxShape.circle,
-                      border: Border.all(color: AppColors.border, width: 2),
-                    ),
-                    child: ClipOval(
-                      child: Image.asset(
-                        'assets/images/logo.png',
-                        fit: BoxFit.contain,
-                        // Logo bulunamazsa oyun çökmesin diye geçici ikon yedeği
-                        errorBuilder: (context, error, stackTrace) => const Icon(Icons.account_balance_rounded, size: 60, color: AppColors.gold),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-                  
-                  Text(
-                    'app_title'.tr().toUpperCase(),
-                    style: AppTheme.titleStyle(fontSize: 36).copyWith(
-                      color: AppColors.textPrimary,
-                      letterSpacing: 4.0,
-                    ),
-                  ),
-                  
-                  // EXECUTIVE EDITION yazısı tamamen kaldırıldı!
-                  const SizedBox(height: 80),
+                String pnlSign = stock.netPnl >= 0 ? '+' : '-';
+                String pnlFormatted = _formatNum(stock.netPnl);
 
-                  if (_isAutoStarting)
-                    Column(
-                      children: [
-                        const SizedBox(
-                          width: 24, height: 24,
-                          child: CircularProgressIndicator(color: AppColors.gold, strokeWidth: 2),
-                        ),
-                        const SizedBox(height: 16),
-                        const Text('SİSTEME BAĞLANILIYOR...', style: TextStyle(color: AppColors.textMuted, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 2.0)),
-                      ],
-                    )
-                  else
-                    Column(
-                      children: [
-                        if (state.isFirstLaunch) ...[
-                          // HİÇ OYUN YOKSA SADECE YENİ OYUN BUTONU
-                          SizedBox(
-                            width: 260, height: 55,
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.gold,
-                                foregroundColor: AppColors.darkBrown,
-                                elevation: 0,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                              ),
-                              onPressed: _showHoldingSetupDialog,
-                              child: const Text(
-                                'YENİ ŞİRKET KUR',
-                                style: TextStyle(fontWeight: FontWeight.w900, fontSize: 14, letterSpacing: 1.5),
-                              ),
+                return Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(color: AppColors.surfaceElevated, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.border)),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(color: AppColors.background, borderRadius: BorderRadius.circular(8), border: Border.all(color: stock.iconColor.withValues(alpha: 0.3))),
+                            child: Icon(stock.icon, color: stock.iconColor, size: 24),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(stock.name, style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 15)),
+                                const SizedBox(height: 4),
+                                Text('\$${_formatNum(stock.currentPrice)}', style: const TextStyle(color: AppColors.textSecondary, fontSize: 13, fontFamily: 'SpaceMono')),
+                              ],
                             ),
                           ),
-                        ] else ...[
-                          // KAYITLI OYUN VARSA DEVAM ET BUTONU
                           SizedBox(
-                            width: 260, height: 55,
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.gold,
-                                foregroundColor: AppColors.darkBrown,
-                                elevation: 0,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                              ),
-                              onPressed: _goToMap,
-                              child: const Text(
-                                'YÖNETİME DÖN',
-                                style: TextStyle(fontWeight: FontWeight.w900, fontSize: 14, letterSpacing: 1.5),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          
-                          // KAYITLI OYUN VARSA YENİ OYUN BUTONU
-                          SizedBox(
-                            width: 260, height: 50,
-                            child: ElevatedButton.icon(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.surface,
-                                foregroundColor: AppColors.textPrimary,
-                                elevation: 0,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8), side: const BorderSide(color: AppColors.border, width: 1.5)),
-                              ),
-                              icon: const Icon(Icons.add_business_rounded, size: 18, color: AppColors.gold),
-                              label: const Text('YENİ ŞİRKET KUR', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, letterSpacing: 1.0, color: AppColors.gold)),
-                              onPressed: _confirmAndStartNewGame,
-                            ),
+                            width: 60, height: 30,
+                            child: CustomPaint(painter: SparklinePainter(history: stock.history, lineColor: trendColor)),
                           ),
                         ],
-                        
-                        const SizedBox(height: 16),
-                        // AYARLAR BUTONU
-                        SizedBox(
-                          width: 260, height: 50,
-                          child: ElevatedButton.icon(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.background,
-                              foregroundColor: AppColors.textPrimary,
-                              elevation: 0,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8), side: const BorderSide(color: AppColors.border, width: 1.5)),
+                      ),
+                      
+                      if (stock.ownedShares > 0) ...[
+                        const Padding(padding: EdgeInsets.symmetric(vertical: 12), child: Divider(color: AppColors.border, height: 1)),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text('Sahip Olunan', style: TextStyle(color: AppColors.textMuted, fontSize: 11)),
+                                Text(_formatNum(stock.ownedShares), style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 13)),
+                              ],
                             ),
-                            icon: const Icon(Icons.settings_rounded, size: 18, color: AppColors.textSecondary),
-                            label: const Text('SİSTEM AYARLARI', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, letterSpacing: 1.0, color: AppColors.textSecondary)),
-                            onPressed: () {
-                              Navigator.of(context).push(MaterialPageRoute(builder: (context) => const SettingsScreen()));
-                            },
-                          ),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                const Text('Net Kâr/Zarar', style: TextStyle(color: AppColors.textMuted, fontSize: 11)),
+                                Text(
+                                  '$pnlSign\$$pnlFormatted',
+                                  style: TextStyle(
+                                    color: stock.netPnl >= 0 ? AppColors.profit : AppColors.loss, // DÜZELTİLEN YER
+                                    fontWeight: FontWeight.bold, 
+                                    fontSize: 13
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
                       ],
-                    ),
-                ],
-              ),
+                      
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.background, foregroundColor: AppColors.gold,
+                                side: const BorderSide(color: AppColors.border),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                elevation: 0,
+                              ),
+                              onPressed: () => _showBuyDialog(context, gameState, stock),
+                              child: const Text('AL', style: TextStyle(fontWeight: FontWeight.bold)),
+                            ),
+                          ),
+                          if (stock.ownedShares > 0) ...[
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.border, foregroundColor: AppColors.textPrimary,
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                  elevation: 0,
+                                ),
+                                onPressed: () { gameState.sellAllStock(stock.id); },
+                                child: const Text('TÜMÜNÜ SAT', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                              ),
+                            ),
+                          ]
+                        ],
+                      ),
+                    ],
+                  ),
+                );
+              },
             ),
           ),
-          
-          Positioned(
-            bottom: 16, right: 16,
-            child: Text('Build v1.2.0.4', style: TextStyle(color: AppColors.textMuted.withValues(alpha: 0.5), fontSize: 10, fontFamily: 'SpaceMono')),
-          )
         ],
       ),
     );
   }
 }
 
-class CorporateBackgroundAnimation extends StatefulWidget {
-  const CorporateBackgroundAnimation({super.key});
-  @override State<CorporateBackgroundAnimation> createState() => _CorporateBackgroundAnimationState();
-}
+class SparklinePainter extends CustomPainter {
+  final List<double> history;
+  final Color lineColor;
 
-class _CorporateBackgroundAnimationState extends State<CorporateBackgroundAnimation> with SingleTickerProviderStateMixin {
-  late AnimationController _animController;
-  @override void initState() { super.initState(); _animController = AnimationController(vsync: this, duration: const Duration(seconds: 20))..repeat(); }
-  @override void dispose() { _animController.dispose(); super.dispose(); }
+  SparklinePainter({required this.history, required this.lineColor});
 
-  @override Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _animController,
-      builder: (context, child) => CustomPaint(size: Size.infinite, painter: CorporateGridPainter(time: _animController.value)),
-    );
-  }
-}
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (history.isEmpty) return;
 
-class CorporateGridPainter extends CustomPainter {
-  final double time; 
-  CorporateGridPainter({required this.time});
-
-  @override void paint(Canvas canvas, Size size) {
-    final double w = size.width; final double h = size.height;
-    final Paint gridPaint = Paint()..color = Colors.white.withValues(alpha: 0.03)..strokeWidth = 1.0;
-    double gridSize = 40.0;
-    double offsetX = (time * gridSize) % gridSize; double offsetY = (time * gridSize * 0.5) % gridSize;
-    for (double x = -gridSize + offsetX; x < w; x += gridSize) canvas.drawLine(Offset(x, 0), Offset(x, h), gridPaint);
-    for (double y = -gridSize + offsetY; y < h; y += gridSize) canvas.drawLine(Offset(0, y), Offset(w, y), gridPaint);
-
-    final Paint chartPaint = Paint()..color = AppColors.gold.withValues(alpha: 0.05)..style = PaintingStyle.stroke..strokeWidth = 2.0;
-    final Path chartPath = Path(); double startY = h * 0.7;
-    chartPath.moveTo(0, startY);
-    for (double x = 0; x <= w; x += 20) {
-      double y = startY + math.sin((x / 50) + (time * math.pi * 4)) * 30 + math.cos((x / 100) - (time * math.pi * 2)) * 50;
-      chartPath.lineTo(x, y);
+    double maxVal = history.reduce(math.max);
+    double minVal = history.reduce(math.min);
+    if (maxVal == minVal) {
+      maxVal += 1; minVal -= 1;
     }
-    canvas.drawPath(chartPath, chartPaint);
 
-    final Paint chartPaint2 = Paint()..color = AppColors.textSecondary.withValues(alpha: 0.05)..style = PaintingStyle.stroke..strokeWidth = 1.5;
-    final Path chartPath2 = Path(); double startY2 = h * 0.8;
-    chartPath2.moveTo(0, startY2);
-    for (double x = 0; x <= w; x += 20) {
-      double y = startY2 + math.cos((x / 60) + (time * math.pi * 3)) * 40;
-      chartPath2.lineTo(x, y);
-    }
-    canvas.drawPath(chartPath2, chartPaint2);
+    final path = Path();
+    final stepX = size.width / (history.length > 1 ? history.length - 1 : 1);
 
-    final Paint nodePaint = Paint()..color = AppColors.gold.withValues(alpha: 0.2);
-    math.Random rnd = math.Random(42); 
-    for (int i = 0; i < 15; i++) {
-      double nx = rnd.nextDouble() * w; double ny = rnd.nextDouble() * h;
-      double pulse = (math.sin(time * math.pi * 2 * (1 + rnd.nextDouble())) + 1) / 2;
-      if (pulse > 0.5) {
-        canvas.drawCircle(Offset(nx, ny), 2.0, nodePaint);
-        if (i % 3 == 0) canvas.drawLine(Offset(nx, ny), Offset(nx + 40, ny - 20), Paint()..color = AppColors.gold.withValues(alpha: 0.1 * pulse)..strokeWidth = 1);
+    for (int i = 0; i < history.length; i++) {
+      double normalizedY = (history[i] - minVal) / (maxVal - minVal);
+      double x = i * stepX;
+      double y = size.height - (normalizedY * size.height);
+
+      if (i == 0) {
+        path.moveTo(x, y);
+      } else {
+        path.lineTo(x, y);
       }
     }
+
+    final paint = Paint()
+      ..color = lineColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.0
+      ..strokeJoin = StrokeJoin.round;
+
+    canvas.drawPath(path, paint);
   }
-  @override bool shouldRepaint(covariant CorporateGridPainter oldDelegate) => oldDelegate.time != time;
+
+  @override
+  bool shouldRepaint(covariant SparklinePainter oldDelegate) => true;
 }

@@ -1,255 +1,401 @@
 // lib/screens/stock_screen.dart
-import 'dart:math';
-import 'dart:ui';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../providers/game_state.dart';
-import '../services/translation_service.dart';
 import '../theme/app_theme.dart';
 
 class StockScreen extends StatelessWidget {
   const StockScreen({super.key});
 
-  String _formatBigNum(double value, {bool isMoney = false}) {
-    if (value == 0) return isMoney ? '\$0' : '0';
-    bool isNegative = value < 0;
-    value = value.abs();
+  String _formatNum(double value) {
+    double absVal = value.abs();
+
+    if (absVal >= 1e33) return '${(absVal / 1e33).toStringAsFixed(2)} Dc';
+    if (absVal >= 1e30) return '${(absVal / 1e30).toStringAsFixed(2)} No';
+    if (absVal >= 1e27) return '${(absVal / 1e27).toStringAsFixed(2)} Oc';
+    if (absVal >= 1e24) return '${(absVal / 1e24).toStringAsFixed(2)} Sp';
+    if (absVal >= 1e21) return '${(absVal / 1e21).toStringAsFixed(2)} Sx';
+    if (absVal >= 1e18) return '${(absVal / 1e18).toStringAsFixed(2)} Qi';
+    if (absVal >= 1e15) return '${(absVal / 1e15).toStringAsFixed(2)} Qa';
+    if (absVal >= 1e12) return '${(absVal / 1e12).toStringAsFixed(2)} T';
+    if (absVal >= 1e9) return '${(absVal / 1e9).toStringAsFixed(2)} B';
+    if (absVal >= 1e6) return '${(absVal / 1e6).toStringAsFixed(2)} M';
+    if (absVal >= 1e3) return '${(absVal / 1e3).toStringAsFixed(1)} K';
     
-    String suffix = '';
-    double formatted = value;
+    return absVal.toStringAsFixed(0);
+  }
 
-    if (value >= 1e18) { formatted = value / 1e18; suffix = 'Qi'; }
-    else if (value >= 1e15) { formatted = value / 1e15; suffix = 'Qa'; }
-    else if (value >= 1e12) { formatted = value / 1e12; suffix = 'T'; }
-    else if (value >= 1e9) { formatted = value / 1e9; suffix = 'B'; }
-    else if (value >= 1e6) { formatted = value / 1e6; suffix = 'M'; }
-    else if (value >= 1e3) { formatted = value / 1e3; suffix = 'K'; }
+  double _parseInput(String input) {
+    String cleaned = input.trim().toLowerCase().replaceAll(',', '.');
+    if (cleaned.isEmpty) return 0.0;
 
-    String result = formatted.toStringAsFixed(suffix.isEmpty ? 0 : 2);
-    if (result.contains('.')) {
-      result = result.replaceAll(RegExp(r'0*$'), '').replaceAll(RegExp(r'\.$'), '');
+    int letterIndex = cleaned.indexOf(RegExp(r'[a-z]'));
+
+    if (letterIndex == -1) {
+      return double.tryParse(cleaned) ?? 0.0;
     }
 
-    String prefix = isNegative ? '-' : (isMoney && !isNegative && value > 0 && suffix.isNotEmpty ? '+' : '');
-    String moneySymbol = isMoney ? '\$' : '';
-    
-    return '$prefix$moneySymbol$result$suffix';
+    double numberPart = double.tryParse(cleaned.substring(0, letterIndex)) ?? 0.0;
+    String suffix = cleaned.substring(letterIndex);
+
+    switch (suffix) {
+      case 'k': return numberPart * 1e3;
+      case 'm': return numberPart * 1e6;
+      case 'b': return numberPart * 1e9;
+      case 't': return numberPart * 1e12;
+      case 'qa': return numberPart * 1e15;
+      case 'qi': return numberPart * 1e18;
+      case 'sx': return numberPart * 1e21;
+      case 'sp': return numberPart * 1e24;
+      case 'oc': return numberPart * 1e27;
+      case 'no': return numberPart * 1e30;
+      case 'dc': return numberPart * 1e33;
+      default: return numberPart;
+    }
+  }
+
+  void _showBuyDialog(BuildContext context, GameState state, Stock stock) {
+    final TextEditingController amountCtrl = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (c) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: const BorderSide(color: AppColors.border, width: 1.5)),
+        title: Row(
+          children: [
+            Icon(stock.icon, color: stock.iconColor, size: 24),
+            const SizedBox(width: 8),
+            Expanded(child: Text('${stock.name} Yatırımı', style: const TextStyle(color: AppColors.textPrimary, fontSize: 16, fontWeight: FontWeight.bold))),
+          ],
+        ),
+        // YENİ: Klavye açıldığında taşmayı engellemek için SingleChildScrollView eklendi
+        content: SizedBox(
+          width: double.maxFinite,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(color: AppColors.background, borderRadius: BorderRadius.circular(8), border: Border.all(color: AppColors.border)),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('Birim Fiyat:', style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+                      Text('\$${_formatNum(stock.currentPrice)}', style: const TextStyle(color: AppColors.gold, fontWeight: FontWeight.bold, fontSize: 14)),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Text('Yatırılacak Tutar:', style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: amountCtrl,
+                  // YENİ: Harf klavyesini engellemek için sadece sayısal klavye açtırıyoruz
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9.,a-zA-Z]'))],
+                  style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontFamily: 'SpaceMono'),
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: AppColors.background,
+                    prefixIcon: const Icon(Icons.attach_money_rounded, color: AppColors.textMuted),
+                    hintText: 'Miktar girin...',
+                    hintStyle: const TextStyle(color: AppColors.textMuted),
+                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: AppColors.border)),
+                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: AppColors.gold)),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                
+                // YENİ: Kısaltma Butonları (Yatay kaydırılabilir)
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      _buildSuffixButton('K', amountCtrl),
+                      _buildSuffixButton('M', amountCtrl),
+                      _buildSuffixButton('B', amountCtrl),
+                      _buildSuffixButton('T', amountCtrl),
+                      _buildSuffixButton('Qa', amountCtrl),
+                      _buildSuffixButton('Qi', amountCtrl),
+                      _buildSuffixButton('Sx', amountCtrl),
+                      _buildSuffixButton('Sp', amountCtrl),
+                      _buildSuffixButton('Oc', amountCtrl),
+                      _buildSuffixButton('No', amountCtrl),
+                      _buildSuffixButton('Dc', amountCtrl),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                // Hızlı Yatırım Butonları
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _buildQuickButton('25%', () => amountCtrl.text = _formatNum(state.money * 0.25).replaceAll(' ', '')),
+                    _buildQuickButton('50%', () => amountCtrl.text = _formatNum(state.money * 0.50).replaceAll(' ', '')),
+                    _buildQuickButton('MAX', () => amountCtrl.text = _formatNum(state.money).replaceAll(' ', '')),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(c), child: const Text('İPTAL', style: TextStyle(color: AppColors.textMuted))),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.gold, foregroundColor: AppColors.darkBrown, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+            onPressed: () {
+              double inputAmount = _parseInput(amountCtrl.text); 
+              
+              if (inputAmount >= stock.currentPrice) {
+                state.buyStockWithAmount(stock.id, inputAmount);
+                Navigator.pop(c);
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Tutar en az 1 hisse almaya yetmelidir!'), backgroundColor: AppColors.loss));
+              }
+            },
+            // YENİ: EMİR VER yerine SATIN AL yazıldı
+            child: const Text('SATIN AL', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // YENİ: Text alanına basılan harfi (K, M, B vb.) ekleyen buton widget'ı
+  Widget _buildSuffixButton(String label, TextEditingController ctrl) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 6.0),
+      child: OutlinedButton(
+        style: OutlinedButton.styleFrom(
+          minimumSize: const Size(40, 32),
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          foregroundColor: AppColors.gold, // Harf rengini oyuna uygun altın sarısı yaptım
+          side: const BorderSide(color: AppColors.border),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+        ),
+        onPressed: () {
+          // Eğer içinde zaten harf varsa onu silip yenisini ekler, böylece "1.5km" gibi hatalar olmaz
+          String current = ctrl.text.replaceAll(RegExp(r'[a-zA-Z]'), '').trim();
+          if (current.isNotEmpty) {
+            ctrl.text = '$current${label.toLowerCase()}';
+            // İmleci yazının sonuna taşır
+            ctrl.selection = TextSelection.fromPosition(TextPosition(offset: ctrl.text.length));
+          }
+        },
+        child: Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+      ),
+    );
+  }
+
+  Widget _buildQuickButton(String label, VoidCallback onTap) {
+    return Expanded(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+        child: OutlinedButton(
+          style: OutlinedButton.styleFrom(
+            foregroundColor: AppColors.textSecondary,
+            side: const BorderSide(color: AppColors.border),
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+          ),
+          onPressed: onTap,
+          child: Text(label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final gameState = context.watch<GameState>();
-    final stocks = gameState.stocks;
 
     return Scaffold(
-      extendBodyBehindAppBar: true,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text('stock.title'.tr(), style: AppTheme.titleStyle(fontSize: 22).copyWith(color: AppColors.gold)),
-        backgroundColor: Colors.black.withValues(alpha: 0.5),
+        title: Text('MENKUL KIYMETLER', style: AppTheme.titleStyle(fontSize: 18).copyWith(color: AppColors.textPrimary)),
+        backgroundColor: AppColors.surface,
         centerTitle: true,
         elevation: 0,
-        flexibleSpace: ClipRect(
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: Container(color: Colors.transparent),
-          ),
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.gold, size: 22),
-          onPressed: () => Navigator.pop(context),
-        ),
+        leading: IconButton(icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textPrimary, size: 20), onPressed: () => Navigator.pop(context)),
       ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft, end: Alignment.bottomRight,
-            colors: [Color(0xFF14141C), Color(0xFF0A0A10)], // Premium Koyu Arkaplan
-          ),
-        ),
-        child: ListView(
-          physics: const BouncingScrollPhysics(),
-          padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top + kToolbarHeight + 16, bottom: 40),
-          children: [
-            // ANA PORTFÖY KARTI
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(20),
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(vertical: 24),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.4),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: AppColors.gold.withValues(alpha: 0.4), width: 1.5),
-                    ),
-                    child: Column(
-                      children: [
-                        Text('stock.header_title'.tr().toUpperCase(), style: const TextStyle(color: AppColors.gold, fontSize: 14, fontWeight: FontWeight.w900, letterSpacing: 1.5)),
-                        const SizedBox(height: 8),
-                        Text(_formatBigNum(gameState.money, isMoney: true), style: const TextStyle(color: Colors.white, fontSize: 36, fontWeight: FontWeight.w900, fontFamily: 'SpaceMono', shadows: [Shadow(color: Colors.black87, blurRadius: 4, offset: Offset(0,2))])),
-                        const SizedBox(height: 16),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.6), borderRadius: BorderRadius.circular(8), border: Border.all(color: AppColors.gold.withValues(alpha: 0.3))),
-                          child: Text('stock.info_text'.tr(), textAlign: TextAlign.center, style: const TextStyle(color: Colors.white70, fontSize: 11, height: 1.4, fontWeight: FontWeight.bold)),
-                        ),
-                      ],
-                    ),
+      body: Column(
+        children: [
+          // PORTFÖY ÖZETİ EKRANI
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: const BoxDecoration(
+              color: AppColors.surface,
+              border: Border(bottom: BorderSide(color: AppColors.border, width: 1.5)),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Kullanılabilir Bakiye', style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+                      const SizedBox(height: 4),
+                      Text('\$${_formatNum(gameState.money)}', style: const TextStyle(color: AppColors.gold, fontSize: 24, fontWeight: FontWeight.bold, fontFamily: 'SpaceMono')),
+                    ],
                   ),
                 ),
-              ),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(color: AppColors.background, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.border)),
+                  child: const Icon(Icons.account_balance_wallet_rounded, color: AppColors.textSecondary, size: 32),
+                )
+              ],
             ),
-            const SizedBox(height: 20),
-            
-            // HİSSE SENETLERİ LİSTESİ
-            ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemCount: stocks.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 16),
+          ),
+          
+          // HİSSE LİSTESİ
+          Expanded(
+            child: ListView.separated(
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.all(16),
+              itemCount: gameState.stocks.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 12),
               itemBuilder: (context, index) {
-                final stock = stocks[index];
-                final bool isUp = stock.history.last >= stock.history[max(0, stock.history.length - 2)];
-                final Color trendColor = isUp ? AppColors.profit : AppColors.loss;
-                final Color pnlColor = stock.netPnl >= 0 ? AppColors.profit : AppColors.loss;
+                final stock = gameState.stocks[index];
+                
+                bool isGoingUp = stock.history.isNotEmpty && stock.currentPrice >= stock.history.first;
+                Color trendColor = isGoingUp ? AppColors.profit : AppColors.loss;
 
-                return ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                    child: Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.45),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: AppColors.gold.withValues(alpha: 0.2), width: 1.5),
-                      ),
-                      child: Column(
+                String pnlSign = stock.netPnl >= 0 ? '+' : '-';
+                String pnlFormatted = _formatNum(stock.netPnl);
+
+                return Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(color: AppColors.surfaceElevated, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.border)),
+                  child: Column(
+                    children: [
+                      Row(
                         children: [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.6), shape: BoxShape.circle, border: Border.all(color: AppColors.gold.withValues(alpha: 0.5), width: 1.5)),
-                                child: Icon(stock.icon, color: AppColors.gold, size: 26),
-                              ),
-                              const SizedBox(width: 14),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(stock.name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 16)),
-                                    const SizedBox(height: 4),
-                                    Row(
-                                      crossAxisAlignment: CrossAxisAlignment.center,
-                                      children: [
-                                        Text(_formatBigNum(stock.currentPrice, isMoney: true), style: const TextStyle(color: AppColors.gold, fontWeight: FontWeight.w900, fontSize: 15, fontFamily: 'SpaceMono')),
-                                        const SizedBox(width: 4),
-                                        Icon(isUp ? Icons.arrow_drop_up_rounded : Icons.arrow_drop_down_rounded, color: trendColor, size: 24),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Text('stock.owned_shares'.tr(params: {'amount': _formatBigNum(stock.ownedShares)}), style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w500)),
-                                    const SizedBox(height: 2),
-                                    Text('stock.net_pnl'.tr(params: {'amount': _formatBigNum(stock.netPnl, isMoney: true)}), style: TextStyle(color: pnlColor, fontSize: 12, fontWeight: FontWeight.w900)),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          
-                          // GRAFİK EKRANI
                           Container(
-                            height: 70, 
-                            width: double.infinity,
-                            padding: const EdgeInsets.symmetric(horizontal: 8),
-                            decoration: BoxDecoration(
-                              color: Colors.black.withValues(alpha: 0.7), 
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(color: Colors.white12, width: 1.5),
-                            ),
-                            child: CustomPaint(
-                              painter: SparklinePainter(data: stock.history, lineColor: trendColor),
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(color: AppColors.background, borderRadius: BorderRadius.circular(8), border: Border.all(color: stock.iconColor.withValues(alpha: 0.3))),
+                            child: Icon(stock.icon, color: stock.iconColor, size: 24),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(stock.name, style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 15)),
+                                const SizedBox(height: 4),
+                                Text('\$${_formatNum(stock.currentPrice)}', style: const TextStyle(color: AppColors.textSecondary, fontSize: 13, fontFamily: 'SpaceMono')),
+                              ],
                             ),
                           ),
-                          const SizedBox(height: 16),
-                          
-                          Row(
-                            children: [
-                              Expanded(
-                                child: ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: AppColors.profit.withValues(alpha: 0.15),
-                                    foregroundColor: AppColors.profit,
-                                    padding: const EdgeInsets.symmetric(vertical: 12),
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10), side: const BorderSide(color: AppColors.profit, width: 1.5)),
-                                  ),
-                                  onPressed: gameState.money >= stock.currentPrice ? () => context.read<GameState>().buyStock(stock.id) : null,
-                                  child: Text('stock.buy_button'.tr(), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13)),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: AppColors.gold.withValues(alpha: 0.15),
-                                    foregroundColor: AppColors.gold,
-                                    padding: const EdgeInsets.symmetric(vertical: 12),
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10), side: const BorderSide(color: AppColors.gold, width: 1.5)),
-                                  ),
-                                  onPressed: stock.ownedShares > 0 ? () => context.read<GameState>().sellAllStock(stock.id) : null,
-                                  child: Text('stock.sell_button'.tr(), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13)),
-                                ),
-                              ),
-                            ],
+                          SizedBox(
+                            width: 60, height: 30,
+                            child: CustomPaint(painter: SparklinePainter(history: stock.history, lineColor: trendColor)),
                           ),
                         ],
                       ),
-                    ),
+                      
+                      if (stock.ownedShares > 0) ...[
+                        const Padding(padding: EdgeInsets.symmetric(vertical: 12), child: Divider(color: AppColors.border, height: 1)),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text('Sahip Olunan', style: TextStyle(color: AppColors.textMuted, fontSize: 11)),
+                                Text(_formatNum(stock.ownedShares), style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 13)),
+                              ],
+                            ),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                const Text('Net Kâr/Zarar', style: TextStyle(color: AppColors.textMuted, fontSize: 11)),
+                                Text(
+                                  '$pnlSign\$$pnlFormatted',
+                                  style: TextStyle(
+                                    color: stock.netPnl >= 0 ? AppColors.profit : AppColors.loss, // DÜZELTİLEN YER
+                                    fontWeight: FontWeight.bold, 
+                                    fontSize: 13
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ],
+                      
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.background, foregroundColor: AppColors.gold,
+                                side: const BorderSide(color: AppColors.border),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                elevation: 0,
+                              ),
+                              onPressed: () => _showBuyDialog(context, gameState, stock),
+                              child: const Text('AL', style: TextStyle(fontWeight: FontWeight.bold)),
+                            ),
+                          ),
+                          if (stock.ownedShares > 0) ...[
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.border, foregroundColor: AppColors.textPrimary,
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                  elevation: 0,
+                                ),
+                                onPressed: () { gameState.sellAllStock(stock.id); },
+                                child: const Text('TÜMÜNÜ SAT', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                              ),
+                            ),
+                          ]
+                        ],
+                      ),
+                    ],
                   ),
                 );
               },
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 }
 
 class SparklinePainter extends CustomPainter {
-  final List<double> data;
+  final List<double> history;
   final Color lineColor;
 
-  SparklinePainter({required this.data, required this.lineColor});
+  SparklinePainter({required this.history, required this.lineColor});
 
   @override
   void paint(Canvas canvas, Size size) {
-    if (data.isEmpty) return;
+    if (history.isEmpty) return;
 
-    final paint = Paint()
-      ..color = lineColor
-      ..strokeWidth = 2.5 
-      ..style = PaintingStyle.stroke
-      ..strokeJoin = StrokeJoin.round
-      ..strokeCap = StrokeCap.round;
-
-    final maxVal = data.reduce(max);
-    final minVal = data.reduce(min);
-    final range = maxVal - minVal == 0 ? 1.0 : maxVal - minVal; 
+    double maxVal = history.reduce(math.max);
+    double minVal = history.reduce(math.min);
+    if (maxVal == minVal) {
+      maxVal += 1; minVal -= 1;
+    }
 
     final path = Path();
-    final stepX = size.width / (data.length - 1);
+    final stepX = size.width / (history.length > 1 ? history.length - 1 : 1);
 
-    for (int i = 0; i < data.length; i++) {
-      final x = i * stepX;
-      final y = size.height - ((data[i] - minVal) / range * size.height * 0.7) - (size.height * 0.15);
+    for (int i = 0; i < history.length; i++) {
+      double normalizedY = (history[i] - minVal) / (maxVal - minVal);
+      double x = i * stepX;
+      double y = size.height - (normalizedY * size.height);
 
       if (i == 0) {
         path.moveTo(x, y);
@@ -257,9 +403,16 @@ class SparklinePainter extends CustomPainter {
         path.lineTo(x, y);
       }
     }
+
+    final paint = Paint()
+      ..color = lineColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.0
+      ..strokeJoin = StrokeJoin.round;
+
     canvas.drawPath(path, paint);
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+  bool shouldRepaint(covariant SparklinePainter oldDelegate) => true;
 }
