@@ -1,87 +1,49 @@
 // lib/theme/app_theme.dart
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class AppColors {
-  // Ortağın MapScreen'den gelen ana renkleri
-  static const Color oceanBlue = Color(0xFF22CECE);
-  static const Color islandGreen = Color(0xFFA5C05B);
-  static const Color sandYellow = Color(0xFFF3D78F);
-  static const Color asphaltDark = Color(0xFF2D2D2D);
-  static const Color lighthouseRed = Color(0xFFD64D4D);
+  // Mat ve Ciddi Arkaplanlar
+  static const Color background = Color(0xFF0F1115); 
+  static const Color surface = Color(0xFF1A1C23);    
+  static const Color surfaceElevated = Color(0xFF242731); 
+  
+  // Kurumsal Vurgular
+  static const Color gold = Color(0xFFC5A059);       
+  static const Color darkBrown = Color(0xFF1E1814);  
+  static const Color border = Color(0xFF383E4C);     
 
-  // Ahşap ve UI Renkleri
-  static const Color classicBrown = Color(0xFF5D4037);
-  static const Color lightBrown = Color(0xFF7A574A);
-  static const Color darkBrown = Color(0xFF3D2821);
+  // İşlem Renkleri
+  static const Color profit = Color(0xFF388E3C);     
+  static const Color loss = Color(0xFFB71C1C);       
+  static const Color textPrimary = Color(0xFFE2E8F0); 
+  static const Color textSecondary = Color(0xFF94A3B8); 
+  static const Color textMuted = Color(0xFF64748B);
 
-  // --- SİSTEM RENK EŞLEŞTİRMELERİ ---
-  static const Color background = asphaltDark; 
-  static const Color surface = classicBrown;   
-  static const Color surfaceElevated = lightBrown;
-  static const Color border = darkBrown;
-
-  static const Color gold = sandYellow;
-  static const Color goldMuted = Color(0xFFDABF75);
-  static const Color profit = islandGreen;
-  static const Color loss = lighthouseRed;
-  static const Color neonCyan = oceanBlue;
-
-  static const Color textPrimary = Colors.white;
-  static const Color textSecondary = sandYellow; 
-  static const Color textMuted = Colors.white60;
-
-  static const LinearGradient tycoonGradient = LinearGradient(
-    begin: Alignment.topCenter,
-    end: Alignment.bottomCenter,
-    colors: [Color(0xFFB59A45), sandYellow, Color(0xFFF2DC8F)],
-    stops: [0.0, 0.4, 1.0],
-  );
+  // YENİ EKLENDİ: Diğer ekranlardaki (Görevler, Başarımlar, Ar-Ge) hataları çözen kurumsal Cyan
+  static const Color neonCyan = Color(0xFF0EA5E9); 
 }
 
 class AppTheme {
+  // DÜZELTİLDİ: main.dart'ın aradığı orijinal isim (tycoonTheme) yapıldı
   static ThemeData get tycoonTheme {
     return ThemeData(
       brightness: Brightness.dark,
       scaffoldBackgroundColor: AppColors.background,
-      cardColor: AppColors.surface,
-      dividerColor: AppColors.border,
-      textTheme: GoogleFonts.plusJakartaSansTextTheme(
-        ThemeData.dark().textTheme,
+      fontFamily: 'Inter', 
+      textTheme: const TextTheme(
+        bodyMedium: TextStyle(color: AppColors.textPrimary),
+        titleLarge: TextStyle(color: AppColors.gold, fontWeight: FontWeight.bold),
       ),
     );
   }
 
-  static TextStyle titleStyle({double fontSize = 32}) {
+  static TextStyle titleStyle({double fontSize = 24}) {
     return TextStyle(
-      fontFamily: 'Times New Roman',
-      fontSize: fontSize,
-      fontWeight: FontWeight.bold,
-      color: AppColors.textPrimary,
-      letterSpacing: 0.5,
-      shadows: [
-        Shadow(
-          color: Colors.black.withValues(alpha: 0.5),
-          offset: const Offset(1, 2),
-          blurRadius: 2,
-        )
-      ],
-    );
-  }
-
-  static TextStyle subtitleStyle({double fontSize = 14}) {
-    return GoogleFonts.plusJakartaSans(
+      fontFamily: 'Times New Roman', 
       fontSize: fontSize,
       fontWeight: FontWeight.w900,
+      letterSpacing: 1.2,
       color: AppColors.gold,
-      letterSpacing: 1.0,
     );
   }
-
-  static TextStyle get moneyStyle => GoogleFonts.spaceMono(
-        fontSize: 18,
-        fontWeight: FontWeight.w900,
-        color: AppColors.profit,
-        letterSpacing: 0.5,
-      );
 }

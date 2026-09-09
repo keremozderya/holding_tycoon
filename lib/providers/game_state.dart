@@ -6,35 +6,34 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/translation_service.dart';
 
-// --- AR-GE (RESEARCH) MODELLERİ ---
-class ResearchNode {
-  final String id;
-  final String title;
-  final String category;
-  final String description;
-  final IconData icon;
-  final int baseCost;
-  final int maxLevel;
-  int currentLevel;
-  final List<String> parentIds;
-  final String Function(int level) effectBuilder;
-
-  ResearchNode({required this.id, required this.title, required this.category, required this.description, required this.icon, required this.baseCost, required this.maxLevel, this.currentLevel = 0, required this.parentIds, required this.effectBuilder});
-  bool get isUnlocked => currentLevel > 0;
-  bool get isMaxed => currentLevel >= maxLevel;
-  int get cost => isMaxed ? baseCost * maxLevel : baseCost * (currentLevel + 1);
-  String get currentEffectText => currentLevel == 0 ? 'research.not_active'.tr() : effectBuilder(currentLevel);
-  String get nextEffectText => isMaxed ? 'research.max_level_reached'.tr() : effectBuilder(currentLevel + 1);
-}
-
-ResearchNode _n(String id, String title, String category, String description, IconData icon, int baseCost, int maxLevel, List<String> parentIds, String Function(int lvl) effectBuilder, {int currentLevel = 0}) {
-  return ResearchNode(id: id, title: title, category: category, description: description, icon: icon, baseCost: baseCost, maxLevel: maxLevel, currentLevel: currentLevel, parentIds: parentIds, effectBuilder: effectBuilder);
-}
-
-// --- DİĞER MODELLER ---
 class OfficeStaff {
-  final String id; final String title; final String description; final double hireCost; bool isHired;
-  OfficeStaff(this.id, this.title, this.description, this.hireCost, {this.isHired = false});
+  final String id; 
+  final String title; 
+  final String baseDescription; 
+  final double baseCost;
+  final double costMultiplier;
+  final int maxLevel;
+  int level;
+  final String Function(int level) effectTextBuilder;
+  final double Function(int level) effectValueBuilder;
+
+  OfficeStaff({
+    required this.id, 
+    required this.title, 
+    required this.baseDescription, 
+    required this.baseCost, 
+    required this.costMultiplier,
+    this.maxLevel = 50,
+    this.level = 0,
+    required this.effectTextBuilder,
+    required this.effectValueBuilder,
+  });
+
+  double get currentCost => baseCost * math.pow(costMultiplier, level);
+  bool get isMaxed => level >= maxLevel;
+  double get currentEffectValue => effectValueBuilder(level);
+  String get currentEffectText => level == 0 ? 'Etki Yok' : effectTextBuilder(level);
+  String get nextEffectText => isMaxed ? 'Maksimum Seviye' : effectTextBuilder(level + 1);
 }
 
 class GameEvent {
@@ -43,20 +42,9 @@ class GameEvent {
 }
 
 class FactoryProduct {
-  String name; 
-  int level; 
-  double baseIncome; 
-  double baseCost;
-  
-  FactoryProduct({
-    required this.name, 
-    this.level = 0, 
-    required this.baseIncome, 
-    required this.baseCost
-  });
-  
+  String name; int level; double baseIncome; double baseCost;
+  FactoryProduct({required this.name, this.level = 0, required this.baseIncome, required this.baseCost});
   double get manualIncome => level == 0 ? 0.0 : baseIncome * math.pow(1.3, level - 1);
-
   double get passiveIncome => manualIncome * 0.4; 
   double get upgradeCost => baseCost * math.pow(1.4, level);
   Map<String, dynamic> toJson() => {'name': name, 'level': level};
@@ -77,6 +65,18 @@ class Stock {
   double get netPnl => (currentPrice * ownedShares) - totalSpent;
 }
 
+class ResearchNode {
+  final String id; final String title; final String category; final String description; final IconData icon; final int baseCost; final int maxLevel; int currentLevel; final List<String> parentIds; final String Function(int level) effectBuilder;
+  ResearchNode({required this.id, required this.title, required this.category, required this.description, required this.icon, required this.baseCost, required this.maxLevel, this.currentLevel = 0, required this.parentIds, required this.effectBuilder});
+  bool get isUnlocked => currentLevel > 0; bool get isMaxed => currentLevel >= maxLevel; int get cost => isMaxed ? baseCost * maxLevel : baseCost * (currentLevel + 1);
+  String get currentEffectText => currentLevel == 0 ? 'research.not_active'.tr() : effectBuilder(currentLevel);
+  String get nextEffectText => isMaxed ? 'research.max_level_reached'.tr() : effectBuilder(currentLevel + 1);
+}
+
+ResearchNode _n(String id, String title, String category, String description, IconData icon, int baseCost, int maxLevel, List<String> parentIds, String Function(int lvl) effectBuilder, {int currentLevel = 0}) {
+  return ResearchNode(id: id, title: title, category: category, description: description, icon: icon, baseCost: baseCost, maxLevel: maxLevel, currentLevel: currentLevel, parentIds: parentIds, effectBuilder: effectBuilder);
+}
+
 class GameState extends ChangeNotifier {
   double _money = 0.0; 
   int _researchPoints = 0;
@@ -87,10 +87,42 @@ class GameState extends ChangeNotifier {
   List<ResearchNode> _researchNodes = [];
   
   List<OfficeStaff> officeStaff = [
-    OfficeStaff('staff_1', 'Muhasebeci', 'Vergi borçlarında %15 indirim sağlar.', 250000.0),
-    OfficeStaff('staff_2', 'Üretim Şefi', 'Tüm fabrikaların saniyelik gelirini %20 artırır.', 1500000.0),
-    OfficeStaff('staff_3', 'İnsan Kaynakları', 'Yeni fabrika arsa alımlarında %10 maliyet düşürür.', 5000000.0),
-    OfficeStaff('staff_4', 'Borsa Analisti', 'Hisselerin kâr etme olasılığını artırır.', 25000000.0),
+    OfficeStaff(
+      id: 'staff_1', 
+      title: 'Muhasebe Departmanı', 
+      baseDescription: 'Tuttuğunuz her muhasebeci vergi oranını %0.4 düşürür.', 
+      baseCost: 15000.0, 
+      costMultiplier: 1.65, 
+      effectTextBuilder: (lvl) => 'Vergi İndirimi: -%${(lvl * 0.4).toStringAsFixed(1)}',
+      effectValueBuilder: (lvl) => lvl * 0.004, 
+    ),
+    OfficeStaff(
+      id: 'staff_2', 
+      title: 'Üretim Müdürlüğü', 
+      baseDescription: 'Her müdür fabrikaların saniyelik gelirini kalıcı %2 artırır.', 
+      baseCost: 50000.0, 
+      costMultiplier: 1.70, 
+      effectTextBuilder: (lvl) => 'Global Gelir İlavesi: +%${lvl * 2}',
+      effectValueBuilder: (lvl) => lvl * 0.02,
+    ),
+    OfficeStaff(
+      id: 'staff_3', 
+      title: 'İnsan Kaynakları', 
+      baseDescription: 'Her uzman yeni arsa alımlarında maliyeti %0.5 düşürür.', 
+      baseCost: 150000.0, 
+      costMultiplier: 1.70, 
+      effectTextBuilder: (lvl) => 'Arsa İndirimi: -%${(lvl * 0.5).toStringAsFixed(1)}',
+      effectValueBuilder: (lvl) => lvl * 0.005,
+    ),
+    OfficeStaff(
+      id: 'staff_4', 
+      title: 'Borsa Analistleri', 
+      baseDescription: 'Her analist borsada kâr etme olasılığını %0.1 artırır.', 
+      baseCost: 1000000.0, 
+      costMultiplier: 1.75, 
+      effectTextBuilder: (lvl) => 'Ekstra Kâr Şansı: +%${(lvl * 0.1).toStringAsFixed(1)}',
+      effectValueBuilder: (lvl) => lvl * 0.001,
+    ),
   ];
 
   int statClicks = 0; int statStocks = 0; int statUpgrades = 0; int statTaxes = 0; int statPrestige = 0; int statAdsWatched = 0; int statWheelSpins = 0; 
@@ -100,24 +132,35 @@ class GameState extends ChangeNotifier {
   DateTime? _boostEndTime; GameEvent? activeEvent; DateTime? _eventEndTime;
   GameEvent? _unhandledEvent; double _unhandledBagReward = 0.0; double offlineEarningsToClaim = 0.0; 
 
-  // --- ÇARPANLAR (RESEARCH BONUSU EKLENDİ) ---
+  String get activeEventTimeLeft {
+    if (!isEventActive) return '';
+    int secs = _eventEndTime!.difference(DateTime.now()).inSeconds;
+    return '${secs ~/ 60}:${(secs % 60).toString().padLeft(2, '0')}';
+  }
+
+  String get boostTimeLeft {
+    if (!isBoostActive) return '';
+    int secs = _boostEndTime!.difference(DateTime.now()).inSeconds;
+    return '${secs ~/ 60}:${(secs % 60).toString().padLeft(2, '0')}';
+  }
+
   double get researchMultiplier {
     double m = 1.0;
     if (_researchNodes.isNotEmpty) {
       var node1 = _researchNodes.firstWhere((n) => n.id == 'node_001', orElse: () => _researchNodes[0]);
-      if (node1.currentLevel > 0) m += (node1.currentLevel * 0.03); // Lvl başı %3 global kâr
+      if (node1.currentLevel > 0) { m += (node1.currentLevel * 0.03); }
       var node15 = _researchNodes.firstWhere((n) => n.id == 'node_015', orElse: () => _researchNodes[0]);
-      if (node15.currentLevel > 0) m += (node15.currentLevel * 0.10); // Lvl başı %10 global kâr
+      if (node15.currentLevel > 0) { m += (node15.currentLevel * 0.10); }
     }
     return m;
   }
 
   double get currentMultiplier {
     double m = 1.0;
-    if (isBoostActive) m *= 2.0;
-    if (isEventActive) m *= activeEvent!.multiplier;
-    if (officeStaff.firstWhere((s) => s.id == 'staff_2').isHired) m *= 1.20; 
-    m *= researchMultiplier; // AR-GE Çarpanı oyuna dahil oldu!
+    if (isBoostActive) { m *= 2.0; }
+    if (isEventActive) { m *= activeEvent!.multiplier; }
+    m *= (1.0 + officeStaff.firstWhere((s) => s.id == 'staff_2').currentEffectValue);
+    m *= researchMultiplier; 
     return m;
   }
   
@@ -150,49 +193,81 @@ class GameState extends ChangeNotifier {
       _currentTaxDebt = (data['currentTaxDebt'] as num?)?.toDouble() ?? 0.0;
       
       statClicks = data['statClicks'] ?? 0; statStocks = data['statStocks'] ?? 0; statUpgrades = data['statUpgrades'] ?? 0; statTaxes = data['statTaxes'] ?? 0; statPrestige = data['statPrestige'] ?? 0; statAdsWatched = data['statAdsWatched'] ?? 0; statWheelSpins = data['statWheelSpins'] ?? 0;
+      
       if (data['claimedTasks'] != null) claimedTasks = List<bool>.from(data['claimedTasks']);
       if (data['claimedAchievements'] != null) claimedAchievements = List<bool>.from(data['claimedAchievements']);
-      if (data['hiredStaff'] != null) { List<String> hiredIds = List<String>.from(data['hiredStaff']); for (var staff in officeStaff) { if (hiredIds.contains(staff.id)) staff.isHired = true; } }
+      
+      if (data['officeStaffLevels'] != null) {
+        List<dynamic> staffList = data['officeStaffLevels'];
+        for (var saved in staffList) {
+          try { 
+            var staff = officeStaff.firstWhere((s) => s.id == saved['id']); 
+            staff.level = saved['level'] ?? 0; 
+          } catch (_) {}
+        }
+      } else if (data['hiredStaff'] != null) {
+        List<String> hiredIds = List<String>.from(data['hiredStaff']);
+        for (var staff in officeStaff) { 
+          if (hiredIds.contains(staff.id)) staff.level = 1; 
+        }
+      }
 
-      if (data['lastTaxIssued'] != null) _lastTaxIssued = DateTime.parse(data['lastTaxIssued']);
-      if (data['taxDeadline'] != null) _taxDeadline = DateTime.parse(data['taxDeadline']);
-      if (data['lastSaveTime'] != null) _lastSaveTime = DateTime.parse(data['lastSaveTime']);
-      if (data['boostEndTime'] != null) _boostEndTime = DateTime.parse(data['boostEndTime']);
-      if (data['eventEndTime'] != null && data['activeEvent'] != null) { _eventEndTime = DateTime.parse(data['eventEndTime']); var ev = data['activeEvent']; activeEvent = GameEvent(ev['title'], ev['desc'], ev['mult'], ev['dur'], ev['cost']); }
+      if (data['lastTaxIssued'] != null) { _lastTaxIssued = DateTime.parse(data['lastTaxIssued']); }
+      if (data['taxDeadline'] != null) { _taxDeadline = DateTime.parse(data['taxDeadline']); }
+      if (data['lastSaveTime'] != null) { _lastSaveTime = DateTime.parse(data['lastSaveTime']); }
+      if (data['boostEndTime'] != null) { _boostEndTime = DateTime.parse(data['boostEndTime']); }
+      if (data['eventEndTime'] != null && data['activeEvent'] != null) { 
+        _eventEndTime = DateTime.parse(data['eventEndTime']); 
+        var ev = data['activeEvent']; 
+        activeEvent = GameEvent(ev['title'], ev['desc'], ev['mult'], ev['dur'], ev['cost']); 
+      }
       _isUnderPenalty = data['isUnderPenalty'] ?? false;
 
       _loadStocksFromJson(data['stocks']);
       _loadFactoriesFromJson(data['factories']);
-      _loadResearchFromJson(data['researchNodes']); // AR-GE YÜKLENİYOR
+      
+      // AR-GE VERİLERİ YÜKLENİYOR
+      _loadResearchFromJson(data['researchNodes']); 
       
       if (_lastSaveTime != null) {
         int secondsPassed = DateTime.now().difference(_lastSaveTime!).inSeconds;
-        if (secondsPassed > 60 && baseIncomePerSecond > 0) offlineEarningsToClaim = secondsPassed * baseIncomePerSecond;
+        if (secondsPassed > 60 && baseIncomePerSecond > 0) {
+          offlineEarningsToClaim = secondsPassed * baseIncomePerSecond;
+        }
       }
     } else {
-      _loadStocksFromJson(null); _loadFactoriesFromJson(null); _loadResearchFromJson(null);
-      _lastTaxIssued = DateTime.now(); _taxDeadline = DateTime.now().add(const Duration(hours: 12)); 
+      _loadStocksFromJson(null); 
+      _loadFactoriesFromJson(null); 
+      _loadResearchFromJson(null); // BOŞ YÜKLEME
+      _lastTaxIssued = DateTime.now(); 
+      _taxDeadline = DateTime.now().add(const Duration(hours: 12)); 
     }
 
     await TranslationService.instance.loadLanguage(_language);
-    notifyListeners(); _startGlobalTimers();
+    notifyListeners(); 
+    _startGlobalTimers();
   }
 
   Future<void> _saveGame() async {
     final prefs = await SharedPreferences.getInstance();
     _lastSaveTime = DateTime.now();
-    List<String> hiredIds = officeStaff.where((s) => s.isHired).map((s) => s.id).toList();
 
     Map<String, dynamic> gameData = {
       'money': _money, 'researchPoints': _researchPoints, 'isFirstLaunch': _isFirstLaunch, 'language': _language,
       'statClicks': statClicks, 'statStocks': statStocks, 'statUpgrades': statUpgrades, 'statTaxes': statTaxes, 'statPrestige': statPrestige, 'statAdsWatched': statAdsWatched, 'statWheelSpins': statWheelSpins,
-      'claimedTasks': claimedTasks, 'claimedAchievements': claimedAchievements, 'hiredStaff': hiredIds,
-      'currentTaxDebt': _currentTaxDebt, 'lastTaxIssued': _lastTaxIssued?.toIso8601String(), 'taxDeadline': _taxDeadline?.toIso8601String(), 'lastSaveTime': _lastSaveTime?.toIso8601String(), 'boostEndTime': _boostEndTime?.toIso8601String(), 'eventEndTime': _eventEndTime?.toIso8601String(),
+      'claimedTasks': claimedTasks, 'claimedAchievements': claimedAchievements, 
+      'officeStaffLevels': officeStaff.map((s) => {'id': s.id, 'level': s.level}).toList(), 
+      'currentTaxDebt': _currentTaxDebt, 
+      'lastTaxIssued': _lastTaxIssued?.toIso8601String(), 
+      'taxDeadline': _taxDeadline?.toIso8601String(), 
+      'lastSaveTime': _lastSaveTime?.toIso8601String(), 
+      'boostEndTime': _boostEndTime?.toIso8601String(), 
+      'eventEndTime': _eventEndTime?.toIso8601String(),
       'activeEvent': activeEvent != null ? {'title': activeEvent!.title, 'desc': activeEvent!.description, 'mult': activeEvent!.multiplier, 'dur': activeEvent!.durationMinutes, 'cost': activeEvent!.preventCost} : null,
       'isUnderPenalty': _isUnderPenalty,
       'stocks': _stocks.map((s) => {'id': s.id, 'currentPrice': s.currentPrice, 'history': s.history, 'ownedShares': s.ownedShares, 'totalSpent': s.totalSpent}).toList(),
       'factories': _factories.map((f) => {'id': f.id, 'isUnlocked': f.isUnlocked, 'products': f.products.map((p) => p.toJson()).toList()}).toList(),
-      'researchNodes': _researchNodes.map((r) => {'id': r.id, 'level': r.currentLevel}).toList(), // AR-GE KAYDEDİLİYOR
+      'researchNodes': _researchNodes.map((r) => {'id': r.id, 'level': r.currentLevel}).toList(),
     };
     await prefs.setString('game_save_data', jsonEncode(gameData));
   }
@@ -339,6 +414,7 @@ class GameState extends ChangeNotifier {
     ];
   }
 
+  // EKSİK OLAN AR-GE YÜKLEME METODU EKLENDİ
   void _loadResearchFromJson(dynamic savedList) {
     _initDefaultResearchNodes(); 
     if (savedList != null) {
@@ -389,12 +465,12 @@ class GameState extends ChangeNotifier {
       _money += incomePerSecond;
     }
     if (DateTime.now().second % 5 == 0) {
-      bool analystHired = officeStaff.firstWhere((s) => s.id == 'staff_4').isHired;
+      double analystBonus = officeStaff.firstWhere((s) => s.id == 'staff_4').currentEffectValue;
       for (var stock in _stocks) {
         double vol = (_random.nextDouble() * 0.04) + 0.01;
-        bool isProfit = _random.nextDouble() < (analystHired ? 0.54 : 0.51); 
+        bool isProfit = _random.nextDouble() < (0.51 + analystBonus); 
         stock.currentPrice *= (1 + (isProfit ? vol : -vol));
-        if (stock.currentPrice < 1.0) stock.currentPrice = 1.0;
+        if (stock.currentPrice < 1.0) { stock.currentPrice = 1.0; }
         stock.history.add(stock.currentPrice);
         if (stock.history.length > 40) {
           stock.history.removeAt(0);
@@ -413,13 +489,13 @@ class GameState extends ChangeNotifier {
     if (activeEvent != null && _eventEndTime != null && DateTime.now().isAfter(_eventEndTime!)) {
       activeEvent = null; 
       _eventEndTime = null; 
-      _saveGame();
+      _saveGame(); 
     }
     if (baseIncomePerSecond > 0 && activeEvent == null && _unhandledEvent == null && _random.nextDouble() < 0.005) {
       if (_random.nextBool()) {
-        _unhandledEvent = GameEvent('Lojistik Krizi', 'Liman grevleri sebebiyle 30 dakikalığına gelirler %50 düşecek. Önlemek ister misin?', 0.5, 30, baseIncomePerSecond * 1800);
+        _unhandledEvent = GameEvent('Lojistik Krizi', 'Liman grevleri sebebiyle 3 dakikalığına gelirler %50 düşecek.', 0.5, 3, baseIncomePerSecond * 120);
       } else {
-        _unhandledEvent = GameEvent('İhracat Anlaşması', 'Yeni pazarlara açıldık! 10 dakikalığına gelirler %10 arttı!', 1.1, 10, 0);
+        _unhandledEvent = GameEvent('Küresel Talep Patlaması', 'Ürünlerimize yoğun ilgi var! 2 dakikalığına gelirler 2 Kat artacak!', 2.0, 2, 0);
       }
     }
     if (baseIncomePerSecond > 0 && _unhandledBagReward == 0 && _random.nextDouble() < 0.005) {
@@ -461,14 +537,6 @@ class GameState extends ChangeNotifier {
     notifyListeners(); 
   }
 
-  void spinWheel() {
-    int seconds = 30 + _random.nextInt(10770); 
-    double reward = baseIncomePerSecond * seconds;
-    _money += reward == 0 ? 5000 : reward;
-    _saveGame(); 
-    notifyListeners(); 
-  }
-
   void applyTaxAmnesty() { 
     _currentTaxDebt = 0; 
     _isUnderPenalty = false; 
@@ -482,9 +550,9 @@ class GameState extends ChangeNotifier {
     final now = DateTime.now();
     if (_lastTaxIssued != null && now.difference(_lastTaxIssued!).inHours >= 5 && _currentTaxDebt == 0) {
       double taxRate = 0.10;
-      if (officeStaff.firstWhere((s) => s.id == 'staff_1').isHired) {
-        taxRate -= 0.015; 
-      }
+      taxRate -= officeStaff.firstWhere((s) => s.id == 'staff_1').currentEffectValue;
+      if (taxRate < 0.02) taxRate = 0.02; 
+      
       _currentTaxDebt = (baseIncomePerSecond * 3600 * 5) * taxRate; 
       _lastTaxIssued = now; 
       _taxDeadline = now.add(const Duration(hours: 12)); 
@@ -547,9 +615,7 @@ class GameState extends ChangeNotifier {
   bool unlockFactory(String facId) {
     var fac = _factories.firstWhere((f) => f.id == facId);
     double finalPrice = fac.price;
-    if (officeStaff.firstWhere((s) => s.id == 'staff_3').isHired) {
-      finalPrice *= 0.90; 
-    }
+    finalPrice *= (1.0 - officeStaff.firstWhere((s) => s.id == 'staff_3').currentEffectValue);
 
     if (!fac.isUnlocked && _money >= finalPrice) {
       _money -= finalPrice; 
@@ -564,9 +630,10 @@ class GameState extends ChangeNotifier {
 
   void hireStaff(String staffId) {
     var staff = officeStaff.firstWhere((s) => s.id == staffId);
-    if (!staff.isHired && _money >= staff.hireCost) {
-      _money -= staff.hireCost;
-      staff.isHired = true;
+    double cost = staff.currentCost;
+    if (!staff.isMaxed && _money >= cost) {
+      _money -= cost;
+      staff.level++;
       _saveGame(); 
       notifyListeners();
     }
@@ -574,8 +641,9 @@ class GameState extends ChangeNotifier {
 
   void upgradeProduct(String facId, int productIndex) {
     var prod = _factories.firstWhere((f) => f.id == facId).products[productIndex];
-    if (prod.level >= 60) return;
-    
+    if (prod.level >= 60) {
+      return;
+    }
     double cost = prod.upgradeCost;
     if (_money >= cost) { 
       _money -= cost; 
@@ -586,7 +654,6 @@ class GameState extends ChangeNotifier {
     }
   }
 
-  // --- AR-GE (RESEARCH) GELİŞTİRME FONKSİYONU YENİ EKLENDİ ---
   void upgradeResearch(String researchId) {
     var node = _researchNodes.firstWhere((n) => n.id == researchId);
     if (_researchPoints >= node.cost && !node.isMaxed) {
@@ -611,53 +678,22 @@ class GameState extends ChangeNotifier {
     notifyListeners();
   }
 
-  void incrementAdsWatched() { 
-    statAdsWatched++; 
-    _saveGame(); 
-    notifyListeners(); 
-  }
-  
-  void incrementWheelSpins() { 
-    statWheelSpins++; 
-    _saveGame(); 
-    notifyListeners(); 
-  }
-  
-  Future<void> updateMoney(double amount) async { 
-    _money += amount; 
-    if (_money < 0) _money = 0; 
-    await _saveGame(); 
-    notifyListeners(); 
-  }
-  
-  Future<void> updateResearchPoints(int amount) async { 
-    _researchPoints += amount; 
-    await _saveGame(); 
-    notifyListeners(); 
-  }
-  
-  Future<void> setLanguage(String langCode) async { 
-    _language = langCode; 
-    await TranslationService.instance.loadLanguage(_language); 
-    await _saveGame(); 
-    notifyListeners(); 
-  }
-  
-  Future<void> completeFirstLaunch() async { 
-    _isFirstLaunch = false; 
-    await _saveGame(); 
-    notifyListeners(); 
-  }
+  void incrementAdsWatched() { statAdsWatched++; _saveGame(); notifyListeners(); }
+  void incrementWheelSpins() { statWheelSpins++; _saveGame(); notifyListeners(); }
+  Future<void> updateMoney(double amount) async { _money += amount; if (_money < 0) { _money = 0; } await _saveGame(); notifyListeners(); }
+  Future<void> updateResearchPoints(int amount) async { _researchPoints += amount; await _saveGame(); notifyListeners(); }
+  Future<void> setLanguage(String langCode) async { _language = langCode; await TranslationService.instance.loadLanguage(_language); await _saveGame(); notifyListeners(); }
+  Future<void> completeFirstLaunch() async { _isFirstLaunch = false; await _saveGame(); notifyListeners(); }
   
   void buyStock(String stockId) {
     var s = _stocks.firstWhere((st) => st.id == stockId);
     double budget = _money * 0.1;
-    if (budget < s.currentPrice) budget = s.currentPrice;
+    if (budget < s.currentPrice) { budget = s.currentPrice; }
     
     if (_money >= s.currentPrice) {
       double shares = (budget / s.currentPrice).floorToDouble();
-      if (shares < 1) shares = 1;
-      if (_money < shares * s.currentPrice) shares = (_money / s.currentPrice).floorToDouble();
+      if (shares < 1) { shares = 1; }
+      if (_money < shares * s.currentPrice) { shares = (_money / s.currentPrice).floorToDouble(); }
       
       _money -= shares * s.currentPrice; 
       s.ownedShares += shares; 
