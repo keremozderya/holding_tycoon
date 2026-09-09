@@ -43,10 +43,21 @@ class GameEvent {
 }
 
 class FactoryProduct {
-  String name; int level; double baseIncome; double baseCost;
-  FactoryProduct({required this.name, this.level = 0, required this.baseIncome, required this.baseCost});
+  String name; 
+  int level; 
+  double baseIncome; 
+  double baseCost;
+  
+  FactoryProduct({
+    required this.name, 
+    this.level = 0, 
+    required this.baseIncome, 
+    required this.baseCost
+  });
+  
   double get manualIncome => level == 0 ? 0.0 : baseIncome * math.pow(1.3, level - 1);
-  double get passiveIncome => manualIncome / 2.0; 
+
+  double get passiveIncome => manualIncome * 0.4; 
   double get upgradeCost => baseCost * math.pow(1.4, level);
   Map<String, dynamic> toJson() => {'name': name, 'level': level};
 }

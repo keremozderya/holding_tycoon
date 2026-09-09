@@ -466,7 +466,7 @@ class _MapScreenState extends State<MapScreen> {
           SafeArea(
             top: false,
             child: SizedBox(
-              height: 64, // Taşmayı engelleyen dinamik yükseklik
+              height: 64, 
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
@@ -653,7 +653,7 @@ class _FactoryInsideModalState extends State<FactoryInsideModal> with SingleTick
                         final prod = currentFac.products[index];
                         bool canUnlock = index == 0 || currentFac.products[index - 1].level >= 10;
                         if (!canUnlock) {
-                          return Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: Colors.black26, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.border)), child: const Row(children: [Icon(Icons.lock, color: Colors.white30), SizedBox(width: 12), Text('Önceki ürünü Lvl 10 yapın', style: TextStyle(color: Colors.white54))]));
+                          return Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: Colors.black26, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.border)), child: Row(children: const [Icon(Icons.lock, color: Colors.white30), SizedBox(width: 12), Text('Önceki ürünü Lvl 10 yapın', style: TextStyle(color: Colors.white54))]));
                         }
 
                         double cost = prod.upgradeCost;
@@ -793,6 +793,131 @@ class _BoxAnimatorState extends State<BoxAnimator> {
   }
 }
 
+// YENİ EKLENDİ: MARTI SÜRÜSÜ ANİMASYONU
+class SeagullFlockComponent extends PositionComponent {
+  double _time = 0;
+  final Vector2 velocity;
+  final int birdCount = 3 + math.Random().nextInt(5); // 3 ile 7 arası kuş
+  final List<Vector2> offsets = [];
+  final List<double> phaseShifts = [];
+
+  SeagullFlockComponent({required Vector2 startPos, required this.velocity}) {
+    position = startPos;
+    size = Vector2(150, 150);
+    for(int i=0; i<birdCount; i++) {
+       offsets.add(Vector2(math.Random().nextDouble() * 100, math.Random().nextDouble() * 100));
+       phaseShifts.add(math.Random().nextDouble() * math.pi * 2);
+    }
+  }
+
+  @override
+  void update(double dt) {
+    _time += dt;
+    position.add(velocity * dt);
+    
+    // Ekran dışına çıkarsa sil
+    if (position.x < -300 || position.x > 1500) {
+      removeFromParent();
+    }
+  }
+
+  @override
+  void render(Canvas canvas) {
+    final paint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.8)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.5
+      ..strokeCap = StrokeCap.round;
+
+    for (int i = 0; i < birdCount; i++) {
+      double flap = math.sin(_time * 8 + phaseShifts[i]) * 8; // Kanat çırpma
+      Path bird = Path();
+      double bx = offsets[i].x;
+      double by = offsets[i].y;
+      
+      // Basit 'V' veya Martı Şekli Çizimi
+      bird.moveTo(bx, by - flap);
+      bird.quadraticBezierTo(bx + 8, by - 5, bx + 12, by); // Gövde (orta)
+      bird.quadraticBezierTo(bx + 16, by - 5, bx + 24, by - flap);
+      
+      canvas.drawPath(bird, paint);
+    }
+  }
+}
+
+// YENİ EKLENDİ: KIYIYA VURAN KÖPÜKLÜ BEYAZ DALGALAR
+class CrashingWavesComponent extends Component {
+  final double mapWidth;
+  final double mapHeight;
+  double _time = 0;
+  final math.Random _random = math.Random();
+  final List<_Wave> _waves = [];
+
+  CrashingWavesComponent({required this.mapWidth, required this.mapHeight});
+
+  @override
+  void update(double dt) {
+    _time += dt;
+    // Saniyede %3 ihtimalle yeni bir dalga oluştur
+    if (_random.nextDouble() < 0.03) {
+      _waves.add(_Wave(
+        x: -100 + _random.nextDouble() * (mapWidth + 200),
+        y: -100 + _random.nextDouble() * (mapHeight + 200),
+        maxLife: 3.0 + _random.nextDouble() * 2.0,
+        size: 0.8 + _random.nextDouble() * 1.5,
+      ));
+    }
+    
+    for (int i = _waves.length - 1; i >= 0; i--) {
+      _waves[i].life += dt;
+      if (_waves[i].life > _waves[i].maxLife) {
+        _waves.removeAt(i);
+      }
+    }
+  }
+
+  @override
+  void render(Canvas canvas) {
+    // Deniz sınırlarını maskele (Kıyıya ve adaya dalga girmesin)
+    Path safeWaterZone = Path.combine(
+      PathOperation.difference, 
+      Path.combine(PathOperation.difference, Path.combine(PathOperation.difference, Path()..addRect(Rect.fromLTWH(-500, -500, mapWidth + 1000, mapHeight + 1000)), Path()..addOval(const Rect.fromLTRB(965, 1340, 1300, 1540))), Path()..addOval(const Rect.fromLTRB(-20, 2800, 120, 3100))), 
+      Path()..addOval(const Rect.fromLTRB(-20, 400, 140, 600))
+    );
+
+    canvas.save();
+    canvas.clipPath(safeWaterZone);
+
+    for (var wave in _waves) {
+      double progress = wave.life / wave.maxLife;
+      // Opaklık artar ve azalır (Fade in & Fade out)
+      double alpha = math.sin(progress * math.pi) * 0.6; 
+      
+      final paint = Paint()
+        ..color = Colors.white.withValues(alpha: alpha)
+        ..style = PaintingStyle.fill;
+
+      // Dalganın kıyıya doğru hafif kayması (Y ve X ekseninde)
+      double currentX = wave.x + (progress * 30 * wave.size);
+      double currentY = wave.y + (progress * 20 * wave.size);
+
+      Path wavePath = Path();
+      wavePath.moveTo(currentX, currentY);
+      wavePath.quadraticBezierTo(currentX + (40 * wave.size), currentY - (15 * wave.size), currentX + (80 * wave.size), currentY + (10 * wave.size));
+      wavePath.quadraticBezierTo(currentX + (40 * wave.size), currentY - (5 * wave.size), currentX, currentY);
+      
+      canvas.drawPath(wavePath, paint);
+    }
+    
+    canvas.restore();
+  }
+}
+
+class _Wave {
+  double x, y, life = 0, maxLife, size;
+  _Wave({required this.x, required this.y, required this.maxLife, required this.size});
+}
+
 class OpenSeaRipples extends Component {
   double _time = 0;
   final Paint _ripplePaint = Paint()..style = PaintingStyle.stroke..strokeCap = StrokeCap.round..strokeWidth = 3.5;
@@ -904,6 +1029,7 @@ class HoldingTycoonGame extends FlameGame with PanDetector {
   final double topPadding = 250.0; final double bottomPadding = 350.0;
   
   GameState? _currentState;
+  double _seagullTimer = 0; // YENİ: Martı Sayacı
 
   HoldingTycoonGame({required this.onFactoryTap, required this.onBagTapped}) { cam = CameraComponent(world: mapWorld); }
 
@@ -933,6 +1059,37 @@ class HoldingTycoonGame extends FlameGame with PanDetector {
     ));
   }
 
+  // YENİ EKLENDİ: Martı Doğurucu
+  void _spawnSeagulls() {
+    bool fromLeft = math.Random().nextBool();
+    double viewTop = -cam.viewfinder.position.y;
+    double viewHeight = size.y / cam.viewfinder.zoom;
+    
+    // Kameranın baktığı herhangi bir yükseklikten gelebilir
+    double spawnY = viewTop + (math.Random().nextDouble() * viewHeight);
+    
+    Vector2 startPos = Vector2(fromLeft ? -200 : mapWidth + 200, spawnY);
+    
+    // Hafif yukarı eğimli uçuş rotası
+    Vector2 velocity = Vector2(fromLeft ? 120 : -120, -30 + math.Random().nextDouble() * 60); 
+
+    mapWorld.add(SeagullFlockComponent(startPos: startPos, velocity: velocity));
+  }
+
+  @override
+  void update(double dt) {
+    super.update(dt);
+    
+    // YENİ EKLENDİ: Martı Döngüsü
+    _seagullTimer += dt;
+    if (_seagullTimer > 12.0) { // Her 12 saniyede bir ihtimal
+      _seagullTimer = 0;
+      if (math.Random().nextDouble() < 0.6) { // %60 ihtimalle martı sürüsü çağır
+        _spawnSeagulls();
+      }
+    }
+  }
+
   @override Color backgroundColor() => themeOceanBlue; 
 
   @override
@@ -943,25 +1100,15 @@ class HoldingTycoonGame extends FlameGame with PanDetector {
       mapHeight = mapWidth * (mapSprite.srcSize.y / mapSprite.srcSize.x);
       
       mapWorld.add(OpenSeaRipples());
+      mapWorld.add(CrashingWavesComponent(mapWidth: mapWidth, mapHeight: mapHeight)); // YENİ: Yüksek Köpüklü Dalgalar Eklendi
       mapWorld.add(PerfectPngWaves(mapSprite: mapSprite, mapWidth: mapWidth, mapHeight: mapHeight));
       mapWorld.add(SpriteComponent(sprite: mapSprite, size: Vector2(mapWidth, mapHeight)));
       
-      // KESİN ADA VE KARA KOORDİNATLARI (Denize ve göle taşmayan 14 yeşil parsel)
       final List<Vector2> plotPositions = [
-        Vector2(540, 420),  // 1: Mobilya (Yolun tepe noktası)
-        Vector2(330, 520),  // 2: Sol üst yeşillik
-        Vector2(700, 560),  // 3: Sağ üst yeşillik
-        Vector2(320, 720),  // 4: Gölün sol üstü
-        Vector2(720, 750),  // 5: Yolun sağı
-        Vector2(310, 930),  // 6: Gölün sol altı
-        Vector2(680, 950),  // 7: Yolun iç kıvrımı
-        Vector2(460, 1080), // 8: Merkezin göbeği
-        Vector2(650, 1180), // 9: Sağ alt yol kenarı
-        Vector2(360, 1240), // 10: Sol alt çayırlık
-        Vector2(530, 1280), // 11: Orta alt parsel
-        Vector2(320, 1390), // 12: Alt viraj içi
-        Vector2(500, 1440), // 13: Güney yeşilliği
-        Vector2(420, 1550), // 14: En alt iç kara sahası
+        Vector2(540, 420),  Vector2(330, 520),  Vector2(700, 560),  Vector2(320, 720),
+        Vector2(720, 750),  Vector2(310, 930),  Vector2(680, 950),  Vector2(460, 1080),
+        Vector2(650, 1180), Vector2(360, 1240), Vector2(530, 1280), Vector2(320, 1390),
+        Vector2(500, 1440), Vector2(420, 1550), 
       ];
 
       for (int i = 0; i < 14; i++) {
@@ -1008,7 +1155,6 @@ class FactoryPlotComponent extends PositionComponent with TapCallbacks {
     }
 
     if (!_data!.isUnlocked) {
-      // Arsa Parselini Kaplayan Blurlu Kilit
       final rrect = RRect.fromRectAndRadius(Rect.fromLTWH(10, 10, size.x-20, size.y-20), const Radius.circular(20));
       canvas.drawRRect(rrect, Paint()..color = Colors.black.withValues(alpha: 0.60)..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10));
       
@@ -1017,9 +1163,7 @@ class FactoryPlotComponent extends PositionComponent with TapCallbacks {
       iconPainter.layout();
       iconPainter.paint(canvas, Offset(size.x/2 - 20, size.y/2 - 20));
     } else {
-      // Açık Fabrika Placeholder (İzometrik Ahşap Tesis)
       canvas.drawOval(Rect.fromCenter(center: Offset(size.x/2, size.y/2 + 20), width: 130, height: 44), Paint()..color = Colors.black.withValues(alpha: 0.25));
-      
       Paint wallPaint = Paint()..color = AppColors.classicBrown;
       Paint roofPaint = Paint()..color = AppColors.lightBrown;
       
