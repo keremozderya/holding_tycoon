@@ -77,7 +77,27 @@
     "btn_upgrade": "GELİŞTİR ({cost} RP)",
     "btn_req_unmet": "ÖNCEKİ YÜKSELTMEYİ TAMAMLAYIN"
   },
+  "office": {
+    "title": "YAZIHANE",
+    "headquarters": "Holding Yönetim Merkezi",
+    "description": "Yönetim kadronuzu güçlendirin. İşe aldığınız her yönetici holdinginize kalıcı avantajlar sağlar.",
+    "vault": "KASA",
+    "hired": "KADRODA",
+    "hire": "İŞE AL",
+    "hired_toast": "{title} göreve başladı!"
+  },
+  "wheel": {
+    "title": "ŞANS ÇARKI",
+    "description": "Reklam izleyerek çarkı çevirin ve anında ödüller kazanın!",
+    "spin_btn": "REKLAM İZLE & ÇEVİR",
+    "spinning": "DÖNÜYOR...",
+    "reward_toast": "Tebrikler! {reward} kazandınız!"
+  },
   "common": {
-    "back_to_menu": "Ana Menüye Dön"
+    "back_to_menu": "Ana Menüye Dön",
+    "cancel": "İPTAL",
+    "confirm": "ONAYLA",
+    "buy": "SATIN AL",
+    "insufficient_funds": "Yetersiz Bakiye!"
   }
 }

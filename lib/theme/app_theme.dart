@@ -3,31 +3,44 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AppColors {
-  // Premium Koyu Borsa & Holding Teması (Göz yormayan, lüks koyu gri/lacivert palet)
-  static const Color background = Color(0xFF0B0F19);
-  static const Color surface = Color(0xFF131C2E);
-  static const Color surfaceElevated = Color(0xFF1E293B);
-  static const Color border = Color(0xFF334155);
+  // Ortağın MapScreen'den gelen ana renkleri
+  static const Color oceanBlue = Color(0xFF22CECE);
+  static const Color islandGreen = Color(0xFFA5C05B);
+  static const Color sandYellow = Color(0xFFF3D78F);
+  static const Color asphaltDark = Color(0xFF2D2D2D);
+  static const Color lighthouseRed = Color(0xFFD64D4D);
 
-  static const Color gold = Color(0xFFF59E0B);
-  static const Color goldMuted = Color(0xD9F59E0B);
-  static const Color profit = Color(0xFF10B981);
-  static const Color loss = Color(0xFFEF4444);
-  static const Color neonCyan = Color(0xFF2DD4BF);
+  // Ahşap ve UI Renkleri
+  static const Color classicBrown = Color(0xFF5D4037);
+  static const Color lightBrown = Color(0xFF7A574A);
+  static const Color darkBrown = Color(0xFF3D2821);
 
-  static const Color textPrimary = Color(0xFFF8FAFC);
-  static const Color textSecondary = Color(0xFF94A3B8);
-  static const Color textMuted = Color(0xFF64748B);
+  // --- SİSTEM RENK EŞLEŞTİRMELERİ ---
+  static const Color background = asphaltDark; 
+  static const Color surface = classicBrown;   
+  static const Color surfaceElevated = lightBrown;
+  static const Color border = darkBrown;
 
-  static const LinearGradient goldGradient = LinearGradient(
-    colors: [Color(0xFFFBBF24), Color(0xFFD97706)],
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
+  static const Color gold = sandYellow;
+  static const Color goldMuted = Color(0xFFDABF75);
+  static const Color profit = islandGreen;
+  static const Color loss = lighthouseRed;
+  static const Color neonCyan = oceanBlue;
+
+  static const Color textPrimary = Colors.white;
+  static const Color textSecondary = sandYellow; 
+  static const Color textMuted = Colors.white60;
+
+  static const LinearGradient tycoonGradient = LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [Color(0xFFB59A45), sandYellow, Color(0xFFF2DC8F)],
+    stops: [0.0, 0.4, 1.0],
   );
 }
 
 class AppTheme {
-  static ThemeData get darkTheme {
+  static ThemeData get tycoonTheme {
     return ThemeData(
       brightness: Brightness.dark,
       scaffoldBackgroundColor: AppColors.background,
@@ -40,18 +53,26 @@ class AppTheme {
   }
 
   static TextStyle titleStyle({double fontSize = 32}) {
-    return GoogleFonts.outfit(
+    return TextStyle(
+      fontFamily: 'Times New Roman',
       fontSize: fontSize,
-      fontWeight: FontWeight.w700,
+      fontWeight: FontWeight.bold,
       color: AppColors.textPrimary,
-      letterSpacing: 1.2,
+      letterSpacing: 0.5,
+      shadows: [
+        Shadow(
+          color: Colors.black.withValues(alpha: 0.5),
+          offset: const Offset(1, 2),
+          blurRadius: 2,
+        )
+      ],
     );
   }
 
   static TextStyle subtitleStyle({double fontSize = 14}) {
     return GoogleFonts.plusJakartaSans(
       fontSize: fontSize,
-      fontWeight: FontWeight.w700,
+      fontWeight: FontWeight.w900,
       color: AppColors.gold,
       letterSpacing: 1.0,
     );
@@ -59,7 +80,7 @@ class AppTheme {
 
   static TextStyle get moneyStyle => GoogleFonts.spaceMono(
         fontSize: 18,
-        fontWeight: FontWeight.w700,
+        fontWeight: FontWeight.w900,
         color: AppColors.profit,
         letterSpacing: 0.5,
       );

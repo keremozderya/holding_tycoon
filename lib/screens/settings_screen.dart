@@ -8,9 +8,7 @@ import '../theme/app_theme.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
-
-  @override
-  State<SettingsScreen> createState() => _SettingsScreenState();
+  @override State<SettingsScreen> createState() => _SettingsScreenState();
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
@@ -28,17 +26,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
   ];
 
   @override
-  void initState() {
-    super.initState();
-    _loadSettings();
-  }
+  void initState() { super.initState(); _loadSettings(); }
 
   Future<void> _loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _musicVolume = prefs.getDouble('music_volume') ?? 0.8;
-      _sfxVolume = prefs.getDouble('sfx_volume') ?? 0.8;
-    });
+    setState(() { _musicVolume = prefs.getDouble('music_volume') ?? 0.8; _sfxVolume = prefs.getDouble('sfx_volume') ?? 0.8; });
   }
 
   Future<void> _saveMusicVolume(double value) async {
@@ -54,10 +46,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Map<String, String> _getCurrentLangMap(String currentCode) {
-    return _languages.firstWhere(
-      (lang) => lang['code'] == currentCode.toLowerCase(),
-      orElse: () => _languages.first,
-    );
+    return _languages.firstWhere((lang) => lang['code'] == currentCode.toLowerCase(), orElse: () => _languages.first);
   }
 
   @override
@@ -66,53 +55,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final currentLangMap = _getCurrentLangMap(gameState.language);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: AppColors.background, // Asfalt
       appBar: AppBar(
-        title: Text('settings.title'.tr(), style: AppTheme.titleStyle(fontSize: 20)),
-        backgroundColor: AppColors.surface,
-        centerTitle: true,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.gold, size: 20),
-          onPressed: () => Navigator.pop(context),
-        ),
+        title: Text('settings.title'.tr(), style: AppTheme.titleStyle(fontSize: 22).copyWith(color: AppColors.gold)),
+        backgroundColor: AppColors.background,
+        centerTitle: true, elevation: 0,
+        leading: IconButton(icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.gold, size: 22), onPressed: () => Navigator.pop(context)),
       ),
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
         children: [
-          Text(
-            'settings.sound_settings'.tr(),
-            style: const TextStyle(
-              color: AppColors.gold,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 1.4,
-              fontSize: 12,
-            ),
-          ),
+          Text('settings.sound_settings'.tr(), style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w900, letterSpacing: 1.4, fontSize: 14)),
           const SizedBox(height: 12),
-          _buildVolumeCard(
-            title: 'settings.music_volume'.tr(),
-            value: _musicVolume,
-            icon: Icons.music_note_rounded,
-            onChanged: _saveMusicVolume,
-          ),
-          const SizedBox(height: 12),
-          _buildVolumeCard(
-            title: 'settings.sfx_volume'.tr(),
-            value: _sfxVolume,
-            icon: Icons.volume_up_rounded,
-            onChanged: _saveSfxVolume,
-          ),
-          const SizedBox(height: 32),
-          Text(
-            'settings.language_options'.tr(),
-            style: const TextStyle(
-              color: AppColors.gold,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 1.4,
-              fontSize: 12,
-            ),
-          ),
+          _buildVolumeCard(title: 'settings.music_volume'.tr(), value: _musicVolume, icon: Icons.music_note_rounded, onChanged: _saveMusicVolume),
+          const SizedBox(height: 16),
+          _buildVolumeCard(title: 'settings.sfx_volume'.tr(), value: _sfxVolume, icon: Icons.volume_up_rounded, onChanged: _saveSfxVolume),
+          const SizedBox(height: 36),
+          Text('settings.language_options'.tr(), style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w900, letterSpacing: 1.4, fontSize: 14)),
           const SizedBox(height: 12),
           _buildAnimatedLanguageAccordion(currentLangMap),
         ],
@@ -122,70 +81,37 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget _buildAnimatedLanguageAccordion(Map<String, String> currentLangMap) {
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
+      duration: const Duration(milliseconds: 300), curve: Curves.easeInOut,
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: _isLanguageExpanded
-              ? AppColors.gold.withValues(alpha: 0.6)
-              : AppColors.border,
-          width: _isLanguageExpanded ? 1.5 : 1,
-        ),
+        color: AppColors.surface, // Ahşap
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: _isLanguageExpanded ? AppColors.gold : AppColors.border, width: 2),
       ),
       child: Column(
         children: [
           InkWell(
-            borderRadius: BorderRadius.circular(18),
-            onTap: () {
-              setState(() {
-                _isLanguageExpanded = !_isLanguageExpanded;
-              });
-            },
+            borderRadius: BorderRadius.circular(20),
+            onTap: () { setState(() { _isLanguageExpanded = !_isLanguageExpanded; }); },
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
               child: Row(
                 children: [
-                  Text(currentLangMap['flag']!, style: const TextStyle(fontSize: 26)),
-                  const SizedBox(width: 12),
+                  Text(currentLangMap['flag']!, style: const TextStyle(fontSize: 28)),
+                  const SizedBox(width: 16),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'settings.game_language'.tr(),
-                        style: const TextStyle(
-                          color: AppColors.textSecondary,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      Text(
-                        currentLangMap['name']!,
-                        style: const TextStyle(
-                          color: AppColors.textPrimary,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                      Text('settings.game_language'.tr(), style: const TextStyle(color: AppColors.textSecondary, fontSize: 12, fontWeight: FontWeight.bold)),
+                      Text(currentLangMap['name']!, style: const TextStyle(color: AppColors.textPrimary, fontSize: 18, fontWeight: FontWeight.w900)),
                     ],
                   ),
                   const Spacer(),
                   Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: AppColors.background,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(color: AppColors.border, borderRadius: BorderRadius.circular(10)),
                     child: AnimatedRotation(
-                      turns: _isLanguageExpanded ? 0.5 : 0.0,
-                      duration: const Duration(milliseconds: 300),
-                      curve: Curves.easeInOut,
-                      child: const Icon(
-                        Icons.keyboard_arrow_down_rounded,
-                        color: AppColors.gold,
-                        size: 22,
-                      ),
+                      turns: _isLanguageExpanded ? 0.5 : 0.0, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut,
+                      child: const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.gold, size: 24),
                     ),
                   ),
                 ],
@@ -194,16 +120,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           ClipRect(
             child: AnimatedSize(
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeInOut,
+              duration: const Duration(milliseconds: 300), curve: Curves.easeInOut,
               child: _isLanguageExpanded
                   ? Column(
                       children: [
-                        const Divider(color: AppColors.border, height: 1),
+                        const Divider(color: AppColors.border, height: 1, thickness: 2),
                         ListView.separated(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          shrinkWrap: true, physics: const NeverScrollableScrollPhysics(), padding: const EdgeInsets.symmetric(vertical: 8),
                           itemCount: _languages.length,
                           separatorBuilder: (_, __) => const Divider(color: AppColors.border, height: 1),
                           itemBuilder: (context, index) {
@@ -211,52 +134,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             final currentLang = context.read<GameState>().language;
                             final bool isSelected = currentLang == lang['code'];
 
-                            return Material(
-                              color: Colors.transparent,
-                              child: InkWell(
-                                onTap: () async {
-                                  await context.read<GameState>().setLanguage(lang['code']!);
-                                  setState(() {
-                                    _isLanguageExpanded = false;
-                                  });
-                                },
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-                                  child: Row(
-                                    children: [
-                                      Text(lang['flag']!, style: const TextStyle(fontSize: 22)),
-                                      const SizedBox(width: 14),
-                                      Text(
-                                        lang['name']!,
-                                        style: TextStyle(
-                                          color: isSelected ? AppColors.gold : AppColors.textPrimary,
-                                          fontSize: 15,
-                                          fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                                        ),
-                                      ),
-                                      const Spacer(),
-                                      if (isSelected)
-                                        const Icon(
-                                          Icons.check_circle_rounded,
-                                          color: AppColors.gold,
-                                          size: 20,
-                                        )
-                                      else
-                                        const Icon(
-                                          Icons.circle_outlined,
-                                          color: AppColors.textMuted,
-                                          size: 20,
-                                        ),
-                                    ],
-                                  ),
+                            return InkWell(
+                              onTap: () async {
+                                await context.read<GameState>().setLanguage(lang['code']!);
+                                setState(() { _isLanguageExpanded = false; });
+                              },
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                                child: Row(
+                                  children: [
+                                    Text(lang['flag']!, style: const TextStyle(fontSize: 24)),
+                                    const SizedBox(width: 16),
+                                    Text(lang['name']!, style: TextStyle(color: isSelected ? AppColors.gold : AppColors.textPrimary, fontSize: 16, fontWeight: isSelected ? FontWeight.w900 : FontWeight.bold)),
+                                    const Spacer(),
+                                    if (isSelected) const Icon(Icons.check_circle_rounded, color: AppColors.gold, size: 22)
+                                  ],
                                 ),
                               ),
                             );
                           },
                         ),
                       ],
-                    )
-                  : const SizedBox.shrink(),
+                    ) : const SizedBox.shrink(),
             ),
           ),
         ],
@@ -264,59 +163,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildVolumeCard({
-    required String title,
-    required double value,
-    required IconData icon,
-    required ValueChanged<double> onChanged,
-  }) {
+  Widget _buildVolumeCard({required String title, required double value, required IconData icon, required ValueChanged<double> onChanged}) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.border),
+        color: AppColors.surface, // Ahşap
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.border, width: 2),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(icon, color: AppColors.gold, size: 22),
-              const SizedBox(width: 10),
-              Text(
-                title,
-                style: const TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+              Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: AppColors.border, borderRadius: BorderRadius.circular(10)), child: Icon(icon, color: AppColors.gold, size: 24)),
+              const SizedBox(width: 14),
+              Text(title, style: const TextStyle(color: AppColors.textPrimary, fontSize: 16, fontWeight: FontWeight.w900)),
               const Spacer(),
-              Text(
-                '%${(value * 100).round()}',
-                style: const TextStyle(
-                  color: AppColors.textSecondary,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                ),
-              ),
+              Text('%${(value * 100).round()}', style: const TextStyle(color: AppColors.gold, fontWeight: FontWeight.w900, fontSize: 16, fontFamily: 'SpaceMono')),
             ],
           ),
+          const SizedBox(height: 8),
           SliderTheme(
-            data: SliderTheme.of(context).copyWith(
-              activeTrackColor: AppColors.gold,
-              inactiveTrackColor: AppColors.border,
-              thumbColor: AppColors.gold,
-              overlayColor: AppColors.gold.withValues(alpha: 0.2),
-              trackHeight: 4,
-            ),
-            child: Slider(
-              value: value,
-              min: 0.0,
-              max: 1.0,
-              onChanged: onChanged,
-            ),
+            data: SliderTheme.of(context).copyWith(activeTrackColor: AppColors.gold, inactiveTrackColor: AppColors.border, thumbColor: AppColors.gold, trackHeight: 6),
+            child: Slider(value: value, min: 0.0, max: 1.0, onChanged: onChanged),
           ),
         ],
       ),

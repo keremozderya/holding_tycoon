@@ -16,6 +16,7 @@ dependencies:
   provider: ^6.1.2
   flame: ^1.38.2
   flame_svg: ^2.0.0
+  google_mobile_ads: ^9.1.0
 
 dev_dependencies:
   flutter_test:

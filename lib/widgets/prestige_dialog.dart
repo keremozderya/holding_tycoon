@@ -32,7 +32,9 @@ class PrestigeDialog extends StatelessWidget {
   }
 
   int _calculateEarnableRP() {
-    if (currentTurnover < prestigeThreshold) return 0;
+    if (currentTurnover < prestigeThreshold) {
+      return 0;
+    }
     final ratio = currentTurnover / prestigeThreshold;
     return (10 * math.sqrt(ratio)).floor();
   }
@@ -58,184 +60,131 @@ class PrestigeDialog extends StatelessWidget {
       insetPadding: const EdgeInsets.symmetric(horizontal: 24),
       child: Container(
         width: 330,
-        padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(22),
-          border: Border.all(
-            color: canPrestige ? AppColors.gold : AppColors.border,
-            width: 1.5,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.3),
-              blurRadius: 25,
-              spreadRadius: 2,
-            ),
-          ],
+          color: AppColors.background, 
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: canPrestige ? AppColors.gold : AppColors.border, width: 3),
+          boxShadow: const [BoxShadow(color: Color(0x99000000), blurRadius: 25, spreadRadius: 2)],
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: AppColors.gold.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: AppColors.gold.withValues(alpha: 0.3)),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.workspace_premium_rounded, color: AppColors.gold, size: 14),
-                      const SizedBox(width: 4),
-                      Text(
-                        'prestige.badge'.tr(),
-                        style: const TextStyle(
-                          color: AppColors.gold,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 1.0,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                InkWell(
-                  borderRadius: BorderRadius.circular(20),
-                  onTap: () => Navigator.pop(context),
-                  child: const Padding(
-                    padding: EdgeInsets.all(4),
-                    child: Icon(Icons.close_rounded, color: AppColors.textSecondary, size: 20),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 14),
-            Text(
-              'prestige.title'.tr(),
-              style: AppTheme.titleStyle(fontSize: 18),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'prestige.description'.tr(),
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: AppColors.textSecondary, fontSize: 11, height: 1.3),
-            ),
-            const SizedBox(height: 16),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-              decoration: BoxDecoration(
-                color: AppColors.background,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppColors.border),
-              ),
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'prestige.current_turnover'.tr(),
-                        style: const TextStyle(color: AppColors.textSecondary, fontSize: 11),
-                      ),
-                      Text(
-                        '\$${_formatTurnover(currentTurnover)} / 100 Qi',
-                        style: TextStyle(
-                          color: canPrestige ? AppColors.profit : AppColors.textPrimary,
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          fontFamily: 'SpaceMono',
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(4),
-                    child: LinearProgressIndicator(
-                      value: progress,
-                      minHeight: 6,
-                      backgroundColor: AppColors.border.withValues(alpha: 0.5),
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        canPrestige ? AppColors.profit : AppColors.gold,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  const Divider(color: AppColors.border, height: 1),
-                  const SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'prestige.earnable_rp'.tr(),
-                        style: const TextStyle(color: AppColors.textSecondary, fontSize: 11),
-                      ),
-                      Text(
-                        '+$earnableRP RP',
-                        style: const TextStyle(
-                          color: AppColors.gold,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w900,
-                          fontFamily: 'SpaceMono',
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: AppColors.loss.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              decoration: const BoxDecoration(
+                color: AppColors.surface, 
+                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                border: Border(bottom: BorderSide(color: AppColors.border, width: 3)),
               ),
               child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Icon(Icons.info_outline_rounded, color: AppColors.loss, size: 14),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Text(
-                      'prestige.warning'.tr(),
-                      style: const TextStyle(color: AppColors.loss, fontSize: 10, fontWeight: FontWeight.bold),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: AppColors.border,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AppColors.gold),
                     ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.workspace_premium_rounded, color: AppColors.gold, size: 16),
+                        const SizedBox(width: 6),
+                        Text('prestige.badge'.tr(), style: const TextStyle(color: AppColors.gold, fontSize: 11, fontWeight: FontWeight.w900)),
+                      ],
+                    ),
+                  ),
+                  InkWell(
+                    onTap: () => Navigator.pop(context),
+                    child: const Icon(Icons.close_rounded, color: AppColors.gold, size: 24),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              height: 44,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: canPrestige ? AppColors.gold : AppColors.surfaceElevated,
-                  foregroundColor: canPrestige ? Colors.white : AppColors.textMuted,
-                  elevation: canPrestige ? 4 : 0,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-                onPressed: canPrestige
-                    ? () {
-                        Navigator.pop(context);
-                        onPrestigeConfirmed();
-                      }
-                    : null,
-                child: Text(
-                  canPrestige 
-                      ? 'prestige.btn_action'.tr(params: {'rp': earnableRP.toString()})
-                      : 'prestige.btn_progress'.tr(params: {'percent': (progress * 100).toInt().toString()}),
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 1.0,
-                    fontSize: 12,
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                children: [
+                  Text('prestige.title'.tr(), style: AppTheme.titleStyle(fontSize: 22).copyWith(color: AppColors.gold)),
+                  const SizedBox(height: 8),
+                  Text('prestige.description'.tr(), textAlign: TextAlign.center, style: const TextStyle(color: AppColors.textPrimary, fontSize: 12, height: 1.4)),
+                  const SizedBox(height: 20),
+                  
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    decoration: BoxDecoration(
+                      color: AppColors.surface, 
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppColors.border, width: 2),
+                    ),
+                    child: Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text('prestige.current_turnover'.tr(), style: const TextStyle(color: AppColors.textPrimary, fontSize: 12, fontWeight: FontWeight.bold)),
+                            Text('\$${_formatTurnover(currentTurnover)} / 100 Qi', style: TextStyle(color: canPrestige ? AppColors.profit : AppColors.gold, fontSize: 13, fontWeight: FontWeight.w900)),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(6),
+                          child: LinearProgressIndicator(
+                            value: progress, minHeight: 8,
+                            backgroundColor: AppColors.border,
+                            valueColor: AlwaysStoppedAnimation<Color>(canPrestige ? AppColors.profit : AppColors.gold),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        const Divider(color: AppColors.border, height: 1, thickness: 2),
+                        const SizedBox(height: 16),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text('prestige.earnable_rp'.tr(), style: const TextStyle(color: AppColors.textPrimary, fontSize: 12, fontWeight: FontWeight.bold)),
+                            Text('+$earnableRP RP', style: const TextStyle(color: AppColors.neonCyan, fontSize: 18, fontWeight: FontWeight.w900)),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
-                ),
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    decoration: BoxDecoration(color: AppColors.loss.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(10), border: Border.all(color: AppColors.loss)),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.info_outline_rounded, color: AppColors.loss, size: 18),
+                        const SizedBox(width: 8),
+                        Expanded(child: Text('prestige.warning'.tr(), style: const TextStyle(color: AppColors.loss, fontSize: 11, fontWeight: FontWeight.bold))),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity, height: 50,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: canPrestige ? AppColors.gold : AppColors.surface,
+                        foregroundColor: canPrestige ? AppColors.darkBrown : AppColors.textMuted,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14), 
+                          side: const BorderSide(color: AppColors.border, width: 2)
+                        ),
+                        elevation: canPrestige ? 6 : 0,
+                      ),
+                      onPressed: canPrestige ? () { 
+                        Navigator.pop(context); 
+                        onPrestigeConfirmed(); 
+                      } : null,
+                      child: Text(
+                        canPrestige ? 'prestige.btn_action'.tr(params: {'rp': earnableRP.toString()}) : 'prestige.btn_progress'.tr(params: {'percent': (progress * 100).toInt().toString()}),
+                        style: const TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1.0, fontSize: 14),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],

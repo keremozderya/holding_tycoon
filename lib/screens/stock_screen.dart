@@ -43,13 +43,13 @@ class StockScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text('stock.title'.tr(), style: AppTheme.titleStyle(fontSize: 18)),
+        title: Text('stock.title'.tr(), style: AppTheme.titleStyle(fontSize: 22).copyWith(color: AppColors.gold)),
         backgroundColor: AppColors.background,
         centerTitle: true,
         elevation: 0,
         scrolledUnderElevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textSecondary, size: 20),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.gold, size: 22),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -59,46 +59,49 @@ class StockScreen extends StatelessWidget {
           Container(
             width: double.infinity,
             margin: const EdgeInsets.fromLTRB(16, 8, 16, 20),
-            padding: const EdgeInsets.symmetric(vertical: 24),
+            padding: const EdgeInsets.symmetric(vertical: 20),
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [AppColors.surfaceElevated, AppColors.surface],
-              ),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: AppColors.neonCyan.withValues(alpha: 0.3), width: 1.5),
+              gradient: AppColors.tycoonGradient,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.border, width: 2.5),
               boxShadow: [
-                BoxShadow(color: AppColors.neonCyan.withValues(alpha: 0.08), blurRadius: 20, spreadRadius: 2),
+                BoxShadow(color: Colors.black.withValues(alpha: 0.4), blurRadius: 10, offset: const Offset(0, 4)),
               ],
             ),
             child: Column(
               children: [
                 Text(
                   'stock.header_title'.tr(),
-                  style: const TextStyle(color: AppColors.neonCyan, fontSize: 18, fontWeight: FontWeight.w800, letterSpacing: 1.2),
+                  style: const TextStyle(color: AppColors.darkBrown, fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 1.0),
                 ),
                 const SizedBox(height: 6),
                 Text(
                   _formatBigNum(gameState.money, isMoney: true),
-                  style: const TextStyle(color: AppColors.neonCyan, fontSize: 38, fontWeight: FontWeight.w900, letterSpacing: 0.5),
+                  style: const TextStyle(
+                    color: AppColors.darkBrown, 
+                    fontSize: 34, 
+                    fontWeight: FontWeight.w900, 
+                    fontFamily: 'SpaceMono'
+                  ),
                 ),
                 const SizedBox(height: 12),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: AppColors.background.withValues(alpha: 0.5),
+                    color: AppColors.darkBrown.withValues(alpha: 0.8),
                     borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppColors.lightBrown),
                   ),
                   child: Text(
                     'stock.info_text'.tr(),
                     textAlign: TextAlign.center,
-                    style: const TextStyle(color: AppColors.textSecondary, fontSize: 10, height: 1.4),
+                    style: const TextStyle(color: AppColors.gold, fontSize: 11, height: 1.4, fontWeight: FontWeight.bold),
                   ),
                 ),
               ],
             ),
           ),
+          
           ListView.separated(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
@@ -112,12 +115,12 @@ class StockScreen extends StatelessWidget {
               final Color pnlColor = stock.netPnl >= 0 ? AppColors.profit : AppColors.loss;
 
               return Container(
-                padding: const EdgeInsets.all(18),
+                padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppColors.border, width: 1.5),
-                  boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 10, offset: const Offset(0, 4))],
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppColors.surfaceElevated, width: 2),
+                  boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 6, offset: const Offset(0, 3))],
                 ),
                 child: Column(
                   children: [
@@ -125,77 +128,89 @@ class StockScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Container(
-                          padding: const EdgeInsets.all(12),
+                          padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
-                            color: stock.iconColor.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(14),
-                            border: Border.all(color: stock.iconColor.withValues(alpha: 0.3)),
+                            color: AppColors.border,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: AppColors.gold, width: 2),
                           ),
-                          child: Icon(stock.icon, color: stock.iconColor, size: 28),
+                          child: Icon(stock.icon, color: AppColors.gold, size: 26),
                         ),
-                        const SizedBox(width: 16),
+                        const SizedBox(width: 14),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(stock.name, style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w800, fontSize: 17)),
+                              Text(stock.name, style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w800, fontSize: 16)),
                               const SizedBox(height: 4),
                               Row(
                                 crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
                                   Text(_formatBigNum(stock.currentPrice, isMoney: true), style: const TextStyle(color: AppColors.gold, fontWeight: FontWeight.w900, fontSize: 15)),
                                   const SizedBox(width: 4),
-                                  Icon(isUp ? Icons.arrow_drop_up_rounded : Icons.arrow_drop_down_rounded, color: trendColor, size: 22),
+                                  Icon(isUp ? Icons.arrow_drop_up_rounded : Icons.arrow_drop_down_rounded, color: trendColor, size: 24),
                                 ],
                               ),
                               const SizedBox(height: 8),
                               Text(
                                 'stock.owned_shares'.tr(params: {'amount': _formatBigNum(stock.ownedShares)}),
-                                style: const TextStyle(color: AppColors.textSecondary, fontSize: 11, fontWeight: FontWeight.w500),
+                                style: const TextStyle(color: AppColors.textPrimary, fontSize: 11, fontWeight: FontWeight.w500),
                               ),
                               const SizedBox(height: 2),
                               Text(
                                 'stock.net_pnl'.tr(params: {'amount': _formatBigNum(stock.netPnl, isMoney: true)}),
-                                style: TextStyle(color: pnlColor, fontSize: 11, fontWeight: FontWeight.bold),
+                                style: TextStyle(color: pnlColor, fontSize: 12, fontWeight: FontWeight.w900),
                               ),
                             ],
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 16),
+                    
                     Container(
-                      height: 80, 
+                      height: 70, 
                       width: double.infinity,
-                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
                       decoration: BoxDecoration(
-                        color: AppColors.background,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
-                        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 4)],
+                        color: AppColors.background, 
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: AppColors.border, width: 2),
+                        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.5), blurRadius: 4)], // DÜZELTİLDİ: inset: true parametresi kaldırıldı
                       ),
                       child: CustomPaint(
                         painter: SparklinePainter(data: stock.history, lineColor: trendColor),
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 16),
+                    
                     Row(
                       children: [
                         Expanded(
-                          child: _buildGameButton(
-                            label: 'stock.buy_button'.tr(),
-                            colors: const [Color(0xFF34D399), AppColors.profit],
-                            isActive: gameState.money >= stock.currentPrice,
-                            onTap: () => context.read<GameState>().buyStock(stock.id),
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.profit,
+                              foregroundColor: AppColors.darkBrown,
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10), side: const BorderSide(color: AppColors.darkBrown, width: 2)),
+                              elevation: 4,
+                            ),
+                            onPressed: gameState.money >= stock.currentPrice ? () => context.read<GameState>().buyStock(stock.id) : null,
+                            child: Text('stock.buy_button'.tr(), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13)),
                           ),
                         ),
-                        const SizedBox(width: 14),
+                        const SizedBox(width: 12),
                         Expanded(
-                          child: _buildGameButton(
-                            label: 'stock.sell_button'.tr(),
-                            colors: const [Color(0xFFFBBF24), AppColors.gold],
-                            isActive: stock.ownedShares > 0,
-                            onTap: () => context.read<GameState>().sellAllStock(stock.id),
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.gold,
+                              foregroundColor: AppColors.darkBrown,
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10), side: const BorderSide(color: AppColors.darkBrown, width: 2)),
+                              elevation: 4,
+                            ),
+                            onPressed: stock.ownedShares > 0 ? () => context.read<GameState>().sellAllStock(stock.id) : null,
+                            child: Text('stock.sell_button'.tr(), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13)),
                           ),
                         ),
                       ],
@@ -206,30 +221,6 @@ class StockScreen extends StatelessWidget {
             },
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildGameButton({required String label, required List<Color> colors, required bool isActive, required VoidCallback onTap}) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: isActive ? onTap : null,
-        borderRadius: BorderRadius.circular(24),
-        child: Ink(
-          padding: const EdgeInsets.symmetric(vertical: 14),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: isActive ? colors : [AppColors.border, AppColors.surface], 
-              begin: Alignment.topCenter, end: Alignment.bottomCenter,
-            ),
-            borderRadius: BorderRadius.circular(24),
-            boxShadow: isActive ? [BoxShadow(color: colors.last.withValues(alpha: 0.4), blurRadius: 8, offset: const Offset(0, 3))] : [],
-          ),
-          child: Center(
-            child: Text(label, style: TextStyle(color: isActive ? Colors.white : AppColors.textMuted, fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 0.5)),
-          ),
-        ),
       ),
     );
   }
@@ -247,7 +238,7 @@ class SparklinePainter extends CustomPainter {
 
     final paint = Paint()
       ..color = lineColor
-      ..strokeWidth = 2.0 
+      ..strokeWidth = 2.5 
       ..style = PaintingStyle.stroke
       ..strokeJoin = StrokeJoin.round
       ..strokeCap = StrokeCap.round;
@@ -261,7 +252,7 @@ class SparklinePainter extends CustomPainter {
 
     for (int i = 0; i < data.length; i++) {
       final x = i * stepX;
-      final y = size.height - ((data[i] - minVal) / range * size.height * 0.8) - (size.height * 0.1);
+      final y = size.height - ((data[i] - minVal) / range * size.height * 0.7) - (size.height * 0.15);
 
       if (i == 0) {
         path.moveTo(x, y);
