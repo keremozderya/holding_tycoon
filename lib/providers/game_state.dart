@@ -96,7 +96,7 @@ class GameState extends ChangeNotifier {
   List<FactoryData> _factories = [];
   List<ResearchNode> _researchNodes = [];
   
-  // 50 SEVİYELİ PERSONEL YÖNETİM SİSTEMİ
+  // 50 SEVİYELİ PERSONEL YÖNETİM SİSTEMİ (7 DEPARTMAN)
   List<OfficeStaff> officeStaff = [
     OfficeStaff(
       id: 'staff_1', 
@@ -133,6 +133,33 @@ class GameState extends ChangeNotifier {
       costMultiplier: 1.75, 
       effectTextBuilder: (lvl) => 'Ekstra Kâr Şansı: +%${(lvl * 0.1).toStringAsFixed(1)}',
       effectValueBuilder: (lvl) => lvl * 0.001,
+    ),
+    OfficeStaff(
+      id: 'staff_5', 
+      title: 'Pazarlama Departmanı', 
+      baseDescription: 'Her uzman sahada bulunan para çantalarındaki nakit ödül miktarını %10 artırır.', 
+      baseCost: 50000000.0, 
+      costMultiplier: 1.80, 
+      effectTextBuilder: (lvl) => 'Çanta Finansman Primi: +%${lvl * 10}',
+      effectValueBuilder: (lvl) => lvl * 0.10, 
+    ),
+    OfficeStaff(
+      id: 'staff_6', 
+      title: 'Lojistik & Tedarik', 
+      baseDescription: 'Her direktör fabrika üretim bantlarının seviye geliştirme masrafını %0.4 düşürür.', 
+      baseCost: 500000000.0, 
+      costMultiplier: 1.85, 
+      effectTextBuilder: (lvl) => 'Geliştirme İndirimi: -%${(lvl * 0.4).toStringAsFixed(1)}',
+      effectValueBuilder: (lvl) => lvl * 0.004,
+    ),
+    OfficeStaff(
+      id: 'staff_7', 
+      title: 'Vardiya Operasyonu', 
+      baseDescription: 'Her saha şefi siz oyunda yokken biriken çevrimdışı gece mesaisi gelirini %10 artırır.', 
+      baseCost: 5000000000.0, 
+      costMultiplier: 1.90, 
+      effectTextBuilder: (lvl) => 'Gece Mesaisi Katkısı: +%${lvl * 10}',
+      effectValueBuilder: (lvl) => lvl * 0.10,
     ),
   ];
 
@@ -173,8 +200,9 @@ class GameState extends ChangeNotifier {
   double get currentMultiplier {
     double m = 1.0;
     if (isBoostActive) { m *= 2.0; }
+    if (isTaxBonusActive) { m *= 1.20; } // Zamanında vergi ödeme ödülü: %20 Ek Gelir
     if (isEventActive) { m *= activeEvent!.multiplier; }
-    // Müdürlerin (staff_2) Üretim Bonusu Bağlantısı
+    // Müdürlerin (staff_2) Üretim Bonusu
     m *= (1.0 + officeStaff.firstWhere((s) => s.id == 'staff_2').currentEffectValue);
     m *= researchMultiplier; 
     return m;
@@ -189,9 +217,32 @@ class GameState extends ChangeNotifier {
   DateTime? _taxDeadline; 
   double _currentTaxDebt = 0.0; 
   bool _isUnderPenalty = false;
+  DateTime? _taxBonusEndTime; 
+
   double get currentTaxDebt => _currentTaxDebt; 
   bool get hasTaxDebt => _currentTaxDebt > 0; 
   bool get isUnderPenalty => _isUnderPenalty;
+  bool get isTaxBonusActive => _taxBonusEndTime != null && DateTime.now().isBefore(_taxBonusEndTime!);
+
+  int get taxRemainingSeconds {
+    if (_taxDeadline == null) return 0;
+    final diff = _taxDeadline!.difference(DateTime.now()).inSeconds;
+    return diff > 0 ? diff : 0;
+  }
+
+  String get taxTimeLeftFormatted {
+    int secs = taxRemainingSeconds;
+    int h = secs ~/ 3600;
+    int m = (secs % 3600) ~/ 60;
+    int s = secs % 60;
+    return '${h.toString().padLeft(2, '0')}:${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
+  }
+
+  String get taxBonusTimeLeft {
+    if (!isTaxBonusActive) return '';
+    int secs = _taxBonusEndTime!.difference(DateTime.now()).inSeconds;
+    return '${secs ~/ 60}:${(secs % 60).toString().padLeft(2, '0')}';
+  }
 
   DateTime? _lastSaveTime; 
   Timer? _gameTimer; 
@@ -251,6 +302,7 @@ class GameState extends ChangeNotifier {
 
       if (data['lastTaxIssued'] != null) _lastTaxIssued = DateTime.parse(data['lastTaxIssued']); 
       if (data['taxDeadline'] != null) _taxDeadline = DateTime.parse(data['taxDeadline']); 
+      if (data['taxBonusEndTime'] != null) _taxBonusEndTime = DateTime.parse(data['taxBonusEndTime']);
       if (data['lastSaveTime'] != null) _lastSaveTime = DateTime.parse(data['lastSaveTime']); 
       if (data['boostEndTime'] != null) _boostEndTime = DateTime.parse(data['boostEndTime']); 
       if (data['eventEndTime'] != null && data['activeEvent'] != null) { 
@@ -264,10 +316,12 @@ class GameState extends ChangeNotifier {
       _loadFactoriesFromJson(data['factories']);
       _loadResearchFromJson(data['researchNodes']); 
       
+      // Vardiya Şefi (staff_7) çarpanı ile çevrimdışı gelir hesaplaması
       if (_lastSaveTime != null) {
         int secondsPassed = DateTime.now().difference(_lastSaveTime!).inSeconds;
         if (secondsPassed > 60 && baseIncomePerSecond > 0) {
-          offlineEarningsToClaim = secondsPassed * baseIncomePerSecond;
+          double shiftBonus = 1.0 + officeStaff.firstWhere((s) => s.id == 'staff_7').currentEffectValue;
+          offlineEarningsToClaim = secondsPassed * baseIncomePerSecond * shiftBonus;
         }
       }
     } else {
@@ -295,6 +349,7 @@ class GameState extends ChangeNotifier {
       'currentTaxDebt': _currentTaxDebt, 
       'lastTaxIssued': _lastTaxIssued?.toIso8601String(), 
       'taxDeadline': _taxDeadline?.toIso8601String(), 
+      'taxBonusEndTime': _taxBonusEndTime?.toIso8601String(),
       'lastSaveTime': _lastSaveTime?.toIso8601String(), 
       'boostEndTime': _boostEndTime?.toIso8601String(), 
       'eventEndTime': _eventEndTime?.toIso8601String(),
@@ -574,7 +629,11 @@ class GameState extends ChangeNotifier {
   }
 
   void claimBagReward(bool watchAd, double reward) { 
-    _money += watchAd ? (reward * 3) : reward; 
+    // Pazarlama Departmanı (staff_5) Finansman Çantası Çarpanı
+    double marketingBonus = 1.0 + officeStaff.firstWhere((s) => s.id == 'staff_5').currentEffectValue;
+    double finalReward = reward * marketingBonus;
+
+    _money += watchAd ? (finalReward * 3) : finalReward; 
     _saveGame(); 
     notifyListeners(); 
   }
@@ -585,9 +644,27 @@ class GameState extends ChangeNotifier {
     notifyListeners(); 
   }
 
+  void _applyTimelyTaxBonus() {
+    if (!_isUnderPenalty && taxRemainingSeconds > 0) {
+      _taxBonusEndTime = DateTime.now().add(const Duration(minutes: 30));
+    }
+  }
+
   void applyTaxAmnesty() { 
+    _applyTimelyTaxBonus();
     _currentTaxDebt = 0; 
     _isUnderPenalty = false; 
+    _lastTaxIssued = DateTime.now(); 
+    _taxDeadline = DateTime.now().add(const Duration(hours: 12)); 
+    _saveGame(); 
+    notifyListeners(); 
+  }
+
+  void payTaxWithAd() {
+    _applyTimelyTaxBonus();
+    _currentTaxDebt = 0; 
+    _isUnderPenalty = false; 
+    statTaxes++; 
     _lastTaxIssued = DateTime.now(); 
     _taxDeadline = DateTime.now().add(const Duration(hours: 12)); 
     _saveGame(); 
@@ -642,9 +719,12 @@ class GameState extends ChangeNotifier {
   void payTax() {
     if (_money >= _currentTaxDebt) { 
       _money -= _currentTaxDebt; 
+      _applyTimelyTaxBonus();
       _currentTaxDebt = 0; 
       _isUnderPenalty = false; 
       statTaxes++; 
+      _lastTaxIssued = DateTime.now(); 
+      _taxDeadline = DateTime.now().add(const Duration(hours: 12)); 
       _saveGame(); 
       notifyListeners(); 
     }
@@ -691,7 +771,10 @@ class GameState extends ChangeNotifier {
     var prod = _factories.firstWhere((f) => f.id == facId).products[productIndex];
     if (prod.level >= 60) return;
     
-    double cost = prod.upgradeCost;
+    // Lojistik Departmanı (staff_6) Geliştirme İndirimi
+    double logisticsDiscount = officeStaff.firstWhere((s) => s.id == 'staff_6').currentEffectValue;
+    double cost = prod.upgradeCost * (1.0 - logisticsDiscount);
+
     if (_money >= cost) { 
       _money -= cost; 
       prod.level++; 
@@ -732,7 +815,6 @@ class GameState extends ChangeNotifier {
   Future<void> setLanguage(String langCode) async { _language = langCode; await TranslationService.instance.loadLanguage(_language); await _saveGame(); notifyListeners(); }
   Future<void> completeFirstLaunch() async { _isFirstLaunch = false; await _saveGame(); notifyListeners(); }
   
-  // YENİ BORSA MANTIĞI: Miktara Göre Alım (Küsüratsız Yuvarlama)
   void buyStockWithAmount(String stockId, double inputAmount) {
     var s = _stocks.firstWhere((st) => st.id == stockId);
     

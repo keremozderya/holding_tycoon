@@ -219,9 +219,117 @@ class _MapScreenState extends State<MapScreen> {
 
   void _showFactoryInsideSheet(FactoryData fac) {
     showModalBottomSheet(
-      context: context, backgroundColor: AppColors.background, isScrollControlled: true,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+      context: context, 
+      backgroundColor: Colors.transparent, 
+      isScrollControlled: true,
       builder: (context) => FactoryInsideModal(factoryId: fac.id, formatNum: _formatNum),
+    );
+  }
+
+  void _showTaxDialog(BuildContext context, GameState gameState) {
+    showDialog(
+      context: context,
+      builder: (c) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: const BorderSide(color: AppColors.border)),
+        title: Row(
+          children: const [
+            Icon(Icons.receipt_long_rounded, color: AppColors.loss, size: 22),
+            SizedBox(width: 8),
+            Text('VERGİ TAHAKKUKU', style: TextStyle(color: AppColors.textPrimary, fontSize: 15, fontWeight: FontWeight.bold)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Borç: \$${_formatNum(gameState.currentTaxDebt)}',
+              style: const TextStyle(color: AppColors.loss, fontSize: 20, fontWeight: FontWeight.bold, fontFamily: 'SpaceMono'),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: AppColors.background,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.loss.withValues(alpha: 0.4)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.timer_outlined, color: AppColors.loss, size: 16),
+                  const SizedBox(width: 6),
+                  Text(
+                    gameState.isUnderPenalty
+                        ? 'SÜRE DOLDU (HACİZ SÜRECİ)'
+                        : 'Kalan Süre: ${gameState.taxTimeLeftFormatted}',
+                    style: const TextStyle(color: AppColors.loss, fontSize: 12, fontWeight: FontWeight.bold, fontFamily: 'SpaceMono'),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 14),
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceElevated,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: const [
+                  Icon(Icons.bolt_rounded, color: AppColors.gold, size: 18),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Verginizi 12 saat dolmadan zamanında öderseniz 30 dakika boyunca %20 ek gelir takviyesi kazanırsınız!',
+                      style: TextStyle(color: AppColors.textSecondary, fontSize: 11, height: 1.35),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actionsAlignment: MainAxisAlignment.spaceEvenly,
+        actions: [
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.background,
+              foregroundColor: AppColors.textPrimary,
+              side: const BorderSide(color: AppColors.border),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            onPressed: gameState.money >= gameState.currentTaxDebt
+                ? () {
+                    gameState.payTax();
+                    Navigator.pop(c);
+                  }
+                : null,
+            child: const Text('NAKİT ÖDE', style: TextStyle(fontSize: 11)),
+          ),
+          ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.gold,
+              foregroundColor: AppColors.darkBrown,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            icon: const Icon(Icons.play_circle_fill_rounded, size: 16),
+            onPressed: () {
+              AdMobService.showRewardedAd(
+                context: context,
+                onRewardEarned: () {
+                  gameState.incrementAdsWatched();
+                  gameState.payTaxWithAd();
+                  Navigator.pop(c);
+                },
+              );
+            },
+            label: const Text('REKLAMLA ÖDE', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11)),
+          ),
+        ],
+      ),
     );
   }
 
@@ -280,7 +388,6 @@ class _MapScreenState extends State<MapScreen> {
     }
 
     return Scaffold(
-      // DÜZELTME: Mat okyanus rengi yerine, canlı okyanus mavisini geri yükledik!
       backgroundColor: themeOceanBlue, 
       body: Stack(
         children: [
@@ -341,48 +448,8 @@ class _MapScreenState extends State<MapScreen> {
                       ),
                       const SizedBox(width: 8),
                       if (gameState.hasTaxDebt) 
-                        InkWell(
-                          onTap: () => showDialog(
-                            context: context, 
-                            builder: (c) => AlertDialog(
-                              backgroundColor: AppColors.surface, 
-                              title: const Text('VERGİ TAHAKKUKU', style: TextStyle(color: AppColors.textPrimary, fontSize: 14, fontWeight: FontWeight.bold)), 
-                              content: Column(
-                                mainAxisSize: MainAxisSize.min, 
-                                children: [
-                                  Text('Borç: \$${_formatNum(gameState.currentTaxDebt)}', style: const TextStyle(color: AppColors.loss, fontSize: 18, fontWeight: FontWeight.bold)), 
-                                  const SizedBox(height: 10), 
-                                  Text(gameState.isUnderPenalty ? 'HACİZ SÜRECİ BAŞLADI!' : 'Ödeme için son 12 saat.', style: TextStyle(color: gameState.isUnderPenalty ? AppColors.loss : AppColors.textSecondary, fontSize: 12)),
-                                ],
-                              ), 
-                              actionsAlignment: MainAxisAlignment.center, 
-                              actions: [
-                                ElevatedButton(
-                                  style: ElevatedButton.styleFrom(backgroundColor: AppColors.background, foregroundColor: AppColors.textPrimary), 
-                                  onPressed: gameState.money >= gameState.currentTaxDebt ? () { 
-                                    gameState.payTax(); 
-                                    Navigator.pop(c); 
-                                  } : null, 
-                                  child: const Text('ÖDE')
-                                ), 
-                                ElevatedButton(
-                                  style: ElevatedButton.styleFrom(backgroundColor: AppColors.gold, foregroundColor: AppColors.darkBrown), 
-                                  onPressed: () { 
-                                    AdMobService.showRewardedAd(
-                                      context: context, 
-                                      onRewardEarned: () { 
-                                        gameState.incrementAdsWatched(); 
-                                        gameState.applyTaxAmnesty(); 
-                                        Navigator.pop(c); 
-                                      }
-                                    ); 
-                                  }, 
-                                  child: const Text('VERGİ AFFI')
-                                ),
-                              ],
-                            ),
-                          ), 
-                          child: Icon(Icons.warning_amber_rounded, color: gameState.isUnderPenalty ? AppColors.loss : AppColors.gold, size: 24),
+                        PulsingTaxIcon(
+                          onTap: () => _showTaxDialog(context, gameState),
                         ),
                       const SizedBox(width: 8),
                       Theme(
@@ -407,7 +474,7 @@ class _MapScreenState extends State<MapScreen> {
                   ),
                 ],
               ),
-              if (gameState.isBoostActive || gameState.isEventActive) ...[
+              if (gameState.isBoostActive || gameState.isTaxBonusActive || gameState.isEventActive) ...[
                 const SizedBox(height: 10),
                 Row(
                   children: [
@@ -416,6 +483,12 @@ class _MapScreenState extends State<MapScreen> {
                         margin: const EdgeInsets.only(right: 8), padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(color: AppColors.background, borderRadius: BorderRadius.circular(6), border: Border.all(color: AppColors.gold.withValues(alpha: 0.5))),
                         child: Row(children: [const Icon(Icons.electric_bolt_rounded, color: AppColors.gold, size: 12), const SizedBox(width: 4), Text('2X (${gameState.boostTimeLeft})', style: const TextStyle(color: AppColors.gold, fontSize: 10, fontWeight: FontWeight.bold))]),
+                      ),
+                    if (gameState.isTaxBonusActive)
+                      Container(
+                        margin: const EdgeInsets.only(right: 8), padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(color: AppColors.background, borderRadius: BorderRadius.circular(6), border: Border.all(color: AppColors.profit.withValues(alpha: 0.5))),
+                        child: Row(children: [const Icon(Icons.speed_rounded, color: AppColors.profit, size: 12), const SizedBox(width: 4), Text('+%20 (${gameState.taxBonusTimeLeft})', style: const TextStyle(color: AppColors.profit, fontSize: 10, fontWeight: FontWeight.bold))]),
                       ),
                     if (gameState.isEventActive)
                       Expanded(
@@ -511,6 +584,52 @@ class _MapScreenState extends State<MapScreen> {
   }
 }
 
+class PulsingTaxIcon extends StatefulWidget {
+  final VoidCallback onTap;
+  const PulsingTaxIcon({super.key, required this.onTap});
+
+  @override
+  State<PulsingTaxIcon> createState() => _PulsingTaxIconState();
+}
+
+class _PulsingTaxIconState extends State<PulsingTaxIcon> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 850),
+    )..repeat(reverse: true);
+    _scaleAnimation = Tween<double>(begin: 0.85, end: 1.18).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ScaleTransition(
+      scale: _scaleAnimation,
+      child: InkWell(
+        onTap: widget.onTap,
+        child: const Icon(
+          Icons.warning_rounded,
+          color: AppColors.loss,
+          size: 26,
+        ),
+      ),
+    );
+  }
+}
+
 class AnimatedSideButton extends StatelessWidget {
   final IconData icon; final VoidCallback onTap;
   const AnimatedSideButton({super.key, required this.icon, required this.onTap});
@@ -527,6 +646,586 @@ class AnimatedSideButton extends StatelessWidget {
   }
 }
 
+// 70 ÜRÜNÜN TAMAMI İÇİN ÖZEL VEKTÖREL (SVG) ÇİZİM WIDGET'I
+class ProductSvgIcon extends StatelessWidget {
+  final String name;
+  final double size;
+  final Color color;
+
+  const ProductSvgIcon({
+    super.key,
+    required this.name,
+    this.size = 20,
+    this.color = AppColors.gold,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: size,
+      height: size,
+      child: CustomPaint(
+        painter: _ProductVectorPainter(name: name, color: color),
+      ),
+    );
+  }
+}
+
+class _ProductVectorPainter extends CustomPainter {
+  final String name;
+  final Color color;
+
+  _ProductVectorPainter({required this.name, required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas.save();
+    canvas.scale(size.width / 24.0, size.height / 24.0);
+
+    final Paint stroke = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.8
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+
+    final Paint fill = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill;
+
+    switch (name) {
+      // 1. Mobilya Fabrikası
+      case 'Ahşap Sandalye':
+        canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(6, 3, 12, 8), const Radius.circular(2)), stroke);
+        canvas.drawLine(const Offset(4, 13), const Offset(20, 13), stroke);
+        canvas.drawLine(const Offset(6, 13), const Offset(5, 21), stroke);
+        canvas.drawLine(const Offset(18, 13), const Offset(19, 21), stroke);
+        break;
+      case 'Masa':
+        canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(3, 7, 18, 4), const Radius.circular(1.5)), fill);
+        canvas.drawLine(const Offset(6, 11), const Offset(5, 20), stroke);
+        canvas.drawLine(const Offset(18, 11), const Offset(19, 20), stroke);
+        canvas.drawLine(const Offset(6, 15), const Offset(18, 15), stroke);
+        break;
+      case 'Koltuk':
+        canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(5, 6, 14, 8), const Radius.circular(3)), stroke);
+        canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(2, 10, 4, 8), const Radius.circular(2)), fill);
+        canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(18, 10, 4, 8), const Radius.circular(2)), fill);
+        canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(6, 13, 12, 5), const Radius.circular(2)), fill);
+        canvas.drawLine(const Offset(5, 18), const Offset(4, 21), stroke);
+        canvas.drawLine(const Offset(19, 18), const Offset(20, 21), stroke);
+        break;
+      case 'Gardırop':
+        canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(4, 3, 16, 17), const Radius.circular(2)), stroke);
+        canvas.drawLine(const Offset(12, 3), const Offset(12, 20), stroke);
+        canvas.drawCircle(const Offset(10, 12), 1, fill);
+        canvas.drawCircle(const Offset(14, 12), 1, fill);
+        canvas.drawLine(const Offset(6, 20), const Offset(6, 22), stroke);
+        canvas.drawLine(const Offset(18, 20), const Offset(18, 22), stroke);
+        break;
+      case 'Lüks Yatak':
+        canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(3, 6, 18, 6), const Radius.circular(3)), stroke);
+        canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(2, 12, 20, 6), const Radius.circular(2)), fill);
+        canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(4, 8, 7, 4), const Radius.circular(1.5)), fill);
+        canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(13, 8, 7, 4), const Radius.circular(1.5)), fill);
+        canvas.drawLine(const Offset(4, 18), const Offset(4, 21), stroke);
+        canvas.drawLine(const Offset(20, 18), const Offset(20, 21), stroke);
+        break;
+
+      // 2. Süt Ürünleri
+      case 'Süt':
+        Path carton = Path()
+          ..moveTo(8, 21)..lineTo(16, 21)..lineTo(16, 9)..lineTo(12, 4)..lineTo(8, 9)..close();
+        canvas.drawPath(carton, stroke);
+        canvas.drawLine(const Offset(8, 9), const Offset(16, 9), stroke);
+        canvas.drawCircle(const Offset(12, 15), 1.8, fill);
+        break;
+      case 'Yoğurt':
+        Path bowl = Path()
+          ..moveTo(4, 8)..lineTo(20, 8)..lineTo(17, 19)..lineTo(7, 19)..close();
+        canvas.drawPath(bowl, stroke);
+        canvas.drawLine(const Offset(3, 8), const Offset(21, 8), stroke);
+        canvas.drawLine(const Offset(12, 4), const Offset(15, 12), stroke);
+        break;
+      case 'Peynir':
+        Path cheese = Path()
+          ..moveTo(3, 17)..lineTo(20, 17)..lineTo(15, 7)..lineTo(5, 7)..close();
+        canvas.drawPath(cheese, stroke);
+        canvas.drawCircle(const Offset(9, 13), 1.5, fill);
+        canvas.drawCircle(const Offset(14, 14), 1.2, fill);
+        canvas.drawCircle(const Offset(12, 10), 1.0, fill);
+        break;
+      case 'Tereyağı':
+        canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(2, 17, 20, 3), const Radius.circular(1.5)), stroke);
+        canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(5, 9, 14, 8), const Radius.circular(2)), fill);
+        canvas.drawLine(const Offset(8, 11), const Offset(16, 11), stroke);
+        break;
+      case 'Gurme Kaşar':
+        canvas.drawOval(const Rect.fromLTWH(3, 11, 18, 8), stroke);
+        canvas.drawArc(const Rect.fromLTWH(3, 6, 18, 8), 0, math.pi, false, stroke);
+        canvas.drawLine(const Offset(3, 10), const Offset(3, 15), stroke);
+        canvas.drawLine(const Offset(21, 10), const Offset(21, 15), stroke);
+        canvas.drawCircle(const Offset(10, 14), 1.2, fill);
+        canvas.drawCircle(const Offset(15, 13), 1.4, fill);
+        break;
+
+      // 3. Tarım Tesisleri
+      case 'Buğday':
+        canvas.drawLine(const Offset(12, 21), const Offset(12, 4), stroke);
+        canvas.drawOval(const Rect.fromLTWH(7, 5, 4, 3), fill);
+        canvas.drawOval(const Rect.fromLTWH(13, 5, 4, 3), fill);
+        canvas.drawOval(const Rect.fromLTWH(6, 9, 5, 3), fill);
+        canvas.drawOval(const Rect.fromLTWH(13, 9, 5, 3), fill);
+        canvas.drawOval(const Rect.fromLTWH(7, 13, 4, 3), fill);
+        canvas.drawOval(const Rect.fromLTWH(13, 13, 4, 3), fill);
+        break;
+      case 'Mısır':
+        canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(9, 4, 6, 15), const Radius.circular(3)), stroke);
+        canvas.drawLine(const Offset(9, 9), const Offset(15, 9), stroke);
+        canvas.drawLine(const Offset(9, 14), const Offset(15, 14), stroke);
+        canvas.drawArc(const Rect.fromLTWH(6, 12, 6, 8), 0, math.pi / 2, false, stroke);
+        canvas.drawArc(const Rect.fromLTWH(12, 12, 6, 8), math.pi / 2, math.pi / 2, false, stroke);
+        break;
+      case 'Pamuk':
+        canvas.drawCircle(const Offset(9, 10), 3.5, stroke);
+        canvas.drawCircle(const Offset(15, 10), 3.5, stroke);
+        canvas.drawCircle(const Offset(12, 7), 3.5, stroke);
+        canvas.drawCircle(const Offset(12, 13), 3.5, stroke);
+        Path calyx = Path()..moveTo(9, 15)..lineTo(12, 19)..lineTo(15, 15)..close();
+        canvas.drawPath(calyx, fill);
+        canvas.drawLine(const Offset(12, 19), const Offset(12, 22), stroke);
+        break;
+      case 'Soya':
+        Path pod = Path()
+          ..moveTo(6, 6)..quadraticBezierTo(14, 9, 18, 18)..quadraticBezierTo(9, 15, 6, 6)..close();
+        canvas.drawPath(pod, stroke);
+        canvas.drawCircle(const Offset(9, 9), 1.8, fill);
+        canvas.drawCircle(const Offset(12, 12), 1.8, fill);
+        canvas.drawCircle(const Offset(15, 15), 1.8, fill);
+        break;
+      case 'Tohum':
+        Path seed = Path()
+          ..moveTo(12, 18)..quadraticBezierTo(6, 18, 8, 11)..quadraticBezierTo(12, 6, 12, 6)..quadraticBezierTo(12, 6, 16, 11)..quadraticBezierTo(18, 18, 12, 18)..close();
+        canvas.drawPath(seed, fill);
+        canvas.drawLine(const Offset(12, 6), const Offset(12, 3), stroke);
+        canvas.drawArc(const Rect.fromLTWH(12, 2, 5, 4), -math.pi / 2, math.pi, false, stroke);
+        break;
+
+      // 4. Tekstil Atölyesi
+      case 'İplik':
+        canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(6, 3, 12, 3), const Radius.circular(1)), fill);
+        canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(6, 18, 12, 3), const Radius.circular(1)), fill);
+        canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(8, 6, 8, 12), const Radius.circular(1)), stroke);
+        canvas.drawLine(const Offset(8, 9), const Offset(16, 9), stroke);
+        canvas.drawLine(const Offset(8, 12), const Offset(16, 12), stroke);
+        canvas.drawLine(const Offset(8, 15), const Offset(16, 15), stroke);
+        break;
+      case 'Kumaş':
+        canvas.drawOval(const Rect.fromLTWH(4, 5, 16, 5), stroke);
+        Path roll = Path()
+          ..moveTo(4, 7)..lineTo(4, 16)..quadraticBezierTo(12, 21, 20, 16)..lineTo(20, 7)..close();
+        canvas.drawPath(roll, stroke);
+        canvas.drawLine(const Offset(4, 16), const Offset(20, 16), stroke);
+        break;
+      case 'Tişört':
+        Path tshirt = Path()
+          ..moveTo(8, 4)..lineTo(11, 6)..lineTo(13, 6)..lineTo(16, 4)..lineTo(21, 8)..lineTo(18, 11)..lineTo(16, 10)..lineTo(16, 20)..lineTo(8, 20)..lineTo(8, 10)..lineTo(6, 11)..lineTo(3, 8)..close();
+        canvas.drawPath(tshirt, stroke);
+        break;
+      case 'Ceket':
+        Path suit = Path()
+          ..moveTo(6, 4)..lineTo(18, 4)..lineTo(20, 9)..lineTo(17, 11)..lineTo(17, 21)..lineTo(7, 21)..lineTo(7, 11)..lineTo(4, 9)..close();
+        canvas.drawPath(suit, stroke);
+        canvas.drawLine(const Offset(12, 4), const Offset(12, 21), stroke);
+        canvas.drawLine(const Offset(7, 4), const Offset(10, 10), stroke);
+        canvas.drawLine(const Offset(17, 4), const Offset(14, 10), stroke);
+        break;
+      case 'Özel Tasarım':
+        canvas.drawOval(const Rect.fromLTWH(8, 5, 8, 11), stroke);
+        canvas.drawLine(const Offset(12, 3), const Offset(12, 5), stroke);
+        canvas.drawLine(const Offset(12, 16), const Offset(12, 22), stroke);
+        canvas.drawLine(const Offset(8, 22), const Offset(16, 22), stroke);
+        canvas.drawLine(const Offset(6, 8), const Offset(18, 8), stroke);
+        break;
+
+      // 5. Çelik Kapı Fabrikası
+      case 'Sac':
+        canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(3, 6, 14, 14), const Radius.circular(2)), stroke);
+        canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(7, 3, 14, 14), const Radius.circular(2)), stroke);
+        canvas.drawCircle(const Offset(5, 8), 0.8, fill);
+        canvas.drawCircle(const Offset(15, 8), 0.8, fill);
+        break;
+      case 'Kilit':
+        canvas.drawArc(const Rect.fromLTWH(7, 3, 10, 10), math.pi, math.pi, false, stroke);
+        canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(5, 9, 14, 12), const Radius.circular(3)), fill);
+        canvas.drawCircle(const Offset(12, 14), 1.5, Paint()..color = Colors.black);
+        canvas.drawLine(const Offset(12, 14), const Offset(12, 18), Paint()..color = Colors.black..strokeWidth = 1.2);
+        break;
+      case 'Panel':
+        canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(5, 3, 14, 18), const Radius.circular(2)), stroke);
+        canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(7, 5, 10, 6), const Radius.circular(1)), fill);
+        canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(7, 13, 10, 6), const Radius.circular(1)), fill);
+        break;
+      case 'Çelik Kapı':
+        canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(5, 3, 14, 18), const Radius.circular(2)), stroke);
+        canvas.drawRect(const Rect.fromLTWH(7, 5, 10, 14), stroke);
+        canvas.drawCircle(const Offset(15, 12), 1.2, fill);
+        canvas.drawRect(const Rect.fromLTWH(13, 11.5, 4, 1), fill);
+        break;
+      case 'Zırhlı Kasa':
+        canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(4, 4, 16, 16), const Radius.circular(3)), stroke);
+        canvas.drawCircle(const Offset(12, 12), 4, stroke);
+        canvas.drawCircle(const Offset(12, 12), 1.5, fill);
+        canvas.drawLine(const Offset(12, 7), const Offset(12, 9), stroke);
+        canvas.drawLine(const Offset(12, 15), const Offset(12, 17), stroke);
+        canvas.drawLine(const Offset(7, 12), const Offset(9, 12), stroke);
+        canvas.drawLine(const Offset(15, 12), const Offset(17, 12), stroke);
+        break;
+
+      // 6. Gıda İşleme
+      case 'Un':
+        Path bag = Path()
+          ..moveTo(6, 20)..lineTo(18, 20)..lineTo(16, 8)..lineTo(14, 5)..lineTo(10, 5)..lineTo(8, 8)..close();
+        canvas.drawPath(bag, stroke);
+        canvas.drawLine(const Offset(8, 8), const Offset(16, 8), stroke);
+        canvas.drawCircle(const Offset(12, 14), 2.5, fill);
+        break;
+      case 'Şeker':
+        canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(4, 10, 8, 8), const Radius.circular(2)), stroke);
+        canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(12, 10, 8, 8), const Radius.circular(2)), stroke);
+        canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(8, 4, 8, 8), const Radius.circular(2)), stroke);
+        break;
+      case 'Konserve':
+        canvas.drawOval(const Rect.fromLTWH(5, 3, 14, 5), stroke);
+        Path can = Path()
+          ..moveTo(5, 5)..lineTo(5, 18)..quadraticBezierTo(12, 22, 19, 18)..lineTo(19, 5)..close();
+        canvas.drawPath(can, stroke);
+        canvas.drawLine(const Offset(5, 10), const Offset(19, 10), stroke);
+        canvas.drawLine(const Offset(5, 15), const Offset(19, 15), stroke);
+        break;
+      case 'Dondurulmuş':
+        canvas.drawLine(const Offset(12, 3), const Offset(12, 21), stroke);
+        canvas.drawLine(const Offset(3, 12), const Offset(21, 12), stroke);
+        canvas.drawLine(const Offset(6, 6), const Offset(18, 18), stroke);
+        canvas.drawLine(const Offset(6, 18), const Offset(18, 6), stroke);
+        canvas.drawCircle(const Offset(12, 12), 2, fill);
+        break;
+      case 'Çikolata':
+        canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(5, 4, 14, 16), const Radius.circular(2)), stroke);
+        canvas.drawLine(const Offset(12, 4), const Offset(12, 20), stroke);
+        canvas.drawLine(const Offset(5, 9), const Offset(19, 9), stroke);
+        canvas.drawLine(const Offset(5, 15), const Offset(19, 15), stroke);
+        break;
+
+      // 7. Kimya Tesisleri
+      case 'Gübre':
+        canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(5, 5, 14, 15), const Radius.circular(3)), stroke);
+        canvas.drawCircle(const Offset(12, 12), 3, fill);
+        canvas.drawCircle(const Offset(10, 15), 1, fill);
+        canvas.drawCircle(const Offset(14, 15), 1, fill);
+        break;
+      case 'Plastik':
+        canvas.drawCircle(const Offset(12, 7), 2.5, stroke);
+        canvas.drawCircle(const Offset(7, 16), 2.5, stroke);
+        canvas.drawCircle(const Offset(17, 16), 2.5, stroke);
+        canvas.drawLine(const Offset(11, 9), const Offset(8, 14), stroke);
+        canvas.drawLine(const Offset(13, 9), const Offset(16, 14), stroke);
+        canvas.drawLine(const Offset(9, 16), const Offset(15, 16), stroke);
+        break;
+      case 'Boya':
+        Path bucket = Path()
+          ..moveTo(5, 7)..lineTo(19, 7)..lineTo(16, 20)..lineTo(8, 20)..close();
+        canvas.drawPath(bucket, stroke);
+        canvas.drawArc(const Rect.fromLTWH(4, 3, 16, 8), math.pi, math.pi, false, stroke);
+        Path drip = Path()
+          ..moveTo(12, 7)..lineTo(12, 13)..quadraticBezierTo(13, 14, 14, 13)..lineTo(14, 7);
+        canvas.drawPath(drip, fill);
+        break;
+      case 'Deterjan':
+        Path bottle = Path()
+          ..moveTo(9, 7)..lineTo(15, 7)..lineTo(17, 11)..lineTo(17, 21)..lineTo(7, 21)..lineTo(7, 11)..close();
+        canvas.drawPath(bottle, stroke);
+        canvas.drawRect(const Rect.fromLTWH(10, 3, 4, 4), fill);
+        canvas.drawCircle(const Offset(12, 15), 2.5, fill);
+        break;
+      case 'Kozmetik':
+        canvas.drawRect(const Rect.fromLTWH(8, 11, 8, 10), stroke);
+        Path lipstick = Path()
+          ..moveTo(9, 11)..lineTo(9, 6)..lineTo(14, 3)..lineTo(15, 11)..close();
+        canvas.drawPath(lipstick, fill);
+        break;
+
+      // 8. Otomobil Fabrikası
+      case 'Lastik':
+        canvas.drawCircle(const Offset(12, 12), 9, stroke);
+        canvas.drawCircle(const Offset(12, 12), 4.5, stroke);
+        canvas.drawCircle(const Offset(12, 12), 1.5, fill);
+        break;
+      case 'Motor':
+        canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(6, 6, 12, 12), const Radius.circular(2)), stroke);
+        canvas.drawRect(const Rect.fromLTWH(9, 3, 6, 3), stroke);
+        canvas.drawCircle(const Offset(9, 11), 1.5, fill);
+        canvas.drawCircle(const Offset(15, 11), 1.5, fill);
+        canvas.drawLine(const Offset(3, 10), const Offset(6, 10), stroke);
+        canvas.drawLine(const Offset(18, 14), const Offset(21, 14), stroke);
+        break;
+      case 'Şasi':
+        canvas.drawLine(const Offset(7, 3), const Offset(7, 21), stroke);
+        canvas.drawLine(const Offset(17, 3), const Offset(17, 21), stroke);
+        canvas.drawLine(const Offset(7, 6), const Offset(17, 6), stroke);
+        canvas.drawLine(const Offset(7, 18), const Offset(17, 18), stroke);
+        canvas.drawRect(const Rect.fromLTWH(4, 4, 3, 5), fill);
+        canvas.drawRect(const Rect.fromLTWH(17, 4, 3, 5), fill);
+        canvas.drawRect(const Rect.fromLTWH(4, 15, 3, 5), fill);
+        canvas.drawRect(const Rect.fromLTWH(17, 15, 3, 5), fill);
+        break;
+      case 'Sedan Araç':
+        Path car = Path()
+          ..moveTo(3, 14)..lineTo(5, 11)..lineTo(8, 8)..lineTo(15, 8)..lineTo(18, 11)..lineTo(21, 12)..lineTo(21, 16)..lineTo(3, 16)..close();
+        canvas.drawPath(car, stroke);
+        canvas.drawCircle(const Offset(7, 16), 2.2, fill);
+        canvas.drawCircle(const Offset(17, 16), 2.2, fill);
+        break;
+      case 'Spor Araba':
+        Path sport = Path()
+          ..moveTo(2, 15)..lineTo(5, 11)..lineTo(10, 8)..lineTo(17, 8)..lineTo(21, 11)..lineTo(22, 15)..lineTo(2, 15)..close();
+        canvas.drawPath(sport, stroke);
+        canvas.drawLine(const Offset(20, 10), const Offset(22, 8), stroke);
+        canvas.drawCircle(const Offset(6, 15), 2.2, fill);
+        canvas.drawCircle(const Offset(17, 15), 2.2, fill);
+        break;
+
+      // 9. Maden Çıkarma
+      case 'Kömür':
+        Path coal = Path()
+          ..moveTo(6, 18)..lineTo(4, 12)..lineTo(8, 7)..lineTo(15, 6)..lineTo(20, 11)..lineTo(18, 18)..close();
+        canvas.drawPath(coal, fill);
+        canvas.drawLine(const Offset(8, 7), const Offset(12, 13), stroke);
+        break;
+      case 'Demir':
+        Path anvil = Path()
+          ..moveTo(4, 7)..lineTo(20, 7)..lineTo(18, 12)..lineTo(14, 12)..lineTo(15, 18)..lineTo(9, 18)..lineTo(10, 12)..lineTo(7, 12)..close();
+        canvas.drawPath(anvil, fill);
+        break;
+      case 'Bakır':
+        canvas.drawOval(const Rect.fromLTWH(4, 6, 8, 12), stroke);
+        canvas.drawOval(const Rect.fromLTWH(12, 6, 8, 12), stroke);
+        canvas.drawLine(const Offset(8, 6), const Offset(16, 6), stroke);
+        canvas.drawLine(const Offset(8, 18), const Offset(16, 18), stroke);
+        break;
+      case 'Altın':
+        canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(4, 13, 16, 6), const Radius.circular(2)), fill);
+        canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(7, 6, 10, 6), const Radius.circular(2)), stroke);
+        break;
+      case 'Elmas':
+        Path diamond = Path()
+          ..moveTo(7, 6)..lineTo(17, 6)..lineTo(21, 11)..lineTo(12, 20)..lineTo(3, 11)..close();
+        canvas.drawPath(diamond, stroke);
+        canvas.drawLine(const Offset(7, 6), const Offset(12, 20), stroke);
+        canvas.drawLine(const Offset(17, 6), const Offset(12, 20), stroke);
+        canvas.drawLine(const Offset(3, 11), const Offset(21, 11), stroke);
+        break;
+
+      // 10. Elektronik Tesis
+      case 'Devre':
+        canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(4, 4, 16, 16), const Radius.circular(2)), stroke);
+        canvas.drawCircle(const Offset(8, 8), 1.5, fill);
+        canvas.drawCircle(const Offset(16, 16), 1.5, fill);
+        canvas.drawLine(const Offset(8, 8), const Offset(12, 8), stroke);
+        canvas.drawLine(const Offset(12, 8), const Offset(12, 16), stroke);
+        canvas.drawLine(const Offset(12, 16), const Offset(16, 16), stroke);
+        break;
+      case 'Çip':
+        canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(6, 6, 12, 12), const Radius.circular(2)), fill);
+        for (int i = 0; i < 3; i++) {
+          canvas.drawLine(Offset(8.0 + (i * 3.5), 3), Offset(8.0 + (i * 3.5), 6), stroke);
+          canvas.drawLine(Offset(8.0 + (i * 3.5), 18), Offset(8.0 + (i * 3.5), 21), stroke);
+          canvas.drawLine(Offset(3, 8.0 + (i * 3.5)), Offset(6, 8.0 + (i * 3.5)), stroke);
+          canvas.drawLine(Offset(18, 8.0 + (i * 3.5)), Offset(21, 8.0 + (i * 3.5)), stroke);
+        }
+        break;
+      case 'Telefon':
+        canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(6, 3, 12, 18), const Radius.circular(3)), stroke);
+        canvas.drawCircle(const Offset(12, 5.5), 0.8, fill);
+        canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(8, 7, 8, 11), const Radius.circular(1)), fill);
+        canvas.drawLine(const Offset(11, 19), const Offset(13, 19), stroke);
+        break;
+      case 'Bilgisayar':
+        canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(3, 4, 14, 10), const Radius.circular(2)), stroke);
+        canvas.drawLine(const Offset(10, 14), const Offset(10, 18), stroke);
+        canvas.drawLine(const Offset(7, 18), const Offset(13, 18), stroke);
+        canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(18, 6, 4, 12), const Radius.circular(1)), stroke);
+        break;
+      case 'İşlemci':
+        canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(4, 4, 16, 16), const Radius.circular(3)), stroke);
+        canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(8, 8, 8, 8), const Radius.circular(1.5)), fill);
+        break;
+
+      // 11. Yapay Zeka Ar-Ge
+      case 'Veri':
+        canvas.drawOval(const Rect.fromLTWH(5, 3, 14, 5), stroke);
+        canvas.drawOval(const Rect.fromLTWH(5, 9, 14, 5), stroke);
+        canvas.drawOval(const Rect.fromLTWH(5, 15, 14, 5), stroke);
+        canvas.drawLine(const Offset(5, 5), const Offset(5, 17), stroke);
+        canvas.drawLine(const Offset(19, 5), const Offset(19, 17), stroke);
+        break;
+      case 'Algoritma':
+        canvas.drawCircle(const Offset(12, 5), 2.5, fill);
+        canvas.drawCircle(const Offset(6, 17), 2.5, fill);
+        canvas.drawCircle(const Offset(18, 17), 2.5, fill);
+        canvas.drawLine(const Offset(12, 7.5), const Offset(6, 14.5), stroke);
+        canvas.drawLine(const Offset(12, 7.5), const Offset(18, 14.5), stroke);
+        break;
+      case 'Bot':
+        canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(5, 7, 14, 12), const Radius.circular(3)), stroke);
+        canvas.drawLine(const Offset(12, 7), const Offset(12, 3), stroke);
+        canvas.drawCircle(const Offset(12, 3), 1.2, fill);
+        canvas.drawCircle(const Offset(9, 11), 1.5, fill);
+        canvas.drawCircle(const Offset(15, 11), 1.5, fill);
+        canvas.drawLine(const Offset(9, 15), const Offset(15, 15), stroke);
+        break;
+      case 'Otonom':
+        canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(6, 10, 12, 9), const Radius.circular(2)), stroke);
+        canvas.drawArc(const Rect.fromLTWH(5, 3, 14, 10), math.pi, math.pi, false, stroke);
+        canvas.drawCircle(const Offset(12, 8), 1.5, fill);
+        break;
+      case 'AGI':
+        Path brain = Path()
+          ..moveTo(12, 5)..cubicTo(6, 4, 4, 12, 7, 17)..cubicTo(9, 21, 15, 21, 17, 17)..cubicTo(20, 12, 18, 4, 12, 5)..close();
+        canvas.drawPath(brain, stroke);
+        canvas.drawLine(const Offset(12, 5), const Offset(12, 19), stroke);
+        canvas.drawCircle(const Offset(9, 11), 1.2, fill);
+        canvas.drawCircle(const Offset(15, 11), 1.2, fill);
+        break;
+
+      // 12. Biyoteknoloji
+      case 'Aşı':
+        canvas.drawLine(const Offset(7, 17), const Offset(16, 8), stroke);
+        canvas.drawRect(const Rect.fromLTWH(10, 9, 5, 5), fill);
+        canvas.drawLine(const Offset(16, 8), const Offset(19, 5), stroke);
+        canvas.drawLine(const Offset(7, 17), const Offset(4, 20), stroke);
+        break;
+      case 'Protein':
+        canvas.drawCircle(const Offset(8, 8), 3, stroke);
+        canvas.drawCircle(const Offset(16, 8), 3, stroke);
+        canvas.drawCircle(const Offset(12, 15), 3, stroke);
+        canvas.drawLine(const Offset(10, 9), const Offset(14, 9), stroke);
+        canvas.drawLine(const Offset(9, 11), const Offset(11, 13), stroke);
+        canvas.drawLine(const Offset(15, 11), const Offset(13, 13), stroke);
+        break;
+      case 'Hücre':
+        canvas.drawCircle(const Offset(12, 12), 9, stroke);
+        canvas.drawCircle(const Offset(12, 12), 4, fill);
+        canvas.drawCircle(const Offset(8, 9), 1, fill);
+        canvas.drawCircle(const Offset(15, 15), 1, fill);
+        break;
+      case 'DNA':
+        for (int i = 0; i < 4; i++) {
+          double y = 5.0 + (i * 4.2);
+          canvas.drawLine(Offset(6, y), Offset(18, y), stroke);
+          canvas.drawCircle(Offset(6, y), 1.5, fill);
+          canvas.drawCircle(Offset(18, y), 1.5, fill);
+        }
+        break;
+      case 'Serum':
+        canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(6, 4, 12, 14), const Radius.circular(3)), stroke);
+        canvas.drawLine(const Offset(12, 18), const Offset(12, 22), stroke);
+        canvas.drawLine(const Offset(10, 4), const Offset(14, 4), stroke);
+        canvas.drawRect(const Rect.fromLTWH(8, 9, 8, 6), fill);
+        break;
+
+      // 13. Füzyon Enerji
+      case 'Plazma':
+        canvas.drawCircle(const Offset(12, 12), 4, fill);
+        canvas.drawArc(const Rect.fromLTWH(4, 4, 16, 16), 0, math.pi * 1.5, false, stroke);
+        canvas.drawArc(const Rect.fromLTWH(2, 2, 20, 20), math.pi, math.pi * 1.5, false, stroke);
+        break;
+      case 'Mıknatıs':
+        Path mag = Path()
+          ..moveTo(6, 5)..lineTo(6, 14)..arcTo(const Rect.fromLTWH(6, 8, 12, 12), math.pi, -math.pi, false)..lineTo(18, 5)..lineTo(14, 5)..lineTo(14, 14)..arcTo(const Rect.fromLTWH(10, 10, 4, 4), 0, math.pi, false)..lineTo(10, 5)..close();
+        canvas.drawPath(mag, stroke);
+        canvas.drawRect(const Rect.fromLTWH(6, 5, 4, 3), fill);
+        canvas.drawRect(const Rect.fromLTWH(14, 5, 4, 3), fill);
+        break;
+      case 'Reaktör':
+        canvas.drawCircle(const Offset(12, 12), 9, stroke);
+        canvas.drawCircle(const Offset(12, 12), 5, stroke);
+        canvas.drawCircle(const Offset(12, 12), 2, fill);
+        canvas.drawLine(const Offset(12, 3), const Offset(12, 7), stroke);
+        canvas.drawLine(const Offset(12, 17), const Offset(12, 21), stroke);
+        canvas.drawLine(const Offset(3, 12), const Offset(7, 12), stroke);
+        canvas.drawLine(const Offset(17, 12), const Offset(21, 12), stroke);
+        break;
+      case 'Saf Enerji':
+        Path bolt = Path()
+          ..moveTo(13, 2)..lineTo(6, 12)..lineTo(12, 12)..lineTo(11, 22)..lineTo(18, 10)..lineTo(12, 10)..close();
+        canvas.drawPath(bolt, fill);
+        break;
+      case 'Çekirdek':
+        canvas.drawCircle(const Offset(12, 12), 3, fill);
+        canvas.drawCircle(const Offset(8, 10), 2.5, fill);
+        canvas.drawCircle(const Offset(15, 10), 2.5, fill);
+        canvas.drawCircle(const Offset(12, 16), 2.5, fill);
+        break;
+
+      // 14. Uzay Sanayii
+      case 'Uydu':
+        canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(9, 9, 6, 6), const Radius.circular(1)), fill);
+        canvas.drawRect(const Rect.fromLTWH(2, 10, 6, 4), stroke);
+        canvas.drawRect(const Rect.fromLTWH(16, 10, 6, 4), stroke);
+        canvas.drawLine(const Offset(12, 9), const Offset(12, 4), stroke);
+        canvas.drawCircle(const Offset(12, 4), 1.5, stroke);
+        break;
+      case 'Roket':
+        Path rocket = Path()
+          ..moveTo(12, 2)..quadraticBezierTo(16, 8, 16, 16)..lineTo(8, 16)..quadraticBezierTo(8, 8, 12, 2)..close();
+        canvas.drawPath(rocket, stroke);
+        canvas.drawCircle(const Offset(12, 9), 1.8, fill);
+        Path finL = Path()..moveTo(8, 14)..lineTo(4, 18)..lineTo(8, 18)..close();
+        Path finR = Path()..moveTo(16, 14)..lineTo(20, 18)..lineTo(16, 18)..close();
+        canvas.drawPath(finL, fill);
+        canvas.drawPath(finR, fill);
+        Path flame = Path()..moveTo(10, 16)..lineTo(12, 21)..lineTo(14, 16)..close();
+        canvas.drawPath(flame, fill);
+        break;
+      case 'İstasyon':
+        canvas.drawCircle(const Offset(12, 12), 3.5, stroke);
+        canvas.drawLine(const Offset(3, 12), const Offset(21, 12), stroke);
+        canvas.drawLine(const Offset(12, 3), const Offset(12, 21), stroke);
+        canvas.drawRect(const Rect.fromLTWH(4, 8, 3, 8), fill);
+        canvas.drawRect(const Rect.fromLTWH(17, 8, 3, 8), fill);
+        break;
+      case 'Gezgin':
+        canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(6, 8, 12, 6), const Radius.circular(2)), fill);
+        canvas.drawLine(const Offset(8, 8), const Offset(8, 3), stroke);
+        canvas.drawCircle(const Offset(8, 3), 1.5, fill);
+        canvas.drawCircle(const Offset(6, 17), 2, stroke);
+        canvas.drawCircle(const Offset(12, 17), 2, stroke);
+        canvas.drawCircle(const Offset(18, 17), 2, stroke);
+        break;
+      case 'Işık Motoru':
+        canvas.drawCircle(const Offset(12, 12), 9, stroke);
+        canvas.drawCircle(const Offset(12, 12), 5, stroke);
+        canvas.drawCircle(const Offset(12, 12), 2, fill);
+        Path hyper = Path()..moveTo(12, 3)..lineTo(12, 21);
+        canvas.drawPath(hyper, stroke);
+        break;
+
+      default:
+        canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(4, 4, 16, 16), const Radius.circular(3)), stroke);
+        canvas.drawCircle(const Offset(12, 12), 3, fill);
+        break;
+    }
+
+    canvas.restore();
+  }
+
+  @override
+  bool shouldRepaint(covariant _ProductVectorPainter oldDelegate) =>
+      oldDelegate.name != name || oldDelegate.color != color;
+}
+
+// OYUN TEMA PALETİYLE UYUMLU VE RESPONSIVE FABRİKA İÇİ MODAL
 class FactoryInsideModal extends StatefulWidget {
   final String factoryId; final String Function(double) formatNum;
   const FactoryInsideModal({super.key, required this.factoryId, required this.formatNum});
@@ -552,62 +1251,316 @@ class _FactoryInsideModalState extends State<FactoryInsideModal> with SingleTick
     return Consumer<GameState>(
       builder: (context, gameState, child) {
         final currentFac = gameState.factories.firstWhere((f) => f.id == widget.factoryId);
+        
         return Container(
-          height: MediaQuery.of(context).size.height * 0.8, padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+          height: MediaQuery.of(context).size.height * 0.84, 
+          decoration: BoxDecoration(
+            color: AppColors.surface, 
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+            border: Border.all(color: AppColors.border, width: 1.5),
+            boxShadow: const [
+              BoxShadow(color: Colors.black54, blurRadius: 20, offset: Offset(0, -6)),
+            ],
+          ),
           child: Column(
             children: [
-              Text(currentFac.name.toUpperCase(), style: AppTheme.titleStyle(fontSize: 18).copyWith(color: AppColors.textPrimary)),
-              Text('Aşama: ${currentFac.currentStage} | Tesis Seviyesi: ${currentFac.totalLevel}/300', style: const TextStyle(color: AppColors.textSecondary, fontSize: 11)),
-              const SizedBox(height: 16),
-              TabBar(
-                controller: _tabController, indicatorColor: AppColors.gold, labelColor: AppColors.gold, unselectedLabelColor: AppColors.textMuted, dividerColor: AppColors.border, labelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 0.5), 
-                tabs: const [Tab(text: "ÜRETİM BANDI"), Tab(text: "TESİS GELİŞTİRME")]
+              const SizedBox(height: 10),
+              Center(
+                child: Container(
+                  width: 40, height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColors.border,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 14),
+
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(7),
+                      decoration: BoxDecoration(
+                        color: AppColors.background,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: AppColors.gold.withValues(alpha: 0.5)),
+                      ),
+                      child: const Icon(Icons.factory_rounded, color: AppColors.gold, size: 20),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            currentFac.name.toUpperCase(), 
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                            style: AppTheme.titleStyle(fontSize: 15).copyWith(color: AppColors.textPrimary, letterSpacing: 0.8),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'Aşama ${currentFac.currentStage + 1}  •  Tesis: ${currentFac.totalLevel}/300', 
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                            style: const TextStyle(color: AppColors.textSecondary, fontSize: 11, fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: AppColors.background,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: AppColors.border),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.account_balance_wallet_rounded, color: AppColors.gold, size: 13),
+                            const SizedBox(width: 5),
+                            Flexible(
+                              child: Text(
+                                '\$${widget.formatNum(gameState.money)}',
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(color: AppColors.gold, fontSize: 12, fontWeight: FontWeight.w900, fontFamily: 'SpaceMono'),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 14),
+
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Container(
+                  height: 38,
+                  decoration: BoxDecoration(
+                    color: AppColors.background,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: AppColors.border),
+                  ),
+                  child: TabBar(
+                    controller: _tabController,
+                    indicator: BoxDecoration(
+                      color: AppColors.gold,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    indicatorSize: TabBarIndicatorSize.tab,
+                    labelColor: AppColors.darkBrown,
+                    unselectedLabelColor: AppColors.textMuted,
+                    labelPadding: const EdgeInsets.symmetric(horizontal: 4),
+                    labelStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 0.5),
+                    dividerColor: Colors.transparent,
+                    tabs: const [
+                      Tab(child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.bolt_rounded, size: 15), SizedBox(width: 4), Flexible(child: Text("ÜRETİM BANDI", overflow: TextOverflow.ellipsis))])),
+                      Tab(child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.upgrade_rounded, size: 15), SizedBox(width: 4), Flexible(child: Text("TESİS GELİŞTİRME", overflow: TextOverflow.ellipsis))])),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+
               Expanded(
                 child: TabBarView(
                   controller: _tabController,
                   children: [
                     ListView.separated(
-                      itemCount: currentFac.products.length, separatorBuilder: (_, __) => const SizedBox(height: 16),
+                      padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
+                      itemCount: currentFac.products.length, 
+                      separatorBuilder: (_, __) => const SizedBox(height: 12),
                       itemBuilder: (context, index) {
                         final prod = currentFac.products[index];
                         if (prod.level == 0) {
                           return const SizedBox.shrink(); 
                         }
-                        return ProductionLineWidget(product: prod, formatNum: widget.formatNum, onProduceComplete: () => gameState.completeManualProduction(currentFac.id, index));
+                        return ProductionLineWidget(
+                          product: prod, 
+                          formatNum: widget.formatNum, 
+                          onProduceComplete: () => gameState.completeManualProduction(currentFac.id, index),
+                        );
                       },
                     ),
+
                     ListView.separated(
-                      itemCount: currentFac.products.length, separatorBuilder: (_, __) => const SizedBox(height: 12),
+                      padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
+                      itemCount: currentFac.products.length, 
+                      separatorBuilder: (_, __) => const SizedBox(height: 12),
                       itemBuilder: (context, index) {
                         final prod = currentFac.products[index];
                         bool canUnlock = index == 0 || currentFac.products[index - 1].level >= 10;
+
                         if (!canUnlock) {
-                          return Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: AppColors.background, borderRadius: BorderRadius.circular(8), border: Border.all(color: AppColors.border)), child: Row(children: const [Icon(Icons.lock_rounded, color: AppColors.textMuted, size: 18), SizedBox(width: 12), Text('Önceki bandı Lvl 10 yapın', style: TextStyle(color: AppColors.textMuted, fontSize: 12))]));
+                          return Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: AppColors.background,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: AppColors.border),
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.surface,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: const Icon(Icons.lock_rounded, color: AppColors.textMuted, size: 18),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(prod.name, overflow: TextOverflow.ellipsis, maxLines: 1, style: const TextStyle(color: AppColors.textMuted, fontWeight: FontWeight.bold, fontSize: 12)),
+                                      const SizedBox(height: 2),
+                                      const Text('Önceki bandı Seviye 10 yapın', overflow: TextOverflow.ellipsis, maxLines: 1, style: TextStyle(color: AppColors.textMuted, fontSize: 10)),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
                         }
 
-                        double cost = prod.upgradeCost; bool isMax = prod.level >= 60;
+                        double cost = prod.upgradeCost; 
+                        bool isMax = prod.level >= 60;
+                        bool canAfford = gameState.money >= cost && !isMax;
+                        double progressRatio = (prod.level / 60.0).clamp(0.0, 1.0);
+
                         return Container(
-                          padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: AppColors.surfaceElevated, borderRadius: BorderRadius.circular(10), border: Border.all(color: AppColors.border)),
-                          child: Row(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: AppColors.surfaceElevated,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: canAfford ? AppColors.gold.withValues(alpha: 0.5) : AppColors.border,
+                              width: canAfford ? 1.4 : 1.0,
+                            ),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Container(width: 40, height: 40, decoration: BoxDecoration(color: AppColors.background, borderRadius: BorderRadius.circular(8)), child: const Icon(Icons.precision_manufacturing_rounded, color: AppColors.textSecondary, size: 20)),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(prod.name, style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 13)),
-                                    Text('Seviye: ${prod.level}/60', style: const TextStyle(color: AppColors.gold, fontSize: 10)),
-                                    Text('Kapasite: +\$${widget.formatNum(prod.passiveIncome)}/s', style: const TextStyle(color: AppColors.textSecondary, fontSize: 10)),
-                                  ],
-                                ),
+                              Row(
+                                children: [
+                                  Container(
+                                    width: 38, height: 38,
+                                    decoration: BoxDecoration(
+                                      color: AppColors.background,
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(
+                                        color: canAfford ? AppColors.gold.withValues(alpha: 0.6) : AppColors.border,
+                                      ),
+                                    ),
+                                    child: Center(
+                                      child: ProductSvgIcon(
+                                        name: prod.name,
+                                        size: 20,
+                                        color: canAfford ? AppColors.gold : AppColors.textSecondary,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(prod.name, overflow: TextOverflow.ellipsis, maxLines: 1, style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 13)),
+                                        const SizedBox(height: 2),
+                                        Wrap(
+                                          crossAxisAlignment: WrapCrossAlignment.center,
+                                          spacing: 6,
+                                          runSpacing: 2,
+                                          children: [
+                                            Text(
+                                              'Lvl ${prod.level}/60',
+                                              style: TextStyle(
+                                                color: isMax ? AppColors.profit : AppColors.gold,
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.bold,
+                                                fontFamily: 'SpaceMono',
+                                              ),
+                                            ),
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                                              decoration: BoxDecoration(
+                                                color: AppColors.background,
+                                                borderRadius: BorderRadius.circular(4),
+                                                border: Border.all(color: AppColors.border),
+                                              ),
+                                              child: Text(
+                                                '+\$${widget.formatNum(prod.passiveIncome)}/s',
+                                                style: const TextStyle(color: AppColors.profit, fontSize: 9.5, fontWeight: FontWeight.bold),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  ConstrainedBox(
+                                    constraints: const BoxConstraints(minWidth: 70),
+                                    child: ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: isMax
+                                            ? AppColors.background
+                                            : (canAfford ? AppColors.gold : AppColors.background),
+                                        foregroundColor: isMax || !canAfford ? AppColors.textMuted : AppColors.darkBrown,
+                                        side: BorderSide(color: isMax ? AppColors.border : (canAfford ? Colors.transparent : AppColors.border)),
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                        elevation: 0,
+                                      ),
+                                      onPressed: isMax || !canAfford 
+                                          ? null 
+                                          : () => gameState.upgradeProduct(currentFac.id, index),
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(
+                                            isMax ? 'MAKS' : 'GELİŞTİR',
+                                            style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 0.5),
+                                          ),
+                                          if (!isMax) ...[
+                                            const SizedBox(height: 1),
+                                            Text(
+                                              '\$${widget.formatNum(cost)}',
+                                              style: TextStyle(
+                                                fontSize: 9,
+                                                fontWeight: FontWeight.bold,
+                                                fontFamily: 'SpaceMono',
+                                                color: canAfford ? AppColors.darkBrown : AppColors.textMuted,
+                                              ),
+                                            ),
+                                          ],
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
-                              ElevatedButton(
-                                style: ElevatedButton.styleFrom(backgroundColor: isMax ? AppColors.background : AppColors.gold, foregroundColor: isMax ? AppColors.textMuted : AppColors.darkBrown, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6))),
-                                onPressed: isMax || gameState.money < cost ? null : () => gameState.upgradeProduct(currentFac.id, index),
-                                child: Text(isMax ? 'MAKS' : 'GELİŞTİR\n\$${widget.formatNum(cost)}', textAlign: TextAlign.center, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+                              const SizedBox(height: 8),
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(3),
+                                child: LinearProgressIndicator(
+                                  value: progressRatio,
+                                  minHeight: 3.5,
+                                  backgroundColor: AppColors.background,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    isMax ? AppColors.profit : (canAfford ? AppColors.gold : AppColors.border),
+                                  ),
+                                ),
                               ),
                             ],
                           ),
@@ -625,40 +1578,418 @@ class _FactoryInsideModalState extends State<FactoryInsideModal> with SingleTick
   }
 }
 
+// HIZLI VE DOĞRUSAL (LINEAR) İVMELİ ÜRETİM BANDI WIDGETI
 class ProductionLineWidget extends StatefulWidget {
-  final FactoryProduct product; final String Function(double) formatNum; final VoidCallback onProduceComplete;
-  const ProductionLineWidget({super.key, required this.product, required this.formatNum, required this.onProduceComplete});
-  @override State<ProductionLineWidget> createState() => _ProductionLineWidgetState();
+  final FactoryProduct product; 
+  final String Function(double) formatNum; 
+  final VoidCallback onProduceComplete;
+  
+  const ProductionLineWidget({
+    super.key, 
+    required this.product, 
+    required this.formatNum, 
+    required this.onProduceComplete,
+  });
+
+  @override 
+  State<ProductionLineWidget> createState() => _ProductionLineWidgetState();
 }
-class _ProductionLineWidgetState extends State<ProductionLineWidget> {
-  final List<int> _activeItems = []; int _counter = 0;
+
+class _ProductionLineWidgetState extends State<ProductionLineWidget> with TickerProviderStateMixin {
+  final List<int> _activeItems = [];
+  final List<FloatingIncomeData> _floatingIncomes = [];
+  int _counter = 0;
+
+  late AnimationController _pulseController;
+  late Animation<double> _pulseAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000),
+    )..repeat(reverse: true);
+
+    _pulseAnimation = Tween<double>(begin: 0.98, end: 1.03).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _pulseController.dispose();
+    super.dispose();
+  }
+
   void _startProduction() {
-    int currentId = _counter++; 
-    setState(() { _activeItems.add(currentId); });
-    Future.delayed(const Duration(milliseconds: 1500), () { 
+    final int currentId = _counter++;
+    
+    setState(() {
+      _activeItems.add(currentId);
+      _floatingIncomes.add(FloatingIncomeData(
+        id: currentId,
+        text: '+\$${widget.formatNum(widget.product.manualIncome)}',
+      ));
+    });
+
+    // 800ms sonra ürün teslim edilir ve bantta bekleme/yığılma olmaz
+    Future.delayed(const Duration(milliseconds: 800), () { 
       if (mounted) { 
         widget.onProduceComplete(); 
-        setState(() { _activeItems.remove(currentId); }); 
+        setState(() { 
+          _activeItems.remove(currentId); 
+        }); 
       } 
     });
   }
-  @override Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(widget.product.name, style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 13)), Text('Kâr: +\$${widget.formatNum(widget.product.manualIncome)}', style: const TextStyle(color: AppColors.profit, fontWeight: FontWeight.bold, fontSize: 11))]),
-        const SizedBox(height: 6),
-        Container(
-          height: 48, decoration: BoxDecoration(color: AppColors.background, borderRadius: BorderRadius.circular(8), border: Border.all(color: AppColors.border)),
-          child: Row(
+
+  void _removeFloatingIncome(int id) {
+    if (mounted) {
+      setState(() {
+        _floatingIncomes.removeWhere((item) => item.id == id);
+      });
+    }
+  }
+
+  @override 
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceElevated,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.border, width: 1.2),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
-              InkWell(onTap: _startProduction, child: Container(width: 70, height: double.infinity, decoration: const BoxDecoration(color: AppColors.surfaceElevated, borderRadius: BorderRadius.horizontal(left: Radius.circular(7)), border: Border(right: BorderSide(color: AppColors.border))), child: const Center(child: Text('ÜRET', style: TextStyle(color: AppColors.gold, fontWeight: FontWeight.bold, fontSize: 12))))),
-              Expanded(child: Stack(alignment: Alignment.centerLeft, children: [Container(height: 2, width: double.infinity, color: AppColors.border), ..._activeItems.map((id) => BoxAnimator(key: ValueKey(id)))] )),
-              Container(width: 48, height: double.infinity, decoration: const BoxDecoration(color: AppColors.surfaceElevated, borderRadius: BorderRadius.horizontal(right: Radius.circular(7)), border: Border(left: BorderSide(color: AppColors.border))), child: const Icon(Icons.outbox_rounded, color: AppColors.textSecondary, size: 20)),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: AppColors.background,
+                  borderRadius: BorderRadius.circular(5),
+                  border: Border.all(color: AppColors.gold.withValues(alpha: 0.4)),
+                ),
+                child: Text(
+                  'Lvl ${widget.product.level}',
+                  style: const TextStyle(color: AppColors.gold, fontSize: 10, fontWeight: FontWeight.bold, fontFamily: 'SpaceMono'),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  widget.product.name, 
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 13),
+                ),
+              ),
+              const SizedBox(width: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                decoration: BoxDecoration(
+                  color: AppColors.background,
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: AppColors.profit.withValues(alpha: 0.5)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.flash_on_rounded, color: AppColors.profit, size: 12),
+                    const SizedBox(width: 2),
+                    Text(
+                      '+\$${widget.formatNum(widget.product.manualIncome)}', 
+                      style: const TextStyle(color: AppColors.profit, fontWeight: FontWeight.bold, fontSize: 11, fontFamily: 'SpaceMono'),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final double btnWidth = constraints.maxWidth < 340 ? 76.0 : 86.0;
+              final double outWidth = constraints.maxWidth < 340 ? 40.0 : 46.0;
+
+              return SizedBox(
+                height: 56,
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Container(
+                      height: 50,
+                      decoration: BoxDecoration(
+                        color: AppColors.background,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: AppColors.border, width: 1.2),
+                      ),
+                      child: Row(
+                        children: [
+                          SizedBox(width: btnWidth),
+
+                          Expanded(
+                            child: Stack(
+                              alignment: Alignment.centerLeft,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                  children: List.generate(
+                                    8,
+                                    (i) => Container(
+                                      width: 2.5, height: 22,
+                                      decoration: BoxDecoration(
+                                        color: AppColors.surface,
+                                        borderRadius: BorderRadius.circular(1),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                Positioned(
+                                  top: 12, left: 0, right: 0,
+                                  child: Container(height: 1.5, color: AppColors.border),
+                                ),
+                                Positioned(
+                                  bottom: 12, left: 0, right: 0,
+                                  child: Container(height: 1.5, color: AppColors.border),
+                                ),
+                                ..._activeItems.map((id) => ProductTokenAnimator(
+                                  key: ValueKey(id), 
+                                  productName: widget.product.name,
+                                )),
+                              ],
+                            ),
+                          ),
+
+                          Container(
+                            width: outWidth, height: double.infinity,
+                            decoration: const BoxDecoration(
+                              color: AppColors.surface,
+                              borderRadius: BorderRadius.horizontal(right: Radius.circular(9)),
+                              border: Border(left: BorderSide(color: AppColors.border, width: 1.2)),
+                            ),
+                            child: Center(
+                              child: ProductSvgIcon(
+                                name: widget.product.name,
+                                size: 18,
+                                color: AppColors.gold.withValues(alpha: 0.7),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    Positioned(
+                      left: 0, top: 0, bottom: 6,
+                      width: btnWidth,
+                      child: ScaleTransition(
+                        scale: _pulseAnimation,
+                        child: GoldProduceButton(
+                          onTap: _startProduction,
+                        ),
+                      ),
+                    ),
+
+                    ..._floatingIncomes.map((item) => Positioned(
+                      left: 18,
+                      bottom: 22,
+                      child: FloatingIncomeText(
+                        key: ValueKey(item.id),
+                        text: item.text,
+                        onEnd: () => _removeFloatingIncome(item.id),
+                      ),
+                    )),
+                  ],
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class GoldProduceButton extends StatefulWidget {
+  final VoidCallback onTap;
+  const GoldProduceButton({super.key, required this.onTap});
+
+  @override 
+  State<GoldProduceButton> createState() => _GoldProduceButtonState();
+}
+
+class _GoldProduceButtonState extends State<GoldProduceButton> {
+  bool _isPressed = false;
+
+  @override 
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) => setState(() => _isPressed = true),
+      onTapUp: (_) {
+        setState(() => _isPressed = false);
+        widget.onTap();
+      },
+      onTapCancel: () => setState(() => _isPressed = false),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 60),
+        margin: EdgeInsets.only(top: _isPressed ? 3.0 : 0.0, bottom: _isPressed ? 0.0 : 3.0),
+        decoration: BoxDecoration(
+          color: AppColors.gold,
+          borderRadius: const BorderRadius.horizontal(left: Radius.circular(9)),
+          boxShadow: _isPressed
+              ? []
+              : [
+                  BoxShadow(
+                    color: AppColors.gold.withValues(alpha: 0.3),
+                    offset: const Offset(0, 3),
+                    blurRadius: 6,
+                  ),
+                ],
+        ),
+        child: Center(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: const [
+              Icon(Icons.touch_app_rounded, color: AppColors.darkBrown, size: 16),
+              SizedBox(width: 3),
+              Flexible(
+                child: Text(
+                  'ÜRET',
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: AppColors.darkBrown,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 1.0,
+                  ),
+                ),
+              ),
             ],
           ),
         ),
-      ],
+      ),
+    );
+  }
+}
+
+// BANTTA HIZLA VE DOĞRUSAL (LINEAR) AKAN ÜRÜN İKONU
+class ProductTokenAnimator extends StatefulWidget { 
+  final String productName;
+  const ProductTokenAnimator({super.key, required this.productName}); 
+  @override State<ProductTokenAnimator> createState() => _ProductTokenAnimatorState(); 
+}
+
+class _ProductTokenAnimatorState extends State<ProductTokenAnimator> {
+  bool _started = false;
+  
+  @override 
+  void initState() { 
+    super.initState(); 
+    WidgetsBinding.instance.addPostFrameCallback((_) { 
+      if (mounted) {
+        setState(() { _started = true; }); 
+      }
+    }); 
+  }
+
+  @override 
+  Widget build(BuildContext context) { 
+    return AnimatedAlign(
+      duration: const Duration(milliseconds: 800), 
+      alignment: _started ? Alignment.centerRight : Alignment.centerLeft, 
+      curve: Curves.linear, 
+      child: Container(
+        width: 26, height: 26, 
+        margin: const EdgeInsets.symmetric(horizontal: 4), 
+        decoration: BoxDecoration(
+          color: AppColors.surfaceElevated,
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(color: AppColors.gold, width: 1.3),
+          boxShadow: const [
+            BoxShadow(color: Colors.black45, blurRadius: 4, offset: Offset(0, 2)),
+          ],
+        ), 
+        child: Center(
+          child: ProductSvgIcon(
+            name: widget.productName,
+            size: 15,
+            color: AppColors.gold,
+          ),
+        ),
+      ),
+    ); 
+  }
+}
+
+class FloatingIncomeData {
+  final int id;
+  final String text;
+  FloatingIncomeData({required this.id, required this.text});
+}
+
+class FloatingIncomeText extends StatefulWidget {
+  final String text;
+  final VoidCallback onEnd;
+  const FloatingIncomeText({super.key, required this.text, required this.onEnd});
+
+  @override 
+  State<FloatingIncomeText> createState() => _FloatingIncomeTextState();
+}
+
+class _FloatingIncomeTextState extends State<FloatingIncomeText> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 750),
+    );
+
+    _fadeAnimation = Tween<double>(begin: 1.0, end: 0.0).animate(
+      CurvedAnimation(parent: _controller, curve: const Interval(0.4, 1.0, curve: Curves.easeOut)),
+    );
+
+    _slideAnimation = Tween<Offset>(begin: Offset.zero, end: const Offset(0.2, -1.6)).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
+    );
+
+    _controller.forward().then((_) => widget.onEnd());
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SlideTransition(
+      position: _slideAnimation,
+      child: FadeTransition(
+        opacity: _fadeAnimation,
+        child: Text(
+          widget.text,
+          style: const TextStyle(
+            color: AppColors.profit,
+            fontSize: 13,
+            fontWeight: FontWeight.bold,
+            fontFamily: 'SpaceMono',
+            shadows: [
+              Shadow(color: Colors.black, blurRadius: 3, offset: Offset(1, 1)),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -672,7 +2003,7 @@ class _BoxAnimatorState extends State<BoxAnimator> {
   @override void initState() { 
     super.initState(); 
     WidgetsBinding.instance.addPostFrameCallback((_) { 
-      if (mounted) {
+      if (mounted) { 
         setState(() { _started = true; }); 
       }
     }); 
@@ -822,7 +2153,6 @@ class HoldingTycoonGame extends FlameGame with PanDetector {
     mapWorld.add(FlyingBagComponent(reward: reward, startPos: Vector2(fromLeft ? -100 : mapWidth + 100, spawnY), velocity: Vector2(fromLeft ? 200 : -200, 0), onBagTap: onBagTapped));
   }
   
-  // DÜZELTME: Okyanusun canlı mavi rengi geri yüklendi!
   @override Color backgroundColor() => themeOceanBlue; 
   
   @override Future<void> onLoad() async {
@@ -831,7 +2161,6 @@ class HoldingTycoonGame extends FlameGame with PanDetector {
       final mapSprite = await Sprite.load('map.png'); 
       mapHeight = mapWidth * (mapSprite.srcSize.y / mapSprite.srcSize.x);
       
-      // Okyanus animasyonları eklendi
       mapWorld.add(OpenSeaRipples()); 
       mapWorld.add(CrashingWavesComponent(mapWidth: mapWidth, mapHeight: mapHeight)); 
       mapWorld.add(PerfectPngWaves(mapSprite: mapSprite, mapWidth: mapWidth, mapHeight: mapHeight)); 
