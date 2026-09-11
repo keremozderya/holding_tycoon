@@ -1,9 +1,11 @@
 // lib/widgets/wheel.dart
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../providers/game_state.dart';
 import '../services/admob_service.dart';
+import '../services/audio_service.dart';
 import '../theme/app_theme.dart';
 
 class WheelDialog extends StatefulWidget {
@@ -27,18 +29,18 @@ class _WheelDialogState extends State<WheelDialog> with SingleTickerProviderStat
   bool _isSpinning = false;
   int _selectedSlice = 0;
 
-  // YENİ: Mat ve Kurumsal (Corporate) Renk Paleti
   final List<Map<String, dynamic>> _slices = [
-    {'line1': '100K',   'line2': 'NAKİT', 'color': const Color(0xFF2C3E50), 'value': 1e5}, // Mat Çelik Mavisi
-    {'line1': '1M',     'line2': 'NAKİT', 'color': const Color(0xFF1F3A3D), 'value': 1e6}, // Mat Petrol
-    {'line1': '500M',   'line2': 'NAKİT', 'color': const Color(0xFF3E4E3A), 'value': 5e8}, // Zeytin Yeşili
-    {'line1': '1B',     'line2': 'NAKİT', 'color': const Color(0xFF4A3B32), 'value': 1e9}, // Mat Kahve
-    {'line1': '500B',   'line2': 'NAKİT', 'color': const Color(0xFF503D33), 'value': 5e11},// Mat Bakır
-    {'line1': '1T',     'line2': 'NAKİT', 'color': const Color(0xFF4D2C2C), 'value': 1e12},// Bordo
-    {'line1': '500Qa',  'line2': 'NAKİT', 'color': const Color(0xFF2C2F40), 'value': 5e17},// Gece Mavisi
-    {'line1': '500Sx',  'line2': 'NAKİT', 'color': const Color(0xFF1D2833), 'value': 5e23},// Antrasit
-    {'line1': '1Sp',    'line2': 'NAKİT', 'color': const Color(0xFF8C7343), 'value': 1e24},// Oksit Altın
-    {'line1': '1No',    'line2': 'İKRAMİYE','color': const Color(0xFF7A2020),'value': 1e30},// Koyu Kan Kırmızı
+    {'line1': '10K',    'line2': 'NAKİT', 'color': const Color(0xFF3B4D61), 'value': 1e4}, 
+    {'line1': '100K',   'line2': 'NAKİT', 'color': const Color(0xFF2C3E50), 'value': 1e5}, 
+    {'line1': '1M',     'line2': 'NAKİT', 'color': const Color(0xFF1F3A3D), 'value': 1e6}, 
+    {'line1': '500M',   'line2': 'NAKİT', 'color': const Color(0xFF3E4E3A), 'value': 5e8}, 
+    {'line1': '1B',     'line2': 'NAKİT', 'color': const Color(0xFF4A3B32), 'value': 1e9}, 
+    {'line1': '500B',   'line2': 'NAKİT', 'color': const Color(0xFF503D33), 'value': 5e11},
+    {'line1': '1T',     'line2': 'NAKİT', 'color': const Color(0xFF4D2C2C), 'value': 1e12},
+    {'line1': '500Qa',  'line2': 'NAKİT', 'color': const Color(0xFF2C2F40), 'value': 5e17},
+    {'line1': '500Sx',  'line2': 'NAKİT', 'color': const Color(0xFF1D2833), 'value': 5e23},
+    {'line1': '1Sp',    'line2': 'NAKİT', 'color': const Color(0xFF8C7343), 'value': 1e24},
+    {'line1': '1No',    'line2': 'İKRAMİYE','color': const Color(0xFF7A2020),'value': 1e30},
   ];
 
   @override
@@ -46,6 +48,15 @@ class _WheelDialogState extends State<WheelDialog> with SingleTickerProviderStat
     super.initState();
     _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 3800));
     _animation = Tween<double>(begin: 0, end: 0).animate(_controller);
+    
+    double lastVibrationAngle = 0.0;
+    _controller.addListener(() {
+      if ((_animation.value - lastVibrationAngle).abs() > 0.15) {
+        HapticFeedback.selectionClick();
+        AudioService.instance.playSfx('click.mp3'); // Çark tık sesi
+        lastVibrationAngle = _animation.value;
+      }
+    });
   }
 
   @override
@@ -57,17 +68,17 @@ class _WheelDialogState extends State<WheelDialog> with SingleTickerProviderStat
   int _getBalancedSlice(double income) {
     double r = math.Random().nextDouble() * 100;
     if (income < 1e5) { 
-      if (r < 60) return 0; if (r < 90) return 1; if (r < 98) return 2; return 3;             
+      if (r < 50) return 0; if (r < 85) return 1; if (r < 97) return 2; if (r < 99.5) return 3; return 4;             
     } else if (income < 1e8) { 
-      if (r < 30) return 1; if (r < 65) return 2; if (r < 90) return 3; if (r < 98) return 4; return 5;             
+      if (r < 40) return 1; if (r < 75) return 2; if (r < 93) return 3; if (r < 99) return 4; return 5;             
     } else if (income < 1e11) { 
-      if (r < 25) return 2; if (r < 55) return 3; if (r < 80) return 4; if (r < 95) return 5; return 6;             
+      if (r < 35) return 2; if (r < 70) return 3; if (r < 90) return 4; if (r < 98) return 5; return 6;             
     } else if (income < 1e16) { 
-      if (r < 25) return 4; if (r < 55) return 5; if (r < 85) return 6; if (r < 98) return 7; return 8;             
+      if (r < 35) return 4; if (r < 70) return 5; if (r < 92) return 6; if (r < 99) return 7; return 8;             
     } else if (income < 1e22) { 
-      if (r < 30) return 5; if (r < 60) return 6; if (r < 85) return 7; if (r < 98) return 8; return 9;             
+      if (r < 40) return 5; if (r < 75) return 6; if (r < 93) return 7; if (r < 99) return 8; return 9;             
     } else { 
-      if (r < 20) return 6; if (r < 50) return 7; if (r < 80) return 8; return 9;             
+      if (r < 35) return 6; if (r < 70) return 7; if (r < 92) return 8; if (r < 99) return 9; return 10;             
     }
   }
 
@@ -96,6 +107,8 @@ class _WheelDialogState extends State<WheelDialog> with SingleTickerProviderStat
     final state = context.read<GameState>();
     final slice = _slices[_selectedSlice];
     state.updateMoney(slice['value']);
+    HapticFeedback.heavyImpact(); 
+    AudioService.instance.playSfx('cash.mp3');
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(backgroundColor: AppColors.surface, content: Text('Tebrikler! +\$${slice['line1']} kazandınız!', style: const TextStyle(color: AppColors.profit, fontWeight: FontWeight.bold))),
     );
@@ -110,8 +123,8 @@ class _WheelDialogState extends State<WheelDialog> with SingleTickerProviderStat
         padding: const EdgeInsets.fromLTRB(16, 20, 16, 20),
         decoration: BoxDecoration(
           color: AppColors.surface,
-          borderRadius: BorderRadius.circular(16), // Köşeler daha sert (Premium)
-          border: Border.all(color: AppColors.border, width: 1.5), // İnce metalik gri çizgi
+          borderRadius: BorderRadius.circular(16), 
+          border: Border.all(color: AppColors.border, width: 1.5), 
           boxShadow: const [BoxShadow(color: Colors.black87, blurRadius: 30, offset: Offset(0, 10))],
         ),
         child: Column(
@@ -122,7 +135,13 @@ class _WheelDialogState extends State<WheelDialog> with SingleTickerProviderStat
               children: [
                 const SizedBox(width: 32),
                 Text('ŞANS ÇARKI', style: AppTheme.titleStyle(fontSize: 20).copyWith(color: AppColors.textPrimary)),
-                IconButton(icon: const Icon(Icons.close_rounded, color: AppColors.textSecondary), onPressed: _isSpinning ? null : () => Navigator.pop(context)),
+                IconButton(
+                  icon: const Icon(Icons.close_rounded, color: AppColors.textSecondary), 
+                  onPressed: _isSpinning ? null : () {
+                    AudioService.instance.playSfx('click.mp3');
+                    Navigator.pop(context);
+                  }
+                ),
               ],
             ),
             const SizedBox(height: 8),
@@ -163,12 +182,16 @@ class _WheelDialogState extends State<WheelDialog> with SingleTickerProviderStat
                 style: ElevatedButton.styleFrom(
                   backgroundColor: _isSpinning ? AppColors.surfaceElevated : AppColors.gold,
                   foregroundColor: _isSpinning ? AppColors.textSecondary : AppColors.darkBrown,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)), // Daha mat ve sert kenarlar
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)), 
                   elevation: 0,
                 ),
                 icon: Icon(_isSpinning ? Icons.hourglass_top_rounded : Icons.play_arrow_rounded, size: 20),
                 label: Text(_isSpinning ? 'BEKLENİYOR...' : 'REKLAMLA ÇEVİR', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13, letterSpacing: 1.0)),
-                onPressed: _isSpinning ? null : _spinWheel,
+                onPressed: _isSpinning ? null : () {
+                  HapticFeedback.selectionClick();
+                  AudioService.instance.playSfx('click.mp3');
+                  _spinWheel();
+                },
               ),
             ),
           ],
@@ -211,7 +234,6 @@ class WheelPainter extends CustomPainter {
       textPainter.paint(canvas, Offset(-textPainter.width / 2, -textPainter.height / 2));
       canvas.restore();
     }
-    // Dış Halka Mat Altın
     canvas.drawCircle(Offset(radius, radius), radius - 1.0, Paint()..color = AppColors.gold..style = PaintingStyle.stroke..strokeWidth = 3.0);
   }
   @override bool shouldRepaint(covariant CustomPainter oldDelegate) => false;

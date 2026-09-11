@@ -2,11 +2,13 @@
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../providers/game_state.dart';
 import '../services/translation_service.dart';
+import '../services/audio_service.dart';
 import '../theme/app_theme.dart';
 import 'map_screen.dart';
 import 'settings_screen.dart';
@@ -60,8 +62,9 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
     );
   }
 
-  // YENİ EKLENDİ: Tüm kayıtları silip sıfırdan oyun başlatma mekanizması
   void _confirmAndStartNewGame() {
+    HapticFeedback.selectionClick();
+    AudioService.instance.playSfx('click.mp3');
     showDialog(
       context: context,
       builder: (c) => AlertDialog(
@@ -71,14 +74,18 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
         content: const Text('Yeni bir oyun başlatmak mevcut holdinginizi, tüm fabrikalarınızı ve kasanızı kalıcı olarak silecektir. Emin misiniz?', style: TextStyle(color: AppColors.textPrimary, fontSize: 13)),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(c), 
+            onPressed: () { 
+              AudioService.instance.playSfx('click.mp3');
+              Navigator.pop(c); 
+            }, 
             child: const Text('İPTAL', style: TextStyle(color: AppColors.textMuted))
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.loss, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
             onPressed: () async {
+              HapticFeedback.heavyImpact();
+              AudioService.instance.playSfx('click.mp3');
               Navigator.pop(c);
-              // Tüm kayıtları sil ve yeni oyun kurulum ekranını aç
               final prefs = await SharedPreferences.getInstance();
               await prefs.clear();
               if (mounted) {
@@ -96,6 +103,7 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
   void _showHoldingSetupDialog() {
     String compName = 'Köse Holding';
     int logoIndex = 0;
+    
     final List<IconData> logos = [
       Icons.domain_rounded, Icons.account_balance_rounded, Icons.factory_rounded,
       Icons.rocket_launch_rounded, Icons.local_shipping_rounded, Icons.bolt_rounded,
@@ -108,7 +116,7 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
         builder: (context, setDialogState) {
           return Dialog(
             backgroundColor: Colors.transparent,
-            insetPadding: const EdgeInsets.symmetric(horizontal: 20),
+            insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(16),
               child: BackdropFilter(
@@ -120,85 +128,94 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(color: AppColors.border, width: 1.5),
                   ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.assignment_rounded, color: AppColors.gold, size: 36),
-                      const SizedBox(height: 12),
-                      Text('KURUMSAL KAYIT', textAlign: TextAlign.center, style: AppTheme.titleStyle(fontSize: 18).copyWith(color: AppColors.textPrimary, letterSpacing: 2.0)),
-                      const SizedBox(height: 8),
-                      const Text('Lütfen holdinginizin resmi adını ve tescilli amblemini belirleyin.', textAlign: TextAlign.center, style: TextStyle(color: AppColors.textSecondary, fontSize: 11)),
-                      const SizedBox(height: 24),
-                      
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: AppColors.background,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: AppColors.border),
-                        ),
-                        child: TextField(
-                          style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 14),
-                          decoration: const InputDecoration(
-                            labelText: 'Holding Adı',
-                            labelStyle: TextStyle(color: AppColors.textMuted, fontSize: 12),
-                            border: InputBorder.none,
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.assignment_rounded, color: AppColors.gold, size: 36),
+                        const SizedBox(height: 12),
+                        Text('KURUMSAL KAYIT', textAlign: TextAlign.center, style: AppTheme.titleStyle(fontSize: 18).copyWith(color: AppColors.textPrimary, letterSpacing: 2.0)),
+                        const SizedBox(height: 8),
+                        const Text('Lütfen ticari serüvene atılacak olan holdinginizin resmi adını ve logosunu belirleyin.', textAlign: TextAlign.center, style: TextStyle(color: AppColors.textSecondary, fontSize: 11)),
+                        const SizedBox(height: 24),
+                        
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: AppColors.background,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: AppColors.border),
                           ),
-                          onChanged: (val) => compName = val,
-                        ),
-                      ),
-                      
-                      const SizedBox(height: 24),
-                      const Align(alignment: Alignment.centerLeft, child: Text('Tescilli Logo Seçimi', style: TextStyle(color: AppColors.textMuted, fontSize: 11, fontWeight: FontWeight.bold))),
-                      const SizedBox(height: 12),
-                      
-                      Wrap(
-                        spacing: 12, runSpacing: 12, alignment: WrapAlignment.center,
-                        children: List.generate(logos.length, (i) {
-                          bool isSel = logoIndex == i;
-                          return GestureDetector(
-                            onTap: () => setDialogState(() => logoIndex = i),
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 200),
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: isSel ? AppColors.gold.withValues(alpha: 0.1) : AppColors.background,
-                                borderRadius: BorderRadius.circular(10),
-                                border: Border.all(color: isSel ? AppColors.gold : AppColors.border, width: isSel ? 2 : 1),
-                              ),
-                              child: Icon(logos[i], color: isSel ? AppColors.gold : AppColors.textMuted, size: 28),
+                          child: TextField(
+                            style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 14),
+                            decoration: const InputDecoration(
+                              labelText: 'Holding Adı',
+                              labelStyle: TextStyle(color: AppColors.textMuted, fontSize: 12),
+                              border: InputBorder.none,
                             ),
-                          );
-                        }),
-                      ),
-                      
-                      const SizedBox(height: 32),
-                      
-                      SizedBox(
-                        width: double.infinity,
-                        height: 50,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.gold, 
-                            foregroundColor: AppColors.darkBrown,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                            elevation: 0,
+                            onChanged: (val) => compName = val,
                           ),
-                          onPressed: () async {
-                            final prefs = await SharedPreferences.getInstance();
-                            await prefs.setString('holding_name', compName.isEmpty ? 'Köse Holding' : compName);
-                            await prefs.setInt('holding_logo_index', logoIndex);
-                            
-                            if (context.mounted) {
-                              context.read<GameState>().completeFirstLaunch();
-                              Navigator.pop(context);
-                              _goToMap(); 
-                            }
-                          },
-                          child: const Text('TİCARİ FAALİYETE BAŞLA', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 1.0)),
                         ),
-                      ),
-                    ],
+                        
+                        const SizedBox(height: 24),
+                        const Align(alignment: Alignment.centerLeft, child: Text('Tescilli Logo Seçimi', style: TextStyle(color: AppColors.textMuted, fontSize: 11, fontWeight: FontWeight.bold))),
+                        const SizedBox(height: 12),
+                        
+                        Wrap(
+                          spacing: 12, runSpacing: 12, alignment: WrapAlignment.center,
+                          children: List.generate(logos.length, (i) {
+                            bool isSel = logoIndex == i;
+                            return GestureDetector(
+                              onTap: () { 
+                                HapticFeedback.selectionClick();
+                                AudioService.instance.playSfx('click.mp3');
+                                setDialogState(() => logoIndex = i); 
+                              },
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 200),
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: isSel ? AppColors.gold.withValues(alpha: 0.1) : AppColors.background,
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(color: isSel ? AppColors.gold : AppColors.border, width: isSel ? 2 : 1),
+                                ),
+                                child: Icon(logos[i], color: isSel ? AppColors.gold : AppColors.textMuted, size: 28),
+                              ),
+                            );
+                          }),
+                        ),
+                        
+                        const SizedBox(height: 32),
+                        
+                        SizedBox(
+                          width: double.infinity,
+                          height: 50,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.gold, 
+                              foregroundColor: AppColors.darkBrown,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                              elevation: 0,
+                            ),
+                            onPressed: () async {
+                              HapticFeedback.mediumImpact();
+                              AudioService.instance.playSfx('cash.mp3');
+                              final prefs = await SharedPreferences.getInstance();
+                              await prefs.setString('holding_name', compName.isEmpty ? 'Köse Holding' : compName);
+                              await prefs.setInt('holding_logo_index', logoIndex);
+                              
+                              await context.read<GameState>().startNewGameSession();
+                              
+                              if (context.mounted) {
+                                Navigator.pop(context);
+                                _goToMap(); 
+                              }
+                            },
+                            child: const Text('TİCARİ FAALİYETE BAŞLA', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 1.0)),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -234,7 +251,6 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // DÜZELTME: İkon silindi, Kendi özel logon (assets/images/logo.png) eklendi
                   Container(
                     width: 130, height: 130,
                     padding: const EdgeInsets.all(8),
@@ -247,7 +263,6 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                       child: Image.asset(
                         'assets/images/logo.png',
                         fit: BoxFit.contain,
-                        // Logo bulunamazsa oyun çökmesin diye geçici ikon yedeği
                         errorBuilder: (context, error, stackTrace) => const Icon(Icons.account_balance_rounded, size: 60, color: AppColors.gold),
                       ),
                     ),
@@ -262,25 +277,23 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                     ),
                   ),
                   
-                  // EXECUTIVE EDITION yazısı tamamen kaldırıldı!
                   const SizedBox(height: 80),
 
                   if (_isAutoStarting)
-                    Column(
+                    const Column(
                       children: [
-                        const SizedBox(
+                        SizedBox(
                           width: 24, height: 24,
                           child: CircularProgressIndicator(color: AppColors.gold, strokeWidth: 2),
                         ),
-                        const SizedBox(height: 16),
-                        const Text('SİSTEME BAĞLANILIYOR...', style: TextStyle(color: AppColors.textMuted, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 2.0)),
+                        SizedBox(height: 16),
+                        Text('SİSTEME BAĞLANILIYOR...', style: TextStyle(color: AppColors.textMuted, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 2.0)),
                       ],
                     )
                   else
                     Column(
                       children: [
                         if (state.isFirstLaunch) ...[
-                          // HİÇ OYUN YOKSA SADECE YENİ OYUN BUTONU
                           SizedBox(
                             width: 260, height: 55,
                             child: ElevatedButton(
@@ -290,7 +303,11 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                                 elevation: 0,
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                               ),
-                              onPressed: _showHoldingSetupDialog,
+                              onPressed: () {
+                                HapticFeedback.selectionClick();
+                                AudioService.instance.playSfx('click.mp3');
+                                _showHoldingSetupDialog();
+                              },
                               child: const Text(
                                 'YENİ ŞİRKET KUR',
                                 style: TextStyle(fontWeight: FontWeight.w900, fontSize: 14, letterSpacing: 1.5),
@@ -298,7 +315,6 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                             ),
                           ),
                         ] else ...[
-                          // KAYITLI OYUN VARSA DEVAM ET BUTONU
                           SizedBox(
                             width: 260, height: 55,
                             child: ElevatedButton(
@@ -308,7 +324,11 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                                 elevation: 0,
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                               ),
-                              onPressed: _goToMap,
+                              onPressed: () {
+                                HapticFeedback.selectionClick();
+                                AudioService.instance.playSfx('click.mp3');
+                                _goToMap();
+                              },
                               child: const Text(
                                 'YÖNETİME DÖN',
                                 style: TextStyle(fontWeight: FontWeight.w900, fontSize: 14, letterSpacing: 1.5),
@@ -317,7 +337,6 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                           ),
                           const SizedBox(height: 16),
                           
-                          // KAYITLI OYUN VARSA YENİ OYUN BUTONU
                           SizedBox(
                             width: 260, height: 50,
                             child: ElevatedButton.icon(
@@ -335,7 +354,6 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                         ],
                         
                         const SizedBox(height: 16),
-                        // AYARLAR BUTONU
                         SizedBox(
                           width: 260, height: 50,
                           child: ElevatedButton.icon(
@@ -348,6 +366,8 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                             icon: const Icon(Icons.settings_rounded, size: 18, color: AppColors.textSecondary),
                             label: const Text('SİSTEM AYARLARI', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, letterSpacing: 1.0, color: AppColors.textSecondary)),
                             onPressed: () {
+                              HapticFeedback.selectionClick();
+                              AudioService.instance.playSfx('click.mp3');
                               Navigator.of(context).push(MaterialPageRoute(builder: (context) => const SettingsScreen()));
                             },
                           ),
@@ -396,8 +416,12 @@ class CorporateGridPainter extends CustomPainter {
     final Paint gridPaint = Paint()..color = Colors.white.withValues(alpha: 0.03)..strokeWidth = 1.0;
     double gridSize = 40.0;
     double offsetX = (time * gridSize) % gridSize; double offsetY = (time * gridSize * 0.5) % gridSize;
-    for (double x = -gridSize + offsetX; x < w; x += gridSize) canvas.drawLine(Offset(x, 0), Offset(x, h), gridPaint);
-    for (double y = -gridSize + offsetY; y < h; y += gridSize) canvas.drawLine(Offset(0, y), Offset(w, y), gridPaint);
+    for (double x = -gridSize + offsetX; x < w; x += gridSize) {
+      canvas.drawLine(Offset(x, 0), Offset(x, h), gridPaint);
+    }
+    for (double y = -gridSize + offsetY; y < h; y += gridSize) {
+      canvas.drawLine(Offset(0, y), Offset(w, y), gridPaint);
+    }
 
     final Paint chartPaint = Paint()..color = AppColors.gold.withValues(alpha: 0.05)..style = PaintingStyle.stroke..strokeWidth = 2.0;
     final Path chartPath = Path(); double startY = h * 0.7;

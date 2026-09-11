@@ -1,9 +1,11 @@
 // lib/screens/settings_screen.dart
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../providers/game_state.dart';
 import '../services/translation_service.dart';
+import '../services/audio_service.dart';
 import '../theme/app_theme.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -37,12 +39,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
     setState(() => _musicVolume = value);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setDouble('music_volume', value);
+    AudioService.instance.setMusicVolume(value);
   }
 
   Future<void> _saveSfxVolume(double value) async {
     setState(() => _sfxVolume = value);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setDouble('sfx_volume', value);
+    AudioService.instance.setSfxVolume(value);
+    AudioService.instance.playSfx('click.mp3'); 
   }
 
   Map<String, String> _getCurrentLangMap(String currentCode) {
@@ -55,12 +60,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final currentLangMap = _getCurrentLangMap(gameState.language);
 
     return Scaffold(
-      backgroundColor: AppColors.background, // Asfalt
+      backgroundColor: AppColors.background, 
       appBar: AppBar(
         title: Text('settings.title'.tr(), style: AppTheme.titleStyle(fontSize: 22).copyWith(color: AppColors.gold)),
         backgroundColor: AppColors.background,
         centerTitle: true, elevation: 0,
-        leading: IconButton(icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.gold, size: 22), onPressed: () => Navigator.pop(context)),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.gold, size: 22), 
+          onPressed: () {
+            AudioService.instance.playSfx('click.mp3');
+            Navigator.pop(context);
+          }
+        ),
       ),
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
@@ -83,7 +94,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300), curve: Curves.easeInOut,
       decoration: BoxDecoration(
-        color: AppColors.surface, // Ahşap
+        color: AppColors.surface, 
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: _isLanguageExpanded ? AppColors.gold : AppColors.border, width: 2),
       ),
@@ -91,7 +102,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
         children: [
           InkWell(
             borderRadius: BorderRadius.circular(20),
-            onTap: () { setState(() { _isLanguageExpanded = !_isLanguageExpanded; }); },
+            onTap: () { 
+              HapticFeedback.selectionClick();
+              AudioService.instance.playSfx('click.mp3');
+              setState(() { _isLanguageExpanded = !_isLanguageExpanded; }); 
+            },
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
               child: Row(
@@ -136,6 +151,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                             return InkWell(
                               onTap: () async {
+                                HapticFeedback.selectionClick();
+                                AudioService.instance.playSfx('click.mp3');
                                 await context.read<GameState>().setLanguage(lang['code']!);
                                 setState(() { _isLanguageExpanded = false; });
                               },
@@ -167,7 +184,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
       decoration: BoxDecoration(
-        color: AppColors.surface, // Ahşap
+        color: AppColors.surface, 
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: AppColors.border, width: 2),
       ),

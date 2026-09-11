@@ -5,6 +5,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/translation_service.dart';
+import '../services/audio_service.dart';
 
 // --- MODELLER ---
 
@@ -50,14 +51,16 @@ class GameEvent {
 class FactoryProduct {
   String name; int level; double baseIncome; double baseCost;
   FactoryProduct({required this.name, this.level = 0, required this.baseIncome, required this.baseCost});
-  double get manualIncome => level == 0 ? 0.0 : baseIncome * math.pow(1.3, level - 1);
-  double get passiveIncome => manualIncome * 0.4; 
-  double get upgradeCost => baseCost * math.pow(1.4, level);
+  
+  double get manualIncome => level == 0 ? 0.0 : baseIncome * math.pow(1.15, level - 1);
+  double get passiveIncome => manualIncome * 0.20; 
+  double get upgradeCost => baseCost * math.pow(1.28, level);
+  
   Map<String, dynamic> toJson() => {'name': name, 'level': level};
 }
 
 class FactoryData {
-  final String id; final String name; final double price; bool isUnlocked; List<FactoryProduct> products;
+  final String id; final String name; double price; bool isUnlocked; List<FactoryProduct> products;
   FactoryData({required this.id, required this.name, required this.price, this.isUnlocked = false, required this.products});
   int get totalLevel => products.fold(0, (sum, p) => sum + p.level);
   int get currentStage => totalLevel < 100 ? 0 : (totalLevel < 200 ? 1 : 2);
@@ -92,11 +95,12 @@ class GameState extends ChangeNotifier {
   int _researchPoints = 0;
   bool _isFirstLaunch = true;
   String _language = 'tr';
+  String _starterFactoryId = ''; 
+  String get starterFactoryId => _starterFactoryId;
 
   List<FactoryData> _factories = [];
   List<ResearchNode> _researchNodes = [];
   
-  // 50 SEVİYELİ PERSONEL YÖNETİM SİSTEMİ (7 DEPARTMAN)
   List<OfficeStaff> officeStaff = [
     OfficeStaff(
       id: 'staff_1', 
@@ -167,6 +171,35 @@ class GameState extends ChangeNotifier {
   List<bool> claimedTasks = List.filled(4, false);
   List<bool> claimedAchievements = List.filled(7, false);
 
+  bool get areTasksUnlocked => _factories.any((f) => f.isUnlocked && f.totalLevel >= 30);
+
+  int get unclaimedTasksCount {
+    if (!areTasksUnlocked) return 0;
+    int count = 0;
+    if (!claimedTasks[0] && statAdsWatched >= 3) count++;
+    if (!claimedTasks[1] && statWheelSpins >= 1) count++;
+    if (!claimedTasks[2] && statClicks >= 20) count++;
+    if (!claimedTasks[3] && statStocks >= 3) count++;
+    return count;
+  }
+
+  int get unclaimedAchievementsCount {
+    int count = 0;
+    int unlockedFacs = _factories.where((f) => f.isUnlocked).length;
+    int maxProductLvl = 0;
+    for (var f in _factories) {
+      for (var p in f.products) { if (p.level > maxProductLvl) maxProductLvl = p.level; }
+    }
+    if (!claimedAchievements[0] && unlockedFacs >= 5) count++;
+    if (!claimedAchievements[1] && _money >= 1e12) count++;
+    if (!claimedAchievements[2] && statClicks >= 100) count++;
+    if (!claimedAchievements[3] && statTaxes >= 10) count++;
+    if (!claimedAchievements[4] && statStocks >= 50) count++;
+    if (!claimedAchievements[5] && maxProductLvl >= 60) count++;
+    if (!claimedAchievements[6] && _money >= 1e33) count++;
+    return count;
+  }
+
   DateTime? _boostEndTime; 
   GameEvent? activeEvent; 
   DateTime? _eventEndTime;
@@ -200,9 +233,8 @@ class GameState extends ChangeNotifier {
   double get currentMultiplier {
     double m = 1.0;
     if (isBoostActive) { m *= 2.0; }
-    if (isTaxBonusActive) { m *= 1.20; } // Zamanında vergi ödeme ödülü: %20 Ek Gelir
+    if (isTaxBonusActive) { m *= 1.20; } 
     if (isEventActive) { m *= activeEvent!.multiplier; }
-    // Müdürlerin (staff_2) Üretim Bonusu
     m *= (1.0 + officeStaff.firstWhere((s) => s.id == 'staff_2').currentEffectValue);
     m *= researchMultiplier; 
     return m;
@@ -268,6 +300,8 @@ class GameState extends ChangeNotifier {
 
     if (savedGameJson != null) {
       Map<String, dynamic> data = jsonDecode(savedGameJson);
+      
+      _starterFactoryId = data['starterFactoryId'] ?? ''; 
       _money = (data['money'] as num?)?.toDouble() ?? 0.0;
       _researchPoints = (data['researchPoints'] as num?)?.toInt() ?? 0;
       _isFirstLaunch = data['isFirstLaunch'] ?? true;
@@ -293,11 +327,6 @@ class GameState extends ChangeNotifier {
             staff.level = saved['level'] ?? 0; 
           } catch (_) {}
         }
-      } else if (data['hiredStaff'] != null) {
-        List<String> hiredIds = List<String>.from(data['hiredStaff']);
-        for (var staff in officeStaff) { 
-          if (hiredIds.contains(staff.id)) staff.level = 1; 
-        }
       }
 
       if (data['lastTaxIssued'] != null) _lastTaxIssued = DateTime.parse(data['lastTaxIssued']); 
@@ -316,7 +345,6 @@ class GameState extends ChangeNotifier {
       _loadFactoriesFromJson(data['factories']);
       _loadResearchFromJson(data['researchNodes']); 
       
-      // Vardiya Şefi (staff_7) çarpanı ile çevrimdışı gelir hesaplaması
       if (_lastSaveTime != null) {
         int secondsPassed = DateTime.now().difference(_lastSaveTime!).inSeconds;
         if (secondsPassed > 60 && baseIncomePerSecond > 0) {
@@ -333,6 +361,7 @@ class GameState extends ChangeNotifier {
     }
 
     await TranslationService.instance.loadLanguage(_language);
+    await AudioService.instance.init();
     notifyListeners(); 
     _startGlobalTimers();
   }
@@ -342,6 +371,7 @@ class GameState extends ChangeNotifier {
     _lastSaveTime = DateTime.now();
 
     Map<String, dynamic> gameData = {
+      'starterFactoryId': _starterFactoryId,
       'money': _money, 'researchPoints': _researchPoints, 'isFirstLaunch': _isFirstLaunch, 'language': _language,
       'statClicks': statClicks, 'statStocks': statStocks, 'statUpgrades': statUpgrades, 'statTaxes': statTaxes, 'statPrestige': statPrestige, 'statAdsWatched': statAdsWatched, 'statWheelSpins': statWheelSpins,
       'claimedTasks': claimedTasks, 'claimedAchievements': claimedAchievements, 
@@ -362,32 +392,78 @@ class GameState extends ChangeNotifier {
     await prefs.setString('game_save_data', jsonEncode(gameData));
   }
 
-  // --- İNŞAAT, AR-GE VE BORSA VERİ OLUŞTURUCULARI ---
+  // YENİ: Oyunu Komple Tasfiye Eden (Sıfırlayan) Mükemmel Fonksiyon
+  Future<void> startNewGameSession() async {
+    _isFirstLaunch = false;
+    _starterFactoryId = ''; 
+    _money = 0.0;
+    _researchPoints = 0;
+    
+    _initDefaultFactories();
+    _initDefaultResearchNodes();
+    
+    for (var s in officeStaff) { s.level = 0; }
+    for (var s in _stocks) { s.ownedShares = 0; s.totalSpent = 0; }
+
+    _currentTaxDebt = 0.0;
+    _isUnderPenalty = false;
+    _lastTaxIssued = DateTime.now();
+    _taxDeadline = DateTime.now().add(const Duration(hours: 12));
+    _taxBonusEndTime = null;
+    _boostEndTime = null;
+    activeEvent = null;
+    _eventEndTime = null;
+    _unhandledEvent = null;
+    _unhandledBagReward = 0.0;
+    offlineEarningsToClaim = 0.0;
+
+    statClicks = 0; statStocks = 0; statUpgrades = 0; statTaxes = 0; 
+    statPrestige = 0; statAdsWatched = 0; statWheelSpins = 0;
+    claimedTasks = List.filled(4, false);
+    claimedAchievements = List.filled(7, false);
+    
+    await _saveGame();
+    notifyListeners();
+  }
+
+  Future<void> applyStarterSector(String facId) async {
+    _starterFactoryId = facId;
+    for (var f in _factories) {
+      if (f.id == facId) {
+        f.isUnlocked = true;
+        f.price = 0.0;
+        f.products[0].level = 1;
+      }
+    }
+    await _saveGame();
+    notifyListeners();
+  }
 
   void _initDefaultFactories() {
     _factories = [
-      _buildFac('1', 'Mobilya Fabrikası', 0, true, ['Ahşap Sandalye', 'Masa', 'Koltuk', 'Gardırop', 'Lüks Yatak'], 10.0),
-      _buildFac('2', 'Süt Ürünleri', 1e4, false, ['Süt', 'Yoğurt', 'Peynir', 'Tereyağı', 'Gurme Kaşar'], 250.0),
-      _buildFac('3', 'Tarım Tesisleri', 2.5e6, false, ['Buğday', 'Mısır', 'Pamuk', 'Soya', 'Tohum'], 15000.0),
-      _buildFac('4', 'Tekstil Atölyesi', 5e8, false, ['İplik', 'Kumaş', 'Tişört', 'Ceket', 'Özel Tasarım'], 1e6),
-      _buildFac('5', 'Çelik Kapı Fab.', 1e11, false, ['Sac', 'Kilit', 'Panel', 'Çelik Kapı', 'Zırhlı Kasa'], 5e7),
-      _buildFac('6', 'Gıda İşleme', 2.5e13, false, ['Un', 'Şeker', 'Konserve', 'Dondurulmuş', 'Çikolata'], 5e9),
-      _buildFac('7', 'Kimya Tesisleri', 5e15, false, ['Gübre', 'Plastik', 'Boya', 'Deterjan', 'Kozmetik'], 250e9),
-      _buildFac('8', 'Otomobil Fab.', 1e18, false, ['Lastik', 'Motor', 'Şasi', 'Sedan Araç', 'Spor Araba'], 20e12),
-      _buildFac('9', 'Maden Çıkarma', 2.5e20, false, ['Kömür', 'Demir', 'Bakır', 'Altın', 'Elmas'], 1.5e15),
-      _buildFac('10', 'Elektronik Tesis', 5e22, false, ['Devre', 'Çip', 'Telefon', 'Bilgisayar', 'İşlemci'], 100e15),
-      _buildFac('11', 'Yapay Zeka Ar-Ge', 1e25, false, ['Veri', 'Algoritma', 'Bot', 'Otonom', 'AGI'], 5e18),
-      _buildFac('12', 'Biyoteknoloji', 2.5e27, false, ['Aşı', 'Protein', 'Hücre', 'DNA', 'Serum'], 250e18),
-      _buildFac('13', 'Füzyon Enerji', 5e29, false, ['Plazma', 'Mıknatıs', 'Reaktör', 'Saf Enerji', 'Çekirdek'], 15e21),
-      _buildFac('14', 'Uzay Sanayii', 1e32, false, ['Uydu', 'Roket', 'İstasyon', 'Gezgin', 'Işık Motoru'], 1e24),
+      _buildFac('1', 'Tekstil Atölyesi', _starterFactoryId == '1' ? 0.0 : 300000.0, _starterFactoryId == '1', ['T-shirt', 'Pantolon', 'Ayakkabı', 'Çanta', 'Takım Elbise'], 2.0),
+      _buildFac('2', 'Mobilya Fabrikası', _starterFactoryId == '2' ? 0.0 : 300000.0, _starterFactoryId == '2', ['Sandalye', 'Masa', 'Koltuk', 'Yatak', 'Dolap'], 2.0),
+      _buildFac('3', 'Tarım Tesisleri', _starterFactoryId == '3' ? 0.0 : 300000.0, _starterFactoryId == '3', ['Buğday', 'Mısır', 'Pamuk', 'Safran', 'Hibrit Tohum'], 2.0),
+      _buildFac('4', 'Süt Ürünleri', 2.5e6, false, ['Süt', 'Yoğurt', 'Tereyağ', 'Arı Sütü', 'Pule Peyniri'], 150.0), 
+      _buildFac('5', 'Mezbaha', 40e6, false, ['Sosis', 'Tavuk', 'Kebap', 'Timsah Derisi', 'Wagyu Eti'], 2000.0),
+      _buildFac('6', 'Gıda İşleme', 800e6, false, ['Un', 'Şeker', 'Konserve', 'Havyar', 'Gurme Çikolata'], 35000.0), 
+      _buildFac('7', 'Maden Çıkarma', 20e9, false, ['Kömür', 'Demir', 'Gümüş', 'Altın', 'Elmas'], 750000.0), 
+      _buildFac('8', 'Kimya Tesisleri', 600e9, false, ['Gübre', 'Plastik', 'Boya', 'Lüks Parfüm', 'Karbonfiber'], 18e6), 
+      _buildFac('9', 'Otomobil Fabrikası', 20e12, false, ['Lastik', 'Motorsiklet', 'Otomobil', 'Vip Limuzin', 'Süper Spor Araç'], 500e6), 
+      _buildFac('10', 'İlaç Fabrikası', 700e12, false, ['Vitamin Hapı', 'Ağrı Kesici', 'Antibiyotik', 'Covi-19 Aşısı', 'Kanser İlacı'], 15e9), 
+      _buildFac('11', 'Elektronik Eşya', 25e15, false, ['Hesap Makinesi', 'Telefon', 'Televizyon', 'İnsansız Hava Aracı', 'Kuantum PC'], 450e9), 
+      _buildFac('12', 'Yapay Zeka Ar-Ge', 1e18, false, ['Sohbet Botu', 'Satranç Botu', 'Görsel Oluşturma Botu', 'Kodlama Botu', 'Humanoid Robot'], 15e12), 
+      _buildFac('13', 'Enerji Santrali', 40e18, false, ['Güneş Paneli', 'Rüzgar Tribünü', 'Nükleer Santral', 'Parçacık Hızlandırıcı', 'Füzyon Çekirdeği'], 500e12), 
+      _buildFac('14', 'Biyoteknoloji', 2e21, false, ['Kök Hücre', '3D Biyo-Yazıcı', 'Biyonik Organ', 'Biyoçip', 'Klon Canlı'], 20e15), 
+      _buildFac('15', 'Uzay Sanayii', 100e24, false, ['Roket Motoru', 'Uydu', 'Uzay Mekiği', 'Ay İniş Aracı', 'Yıldız Gemisi'], 800e15),
     ];
   }
 
   FactoryData _buildFac(String id, String n, double pr, bool unl, List<String> pNames, double bInc) {
     List<FactoryProduct> prods = [];
     for(int i = 0; i < pNames.length; i++) {
-       double inc = bInc * math.pow(6, i); 
-       prods.add(FactoryProduct(name: pNames[i], baseIncome: inc, baseCost: inc * 10, level: (unl && i == 0) ? 1 : 0));
+       double inc = bInc * math.pow(2.5, i); 
+       prods.add(FactoryProduct(name: pNames[i], baseIncome: inc, baseCost: inc * 12.0, level: (unl && i == 0) ? 1 : 0)); 
     }
     return FactoryData(id: id, name: n, price: pr, isUnlocked: unl, products: prods);
   }
@@ -553,8 +629,6 @@ class GameState extends ChangeNotifier {
     }
   }
 
-  // --- OYUN DÖNGÜSÜ VE MEKANİKLER ---
-
   void _startGlobalTimers() { 
     _gameTimer ??= Timer.periodic(const Duration(seconds: 1), (timer) { 
       _processSecond(); 
@@ -566,7 +640,6 @@ class GameState extends ChangeNotifier {
       _money += incomePerSecond;
     }
     
-    // Borsa Güncellemesi (Her 5 Saniyede Bir)
     if (DateTime.now().second % 5 == 0) {
       double analystBonus = officeStaff.firstWhere((s) => s.id == 'staff_4').currentEffectValue;
       for (var stock in _stocks) {
@@ -629,10 +702,8 @@ class GameState extends ChangeNotifier {
   }
 
   void claimBagReward(bool watchAd, double reward) { 
-    // Pazarlama Departmanı (staff_5) Finansman Çantası Çarpanı
     double marketingBonus = 1.0 + officeStaff.firstWhere((s) => s.id == 'staff_5').currentEffectValue;
     double finalReward = reward * marketingBonus;
-
     _money += watchAd ? (finalReward * 3) : finalReward; 
     _saveGame(); 
     notifyListeners(); 
@@ -699,7 +770,7 @@ class GameState extends ChangeNotifier {
   }
 
   void _executeForeclosure() {
-    var unlockedFacs = _factories.where((f) => f.isUnlocked && f.id != '1').toList();
+    var unlockedFacs = _factories.where((f) => f.isUnlocked && f.id != _starterFactoryId).toList();
     if (unlockedFacs.isNotEmpty) {
       unlockedFacs.sort((a, b) => b.price.compareTo(a.price));
       unlockedFacs.first.isUnlocked = false;
@@ -771,7 +842,6 @@ class GameState extends ChangeNotifier {
     var prod = _factories.firstWhere((f) => f.id == facId).products[productIndex];
     if (prod.level >= 60) return;
     
-    // Lojistik Departmanı (staff_6) Geliştirme İndirimi
     double logisticsDiscount = officeStaff.firstWhere((s) => s.id == 'staff_6').currentEffectValue;
     double cost = prod.upgradeCost * (1.0 - logisticsDiscount);
 
@@ -794,16 +864,59 @@ class GameState extends ChangeNotifier {
     }
   }
 
+  // YENİ: Prestij atıldığında Ar-Ge hibe yeteneklerini devasa şekilde işler
   void executePrestige(int earnedRP) {
     _researchPoints += earnedRP; 
-    _money = 0; 
     statPrestige++;
-    for (var f in _factories) { 
-      f.isUnlocked = f.id == '1'; 
-      for (var p in f.products) { 
-        p.level = (f.id == '1' && p == f.products.first) ? 1 : 0; 
-      } 
+    
+    int node92Level = _researchNodes.firstWhere((n) => n.id == 'node_092', orElse: () => _researchNodes[0]).currentLevel;
+    _money = node92Level * 1000000.0; // Melek Sermaye Mirası (Milyon Dolar Hibe)
+    
+    int node93Level = _researchNodes.firstWhere((n) => n.id == 'node_093', orElse: () => _researchNodes[0]).currentLevel;
+    int freePlots = node93Level * 2; // Bedelsiz açılacak arsa sayısı
+    
+    int node94Level = _researchNodes.firstWhere((n) => n.id == 'node_094', orElse: () => _researchNodes[0]).currentLevel;
+    bool firstFacLevel30 = node94Level > 0; // İlk fabrikanın 30 seviye başlaması
+    
+    for (int i = 0; i < _factories.length; i++) { 
+      var f = _factories[i];
+      f.isUnlocked = false; 
+      for (var p in f.products) { p.level = 0; }
+      
+      if (['1', '2', '3'].contains(f.id)) {
+        f.price = 300000.0;
+      }
+      
+      if (f.id == _starterFactoryId) {
+        f.isUnlocked = true;
+        f.price = 0.0;
+        if (firstFacLevel30) {
+          f.products[0].level = 30;
+          f.products[1].level = 1;
+        } else {
+          f.products[0].level = 1;
+        }
+      } else if (freePlots > 0) {
+        f.isUnlocked = true;
+        f.products[0].level = 1;
+        freePlots--;
+      }
     }
+    
+    for (var s in officeStaff) { s.level = 0; }
+    for (var s in _stocks) { s.ownedShares = 0; s.totalSpent = 0; }
+    
+    _currentTaxDebt = 0;
+    _isUnderPenalty = false;
+    _lastTaxIssued = DateTime.now();
+    _taxDeadline = DateTime.now().add(const Duration(hours: 12));
+    _taxBonusEndTime = null;
+    _boostEndTime = null;
+    activeEvent = null;
+    _eventEndTime = null;
+    _unhandledEvent = null;
+    _unhandledBagReward = 0.0;
+
     _saveGame(); 
     notifyListeners();
   }
@@ -817,15 +930,10 @@ class GameState extends ChangeNotifier {
   
   void buyStockWithAmount(String stockId, double inputAmount) {
     var s = _stocks.firstWhere((st) => st.id == stockId);
-    
-    if (inputAmount > _money) {
-      inputAmount = _money;
-    }
-    
+    if (inputAmount > _money) inputAmount = _money;
     if (inputAmount >= s.currentPrice) {
       double sharesToBuy = (inputAmount / s.currentPrice).floorToDouble();
       double totalCost = sharesToBuy * s.currentPrice;
-
       if (sharesToBuy > 0 && _money >= totalCost) {
         _money -= totalCost; 
         s.ownedShares += sharesToBuy; 

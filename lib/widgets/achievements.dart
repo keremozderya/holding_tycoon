@@ -1,8 +1,10 @@
 // lib/widgets/achievements.dart
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../providers/game_state.dart';
 import '../services/translation_service.dart';
+import '../services/audio_service.dart';
 import '../theme/app_theme.dart';
 
 class AchievementsDialog extends StatefulWidget {
@@ -21,6 +23,8 @@ class _AchievementsDialogState extends State<AchievementsDialog> {
     state.claimedAchievements[index] = true;
     if (money > 0) state.updateMoney(money);
     if (rp > 0) state.updateResearchPoints(rp);
+    HapticFeedback.heavyImpact();
+    AudioService.instance.playSfx('cash.mp3');
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(backgroundColor: AppColors.surface, content: Text('Başarım Ödülü Alındı!', style: TextStyle(color: AppColors.profit, fontWeight: FontWeight.w900))));
   }
 
@@ -34,7 +38,6 @@ class _AchievementsDialogState extends State<AchievementsDialog> {
       for (var p in f.products) { if (p.level > maxProductLvl) maxProductLvl = p.level; }
     }
 
-    // UZUN VADELİ OYUN HEDEFLERİ
     final List<Map<String, dynamic>> achs = [
       {'title': 'Endüstri Devi', 'desc': '5 farklı fabrikanın kilidini aç.', 'icon': Icons.factory_rounded, 'curr': unlockedFacs, 'targ': 5, 'm': 500000.0, 'rp': 10, 'c': state.claimedAchievements[0]},
       {'title': 'Trilyoner Kulübü', 'desc': 'Toplam 1 Trilyon (1T) nakite ulaş.', 'icon': Icons.account_balance_rounded, 'curr': state.money >= 1e12 ? 1 : 0, 'targ': 1, 'm': 0.0, 'rp': 50, 'c': state.claimedAchievements[1]},
@@ -62,7 +65,13 @@ class _AchievementsDialogState extends State<AchievementsDialog> {
                   Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: AppColors.border, borderRadius: BorderRadius.circular(10)), child: const Icon(Icons.emoji_events_rounded, color: AppColors.gold, size: 24)),
                   const SizedBox(width: 14),
                   Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('achievements.title'.tr(), style: AppTheme.titleStyle(fontSize: 18).copyWith(color: AppColors.gold)), Text('$completedCount / ${achs.length} Tamamlandı', style: const TextStyle(color: AppColors.textPrimary, fontSize: 12, fontWeight: FontWeight.bold))])),
-                  IconButton(icon: const Icon(Icons.close_rounded, color: AppColors.gold), onPressed: () => Navigator.pop(context)),
+                  IconButton(
+                    icon: const Icon(Icons.close_rounded, color: AppColors.gold), 
+                    onPressed: () {
+                      AudioService.instance.playSfx('click.mp3');
+                      Navigator.pop(context);
+                    }
+                  ),
                 ],
               ),
             ),

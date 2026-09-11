@@ -17,6 +17,7 @@ dependencies:
   flame: ^1.38.2
   flame_svg: ^2.0.0
   google_mobile_ads: ^9.1.0
+  audioplayers: ^6.8.1
 
 dev_dependencies:
   flutter_test:
@@ -30,6 +31,7 @@ flutter:
   assets:
     - assets/images/
     - assets/translations/
+    - assets/audio/
 
 flutter_launcher_icons:
   android: true

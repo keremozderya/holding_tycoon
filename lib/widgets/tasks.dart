@@ -1,8 +1,10 @@
 // lib/widgets/tasks.dart
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../providers/game_state.dart';
 import '../services/translation_service.dart';
+import '../services/audio_service.dart';
 import '../theme/app_theme.dart';
 
 class TasksDialog extends StatefulWidget {
@@ -21,6 +23,8 @@ class _TasksDialogState extends State<TasksDialog> {
     state.claimedTasks[index] = true;
     if (money > 0) state.updateMoney(money);
     if (rp > 0) state.updateResearchPoints(rp);
+    HapticFeedback.heavyImpact();
+    AudioService.instance.playSfx('cash.mp3');
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(backgroundColor: AppColors.surface, content: Text('Görev Tamamlandı!', style: TextStyle(color: AppColors.profit, fontWeight: FontWeight.bold))));
   }
 
@@ -28,7 +32,6 @@ class _TasksDialogState extends State<TasksDialog> {
   Widget build(BuildContext context) {
     final state = context.watch<GameState>();
     
-    // REKLAM VE AKTİFLİK ODAKLI GÜNLÜK GÖREVLER
     final List<Map<String, dynamic>> tasks = [
       {'title': 'Sermaye Enjeksiyonu (3 Reklam İzle)', 'icon': Icons.ondemand_video_rounded, 'curr': state.statAdsWatched, 'targ': 3, 'money': 50000.0, 'rp': 0, 'claimed': state.claimedTasks[0]},
       {'title': 'Çarkıfelek (1 Kez Çark Çevir)', 'icon': Icons.casino_rounded, 'curr': state.statWheelSpins, 'targ': 1, 'money': 0.0, 'rp': 5, 'claimed': state.claimedTasks[1]},
@@ -36,7 +39,8 @@ class _TasksDialogState extends State<TasksDialog> {
       {'title': 'Piyasayı Yokla (Borsada 3 İşlem)', 'icon': Icons.show_chart_rounded, 'curr': state.statStocks, 'targ': 3, 'money': 0.0, 'rp': 2, 'claimed': state.claimedTasks[3]},
     ];
 
-    bool isUnlocked = state.factories[0].totalLevel >= 30;
+    // YENİ: Artık sabit [0] indeksine değil, açık olan herhangi bir fabrikanın 30 seviye olup olmadığına bakılıyor!
+    bool isUnlocked = state.areTasksUnlocked;
 
     return Dialog(
       backgroundColor: Colors.transparent, insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
@@ -53,7 +57,13 @@ class _TasksDialogState extends State<TasksDialog> {
                   Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: AppColors.border, borderRadius: BorderRadius.circular(10)), child: const Icon(Icons.task_alt_rounded, color: AppColors.neonCyan, size: 24)),
                   const SizedBox(width: 14),
                   Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('tasks.title'.tr(), style: AppTheme.titleStyle(fontSize: 18).copyWith(color: AppColors.neonCyan)), Text('tasks.refresh_info'.tr(), style: const TextStyle(color: AppColors.textPrimary, fontSize: 11))])),
-                  IconButton(icon: const Icon(Icons.close_rounded, color: AppColors.gold), onPressed: () => Navigator.pop(context)),
+                  IconButton(
+                    icon: const Icon(Icons.close_rounded, color: AppColors.gold), 
+                    onPressed: () {
+                      AudioService.instance.playSfx('click.mp3');
+                      Navigator.pop(context);
+                    }
+                  ),
                 ],
               ),
             ),

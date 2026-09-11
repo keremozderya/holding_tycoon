@@ -1,9 +1,10 @@
 // lib/screens/stock_screen.dart
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter/services.dart'; 
 import 'package:provider/provider.dart';
 import '../providers/game_state.dart';
+import '../services/audio_service.dart';
 import '../theme/app_theme.dart';
 
 class StockScreen extends StatelessWidget {
@@ -71,7 +72,6 @@ class StockScreen extends StatelessWidget {
             Expanded(child: Text('${stock.name} Yatırımı', style: const TextStyle(color: AppColors.textPrimary, fontSize: 16, fontWeight: FontWeight.bold))),
           ],
         ),
-        // YENİ: Klavye açıldığında taşmayı engellemek için SingleChildScrollView eklendi
         content: SizedBox(
           width: double.maxFinite,
           child: SingleChildScrollView(
@@ -95,7 +95,6 @@ class StockScreen extends StatelessWidget {
                 const SizedBox(height: 8),
                 TextField(
                   controller: amountCtrl,
-                  // YENİ: Harf klavyesini engellemek için sadece sayısal klavye açtırıyoruz
                   keyboardType: const TextInputType.numberWithOptions(decimal: true),
                   inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9.,a-zA-Z]'))],
                   style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontFamily: 'SpaceMono'),
@@ -111,7 +110,6 @@ class StockScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 
-                // YENİ: Kısaltma Butonları (Yatay kaydırılabilir)
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(
@@ -132,13 +130,12 @@ class StockScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
 
-                // Hızlı Yatırım Butonları
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _buildQuickButton('25%', () => amountCtrl.text = _formatNum(state.money * 0.25).replaceAll(' ', '')),
-                    _buildQuickButton('50%', () => amountCtrl.text = _formatNum(state.money * 0.50).replaceAll(' ', '')),
-                    _buildQuickButton('MAX', () => amountCtrl.text = _formatNum(state.money).replaceAll(' ', '')),
+                    _buildQuickButton('25%', () { HapticFeedback.selectionClick(); AudioService.instance.playSfx('click.mp3'); amountCtrl.text = _formatNum(state.money * 0.25).replaceAll(' ', ''); }),
+                    _buildQuickButton('50%', () { HapticFeedback.selectionClick(); AudioService.instance.playSfx('click.mp3'); amountCtrl.text = _formatNum(state.money * 0.50).replaceAll(' ', ''); }),
+                    _buildQuickButton('MAX', () { HapticFeedback.selectionClick(); AudioService.instance.playSfx('click.mp3'); amountCtrl.text = _formatNum(state.money).replaceAll(' ', ''); }),
                   ],
                 ),
               ],
@@ -146,20 +143,22 @@ class StockScreen extends StatelessWidget {
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(c), child: const Text('İPTAL', style: TextStyle(color: AppColors.textMuted))),
+          TextButton(onPressed: () { AudioService.instance.playSfx('click.mp3'); Navigator.pop(c); }, child: const Text('İPTAL', style: TextStyle(color: AppColors.textMuted))),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.gold, foregroundColor: AppColors.darkBrown, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
             onPressed: () {
               double inputAmount = _parseInput(amountCtrl.text); 
-              
               if (inputAmount >= stock.currentPrice) {
+                HapticFeedback.mediumImpact(); 
+                AudioService.instance.playSfx('cash.mp3');
                 state.buyStockWithAmount(stock.id, inputAmount);
                 Navigator.pop(c);
               } else {
+                HapticFeedback.heavyImpact();
+                AudioService.instance.playSfx('click.mp3');
                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Tutar en az 1 hisse almaya yetmelidir!'), backgroundColor: AppColors.loss));
               }
             },
-            // YENİ: EMİR VER yerine SATIN AL yazıldı
             child: const Text('SATIN AL', style: TextStyle(fontWeight: FontWeight.bold)),
           ),
         ],
@@ -167,7 +166,6 @@ class StockScreen extends StatelessWidget {
     );
   }
 
-  // YENİ: Text alanına basılan harfi (K, M, B vb.) ekleyen buton widget'ı
   Widget _buildSuffixButton(String label, TextEditingController ctrl) {
     return Padding(
       padding: const EdgeInsets.only(right: 6.0),
@@ -175,16 +173,16 @@ class StockScreen extends StatelessWidget {
         style: OutlinedButton.styleFrom(
           minimumSize: const Size(40, 32),
           padding: const EdgeInsets.symmetric(horizontal: 10),
-          foregroundColor: AppColors.gold, // Harf rengini oyuna uygun altın sarısı yaptım
+          foregroundColor: AppColors.gold, 
           side: const BorderSide(color: AppColors.border),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
         ),
         onPressed: () {
-          // Eğer içinde zaten harf varsa onu silip yenisini ekler, böylece "1.5km" gibi hatalar olmaz
+          HapticFeedback.selectionClick(); 
+          AudioService.instance.playSfx('click.mp3');
           String current = ctrl.text.replaceAll(RegExp(r'[a-zA-Z]'), '').trim();
           if (current.isNotEmpty) {
             ctrl.text = '$current${label.toLowerCase()}';
-            // İmleci yazının sonuna taşır
             ctrl.selection = TextSelection.fromPosition(TextPosition(offset: ctrl.text.length));
           }
         },
@@ -222,11 +220,16 @@ class StockScreen extends StatelessWidget {
         backgroundColor: AppColors.surface,
         centerTitle: true,
         elevation: 0,
-        leading: IconButton(icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textPrimary, size: 20), onPressed: () => Navigator.pop(context)),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textPrimary, size: 20), 
+          onPressed: () {
+            AudioService.instance.playSfx('click.mp3');
+            Navigator.pop(context);
+          }
+        ),
       ),
       body: Column(
         children: [
-          // PORTFÖY ÖZETİ EKRANI
           Container(
             padding: const EdgeInsets.all(20),
             decoration: const BoxDecoration(
@@ -254,7 +257,6 @@ class StockScreen extends StatelessWidget {
             ),
           ),
           
-          // HİSSE LİSTESİ
           Expanded(
             child: ListView.separated(
               physics: const BouncingScrollPhysics(),
@@ -319,7 +321,7 @@ class StockScreen extends StatelessWidget {
                                 Text(
                                   '$pnlSign\$$pnlFormatted',
                                   style: TextStyle(
-                                    color: stock.netPnl >= 0 ? AppColors.profit : AppColors.loss, // DÜZELTİLEN YER
+                                    color: stock.netPnl >= 0 ? AppColors.profit : AppColors.loss,
                                     fontWeight: FontWeight.bold, 
                                     fontSize: 13
                                   ),
@@ -341,7 +343,11 @@ class StockScreen extends StatelessWidget {
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                                 elevation: 0,
                               ),
-                              onPressed: () => _showBuyDialog(context, gameState, stock),
+                              onPressed: () {
+                                HapticFeedback.lightImpact();
+                                AudioService.instance.playSfx('click.mp3');
+                                _showBuyDialog(context, gameState, stock);
+                              },
                               child: const Text('AL', style: TextStyle(fontWeight: FontWeight.bold)),
                             ),
                           ),
@@ -354,7 +360,11 @@ class StockScreen extends StatelessWidget {
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                                   elevation: 0,
                                 ),
-                                onPressed: () { gameState.sellAllStock(stock.id); },
+                                onPressed: () { 
+                                  HapticFeedback.mediumImpact(); 
+                                  AudioService.instance.playSfx('cash.mp3');
+                                  gameState.sellAllStock(stock.id); 
+                                },
                                 child: const Text('TÜMÜNÜ SAT', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
                               ),
                             ),
@@ -409,6 +419,10 @@ class SparklinePainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.0
       ..strokeJoin = StrokeJoin.round;
+
+    if (lineColor == AppColors.profit) {
+      paint.maskFilter = const MaskFilter.blur(BlurStyle.solid, 3.0);
+    }
 
     canvas.drawPath(path, paint);
   }

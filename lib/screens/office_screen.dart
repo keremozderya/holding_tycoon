@@ -4,8 +4,10 @@
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; 
 import 'package:provider/provider.dart';
 import '../providers/game_state.dart';
+import '../services/audio_service.dart';
 import '../theme/app_theme.dart';
 
 class OfficeScreen extends StatelessWidget {
@@ -110,7 +112,11 @@ class OfficeScreen extends StatelessWidget {
                         elevation: 0,
                         side: BorderSide(color: isMax ? AppColors.border : Colors.transparent),
                       ),
-                      onPressed: canAfford ? () => gameState.hireStaff(currentStaff.id) : null,
+                      onPressed: canAfford ? () {
+                        HapticFeedback.lightImpact(); 
+                        AudioService.instance.playSfx('cash.mp3');
+                        gameState.hireStaff(currentStaff.id);
+                      } : null,
                       child: Text(
                         isMax ? 'MAKSİMUM KAPASİTE' : 'TERFİ VER (\$${_formatNum(currentStaff.currentCost)})',
                         style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14, letterSpacing: 1.0),
@@ -130,6 +136,7 @@ class OfficeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final gameState = context.watch<GameState>();
     final staffList = gameState.officeStaff;
+    final double incomePerSecond = gameState.incomePerSecond;
 
     return Scaffold(
       extendBodyBehindAppBar: true, 
@@ -146,7 +153,10 @@ class OfficeScreen extends StatelessWidget {
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textPrimary, size: 20),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () {
+            AudioService.instance.playSfx('click.mp3');
+            Navigator.pop(context);
+          }
         ),
       ),
       body: Container(
@@ -204,8 +214,12 @@ class OfficeScreen extends StatelessWidget {
                   (context, index) {
                     final staff = staffList[index];
                     return GestureDetector(
-                      onTap: () => _showHireSheet(context, staff, gameState),
-                      child: VisualRoomWidget(staff: staff),
+                      onTap: () {
+                        HapticFeedback.selectionClick();
+                        AudioService.instance.playSfx('click.mp3');
+                        _showHireSheet(context, staff, gameState);
+                      },
+                      child: VisualRoomWidget(staff: staff, incomePerSecond: incomePerSecond), 
                     );
                   },
                   childCount: staffList.length,
@@ -221,7 +235,9 @@ class OfficeScreen extends StatelessWidget {
 
 class VisualRoomWidget extends StatefulWidget {
   final OfficeStaff staff;
-  const VisualRoomWidget({super.key, required this.staff});
+  final double incomePerSecond; 
+
+  const VisualRoomWidget({super.key, required this.staff, required this.incomePerSecond});
   @override 
   State<VisualRoomWidget> createState() => _VisualRoomWidgetState();
 }
@@ -243,13 +259,13 @@ class _VisualRoomWidgetState extends State<VisualRoomWidget> with SingleTickerPr
 
   Color _getDepartmentColor() {
     switch (widget.staff.id) {
-      case 'staff_1': return const Color(0xFF38BDF8); // Muhasebe
-      case 'staff_2': return const Color(0xFFF59E0B); // Üretim
-      case 'staff_3': return const Color(0xFF10B981); // İK
-      case 'staff_4': return const Color(0xFFA855F7); // Borsa
-      case 'staff_5': return const Color(0xFFEC4899); // Pazarlama
-      case 'staff_6': return const Color(0xFF0EA5E9); // Lojistik
-      case 'staff_7': return const Color(0xFFEAB308); // Vardiya
+      case 'staff_1': return const Color(0xFF38BDF8); 
+      case 'staff_2': return const Color(0xFFF59E0B); 
+      case 'staff_3': return const Color(0xFF10B981); 
+      case 'staff_4': return const Color(0xFFA855F7); 
+      case 'staff_5': return const Color(0xFFEC4899); 
+      case 'staff_6': return const Color(0xFF0EA5E9); 
+      case 'staff_7': return const Color(0xFFEAB308); 
       default: return Colors.white54;
     }
   }
@@ -302,6 +318,7 @@ class _VisualRoomWidgetState extends State<VisualRoomWidget> with SingleTickerPr
                   staffLevel: widget.staff.level, 
                   deptColor: deptColor,
                   deptId: widget.staff.id,
+                  incomePerSecond: widget.incomePerSecond, 
                 )
               ),
             ),
@@ -354,13 +371,15 @@ class MatteOfficePainter extends CustomPainter {
   final int staffLevel;
   final Color deptColor;
   final String deptId;
+  final double incomePerSecond;
 
   MatteOfficePainter({
     required this.time, 
     required this.isActive, 
     required this.staffLevel, 
     required this.deptColor, 
-    required this.deptId
+    required this.deptId,
+    required this.incomePerSecond,
   });
 
   @override 
@@ -381,14 +400,11 @@ class MatteOfficePainter extends CustomPainter {
         ? const Color(0xFF6B4B35) 
         : const Color(0xFF2E241E);
 
-    // 1. SOL DUVAR
     Path leftWall = Path()..moveTo(0, 0)..lineTo(w * 0.15, h * 0.1)..lineTo(w * 0.15, h * 0.65)..lineTo(0, h)..close();
     canvas.drawPath(leftWall, Paint()..color = leftWallColor); 
     
-    // 2. ARKA DUVAR
     canvas.drawRect(Rect.fromLTWH(w * 0.15, h * 0.1, w * 0.85, h * 0.55), Paint()..color = backWallColor);
 
-    // 3. SICAK AHŞAP ZEMİN
     Path floor = Path()..moveTo(0, h)..lineTo(w * 0.15, h * 0.65)..lineTo(w, h * 0.65)..lineTo(w, h)..close();
     canvas.drawPath(floor, Paint()..color = floorColor);
 
@@ -402,7 +418,6 @@ class MatteOfficePainter extends CustomPainter {
 
       canvas.drawRect(Rect.fromLTWH(w * 0.15, h * 0.635, w * 0.85, h * 0.015), Paint()..color = const Color(0xFF38251A));
 
-      // TAVANDAN SÜZÜLEN IŞIK KONİSİ
       final Path lightCone = Path()
         ..moveTo(w * 0.42, 0)
         ..lineTo(w * 0.68, 0)
@@ -421,7 +436,6 @@ class MatteOfficePainter extends CustomPainter {
       canvas.drawLine(Offset(w * 0.15, h * 0.1), Offset(w * 0.15, h * 0.65), Paint()..color = Colors.white12..strokeWidth = 1.5);
     }
 
-    // Katman 2: DUVAR DEKORASYONLARI
     if (isActive) {
       if (deptId == 'staff_1') {
         _drawSafe(canvas, w, h);
@@ -446,7 +460,6 @@ class MatteOfficePainter extends CustomPainter {
         _drawShiftWall(canvas, w, h, tPI);
       }
 
-      // Katman 3: ARKA PLAN ASİSTANLARI
       int assistants = math.min(4, staffLevel ~/ 10);
       for (int i = 0; i < assistants; i++) {
         double phase = i * 1.7;
@@ -458,21 +471,13 @@ class MatteOfficePainter extends CustomPainter {
         _drawBgMonitorBack(canvas, ax + 10, ay);
       }
 
-      // Katman 4: ÇALIŞMA KOLTUĞU SIRTLIĞI
       final double deskY = h * 0.80;
       final double workerX = w * 0.55;
       _drawOfficeChairBack(canvas, workerX, deskY - 14, tPI);
-
-      // Katman 5: ANA ÇALIŞAN (GÖZ KIRPMA & NEFES ALMA ENTEGRE)
       _drawMatteWorker(canvas, workerX, deskY - 14, tPI, 0.82, isMain: true, deptId: deptId);
-
-      // Katman 6: MEŞE MASA TABLASI
       _drawMatteDesk(canvas, w * 0.55, deskY, width: w * 0.62, dark: false);
-
-      // Katman 7: MASAÜSTÜ DONANIMLARI VE YAZMA ANİMASYONU
       _drawMainAccessories(canvas, w, deskY, tPI, deptId, workerX);
 
-      // Katman 8: ZEMİN ÖN PLAN DEKORLARI
       if (deptId == 'staff_3') {
         _drawPottedPlant(canvas, w, h, tPI);
       }
@@ -490,7 +495,6 @@ class MatteOfficePainter extends CustomPainter {
   }
 
   void _drawOfficeChairBack(Canvas canvas, double cx, double cy, double tPI) {
-    // Çalışanın hareketine paralel hafif sandalye esneme mikrosu
     final double chairSway = math.sin(tPI * 1.5) * 0.6;
     final Rect chairRect = Rect.fromCenter(center: Offset(cx + chairSway, cy - 10), width: 28, height: 32);
     canvas.drawRRect(RRect.fromRectAndRadius(chairRect, const Radius.circular(8)), Paint()..color = const Color(0xFF1E293B));
@@ -500,8 +504,6 @@ class MatteOfficePainter extends CustomPainter {
       Paint()..color = const Color(0xFF475569),
     );
   }
-
-  // --- DUVAR ÇİZİMLERİ ---
 
   void _drawSafe(Canvas canvas, double w, double h) {
     final Rect safeRect = Rect.fromLTWH(w * 0.18, h * 0.35, w * 0.25, h * 0.30);
@@ -516,10 +518,9 @@ class MatteOfficePainter extends CustomPainter {
     canvas.drawRect(board, Paint()..color = const Color(0xFF1D4ED8)); 
     canvas.drawRect(board, Paint()..color = const Color(0xFF93C5FD)..style=PaintingStyle.stroke..strokeWidth=2);
     
-    // Dönen CAD Dişlisi Çizimi
     canvas.save();
     canvas.translate(w * 0.6, h * 0.3);
-    canvas.rotate(tPI * 0.5); // Sürekli dönen dişli
+    canvas.rotate(tPI * 0.5); 
     final Paint gearPaint = Paint()..color = Colors.white70..style=PaintingStyle.stroke..strokeWidth=1.5;
     canvas.drawCircle(Offset.zero, 8, gearPaint);
     for (int i = 0; i < 4; i++) {
@@ -562,7 +563,6 @@ class MatteOfficePainter extends CustomPainter {
     }
     canvas.drawPath(trend, trendPaint);
 
-    // Canlı Flaş Noktası (Ticker ucu)
     double endX = startX + 15 * step;
     double endY = (screen.bottom - 10 - 30 + math.sin(tPI * 2 + 15) * 12).clamp(screen.top + 5, screen.bottom - 5);
     canvas.drawCircle(Offset(endX, endY), 2.5 + math.sin(tPI * 4) * 1.0, Paint()..color = Colors.white);
@@ -572,10 +572,7 @@ class MatteOfficePainter extends CustomPainter {
     final Offset center = Offset(w * 0.8, h * 0.25);
     canvas.drawCircle(center, 10, Paint()..color = const Color(0xFFF8FAFC));
     canvas.drawCircle(center, 10, Paint()..color = const Color(0xFF475569)..style = PaintingStyle.stroke..strokeWidth = 2);
-    
-    // Akrep & Yelkovan
     canvas.drawLine(center, Offset(center.dx + math.cos(tPI * 0.1) * 4, center.dy + math.sin(tPI * 0.1) * 4), Paint()..color = const Color(0xFF0F172A)..strokeWidth = 1.8); 
-    // Sürekli Dönen Saniye Kolu
     canvas.drawLine(center, Offset(center.dx + math.cos(tPI * 2) * 6, center.dy + math.sin(tPI * 2) * 6), Paint()..color = const Color(0xFFEF4444)..strokeWidth = 1.0); 
   }
 
@@ -589,7 +586,6 @@ class MatteOfficePainter extends CustomPainter {
       ..quadraticBezierTo(board.left + 15, board.bottom - 16, board.right - 10, board.top + 10);
     canvas.drawPath(viralPath, Paint()..color = const Color(0xFFFB7185)..style=PaintingStyle.stroke..strokeWidth=2);
 
-    // Çift Atışlı Kalp Ritim Animasyonu (Lub-Dub)
     double heartScale = 1.0 + (math.sin(tPI * 4) * 0.20) + (math.sin(tPI * 8) * 0.08);
     canvas.drawCircle(Offset(board.right - 14, board.top + 12), 4 * heartScale, Paint()..color = const Color(0xFFF43F5E));
   }
@@ -604,7 +600,6 @@ class MatteOfficePainter extends CustomPainter {
     canvas.drawCircle(Offset(mapBoard.center.dx, mapBoard.center.dy - 6), 3, Paint()..color = const Color(0xFFBAE6FD));
     canvas.drawCircle(Offset(mapBoard.right - 12, mapBoard.center.dy + 4), 3, Paint()..color = const Color(0xFFBAE6FD));
     
-    // Genişleyen Radar Tarama Halkası
     double radarRadius = (time * 16) % 12;
     canvas.drawCircle(
       Offset(mapBoard.center.dx, mapBoard.center.dy - 6), 
@@ -639,8 +634,6 @@ class MatteOfficePainter extends CustomPainter {
     canvas.drawCircle(beaconCenter, 3.2, Paint()..color = const Color(0xFFFDE047));
   }
 
-  // --- ZEMİN ÇİZİMLERİ ---
-
   void _drawWarningLines(Canvas canvas, double w, double h) {
     double stripY = h * 0.88;
     for(int i = 0; i < 12; i++) {
@@ -670,7 +663,6 @@ class MatteOfficePainter extends CustomPainter {
     canvas.drawRRect(RRect.fromRectAndRadius(rim, const Radius.circular(1.5)), Paint()..color = const Color(0xFFFB923C));
     canvas.drawOval(Rect.fromCenter(center: Offset(base.dx, base.dy - 0.5), width: 10, height: 2), Paint()..color = const Color(0xFF451A03));
 
-    // Çift Harmonik Rüzgar Sallanması
     final double sway = (math.sin(tPI * 1.5) * 1.2) + (math.sin(tPI * 3.0) * 0.4);
     final Paint leafFill = Paint()..color = const Color(0xFF22C55E);
     final Paint leafLight = Paint()..color = const Color(0xFF86EFAC);
@@ -693,8 +685,6 @@ class MatteOfficePainter extends CustomPainter {
       ..quadraticBezierTo(base.dx + 3 + (sway * 0.5), base.dy - 10, base.dx, base.dy - 1);
     canvas.drawPath(centerLeaf, leafFill);
   }
-
-  // --- MASA VE AKSESUARLAR ---
 
   void _drawMatteDesk(Canvas canvas, double cx, double cy, {double width = 30, bool dark = false}) {
     final Paint woodTop = Paint()..color = dark ? const Color(0xFF2B2118) : const Color(0xFFC49A6C); 
@@ -792,7 +782,6 @@ class MatteOfficePainter extends CustomPainter {
     else if (deptId == 'staff_7') glowColor = const Color(0xFFEAB308);
     else glowColor = Color.lerp(const Color(0xFF10B981), const Color(0xFFEF4444), (math.sin(tPI * 2) + 1) / 2)!;
 
-    // Canlı Parlama Nabzı (Breathing Screen Glow)
     final double pulseSpread = 6.0 + (math.sin(tPI * 2.5) * 2.0);
     final Rect glowRect = Rect.fromCenter(center: const Offset(0, screenCenterY), width: width + pulseSpread, height: height + pulseSpread);
     canvas.drawRRect(
@@ -858,7 +847,6 @@ class MatteOfficePainter extends CustomPainter {
     final double kbY = deskY - 2.5;
     _drawStylizedKeyboard(canvas, kbX, kbY, width: isRgb ? 34 : 30, height: 7.5, isRgb: isRgb, tPI: tPI);
 
-    // Kollardaki yazma hareketi
     _drawAccurateTypingArms(canvas, workerX, deskY - 14, kbX, kbY, tPI, isMain: true, deptId: deptId);
 
     if (deptId != 'staff_4') {
@@ -872,27 +860,21 @@ class MatteOfficePainter extends CustomPainter {
         tPI: tPI,
       );
 
-      // Departman Eşyaları ve Mikro Animasyonları
       if (deptId == 'staff_1') {
-        // Muhasebe Evrakları
         canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(w * 0.28, deskY - 10, 8, 7), const Radius.circular(1)), Paint()..color = const Color(0xFFF1F5F9));
         canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(w * 0.28, deskY - 10, 2, 7), const Radius.circular(0.8)), Paint()..color = const Color(0xFF38BDF8));
       } else if (deptId == 'staff_2') {
-        // Proje Rulosu
         canvas.drawOval(Rect.fromLTWH(w * 0.28, deskY - 5, 7, 3), Paint()..color = const Color(0xFFFDE68A));
       } else if (deptId == 'staff_3') {
-        // Kahve Kupası ve Yükselen Buhar Çizgileri
         canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(w * 0.28, deskY - 7, 4.5, 5.5), const Radius.circular(1)), Paint()..color = const Color(0xFFF8FAFC));
         double steamY = math.sin(tPI * 3) * 1.5;
         final Paint steamPaint = Paint()..color = Colors.white54..style = PaintingStyle.stroke..strokeWidth = 0.8..strokeCap = StrokeCap.round;
         canvas.drawLine(Offset(w * 0.29, deskY - 8 + steamY), Offset(w * 0.295, deskY - 11 + steamY), steamPaint);
         canvas.drawLine(Offset(w * 0.31, deskY - 8 - steamY), Offset(w * 0.305, deskY - 11 - steamY), steamPaint);
       } else if (deptId == 'staff_5') {
-        // Mikrofon ve Canlı Ses Dalgası Halkaları
         final Offset micBase = Offset(w * 0.29, deskY - 2);
         canvas.drawLine(micBase, Offset(micBase.dx, micBase.dy - 8), Paint()..color = const Color(0xFF94A3B8)..strokeWidth = 1.5);
         canvas.drawOval(Rect.fromCenter(center: Offset(micBase.dx, micBase.dy - 10), width: 4.5, height: 6.5), Paint()..color = const Color(0xFFEC4899));
-        // Yayılan ses dalgası
         double waveR = (time * 12) % 6;
         canvas.drawCircle(Offset(micBase.dx, micBase.dy - 10), waveR, Paint()..color = const Color(0xFFEC4899).withValues(alpha: (1.0 - (waveR / 6)).clamp(0.0, 1.0))..style = PaintingStyle.stroke..strokeWidth = 0.8);
       } else if (deptId == 'staff_6') {
@@ -900,7 +882,6 @@ class MatteOfficePainter extends CustomPainter {
         canvas.drawRRect(RRect.fromRectAndRadius(miniBox, const Radius.circular(1)), Paint()..color = const Color(0xFFD97706));
         canvas.drawRect(Rect.fromLTWH(miniBox.left, miniBox.center.dy - 0.5, 9, 1.2), Paint()..color = const Color(0xFFFEF08A));
       } else if (deptId == 'staff_7') {
-        // Telsiz ve Yanıp Sönen Kırmızı Uyarı Işığı
         final Rect walkie = Rect.fromLTWH(w * 0.28, deskY - 9, 5, 8);
         canvas.drawRRect(RRect.fromRectAndRadius(walkie, const Radius.circular(1)), Paint()..color = const Color(0xFF27272A));
         canvas.drawLine(Offset(walkie.left + 1.5, walkie.top), Offset(walkie.left + 1.5, walkie.top - 4), Paint()..color = const Color(0xFF71717A)..strokeWidth = 1.2);
@@ -915,15 +896,12 @@ class MatteOfficePainter extends CustomPainter {
   }
 
   void _drawAccurateTypingArms(Canvas canvas, double workerX, double workerY, double kbX, double kbY, double tPI, {required bool isMain, required String deptId}) {
-    final double speedMult = (deptId == 'staff_4' || deptId == 'staff_5') ? 14.0 : 8.0;
+    final double dynamicSpeed = 8.0 + (incomePerSecond / 50000).clamp(0.0, 12.0);
+    final double speedMult = (deptId == 'staff_4' || deptId == 'staff_5') ? dynamicSpeed + 4.0 : dynamicSpeed;
     
-    // Doğal klavye vuruşları (Parmak ve bilek eklemli salınım)
     final double leftTap = math.sin(tPI * speedMult) * 1.8;
     final double rightTap = -math.sin((tPI * speedMult) + 1.2) * 1.8;
-    
-    // Belirli aralıklarla boşluk tuşuna (spacebar) vuruş yapan başparmak hareketi
     final double thumbSpace = (math.sin(tPI * speedMult * 0.25) > 0.6) ? 1.4 : 0.0;
-
     final double bodyBob = math.sin(tPI) * 1.2;
     const double scale = 0.82;
 
@@ -944,7 +922,6 @@ class MatteOfficePainter extends CustomPainter {
 
     final Paint skin = Paint()..color = const Color(0xFFFDBA74);
 
-    // Sol Kol
     final double leftElbowX = workerX - 12.0;
     final double leftElbowY = kbY - 5.5;
     final double leftWristX = kbX - 6.5;
@@ -955,11 +932,9 @@ class MatteOfficePainter extends CustomPainter {
       ..lineTo(leftElbowX, leftElbowY)
       ..lineTo(leftWristX, leftWristY);
     canvas.drawPath(leftArmPath, shirtArm);
-
     canvas.drawCircle(Offset(leftWristX, leftWristY), 2.2, skin);
     canvas.drawCircle(Offset(leftWristX + 1.0, leftWristY + 1.0), 1.1, skin);
 
-    // Sağ Kol
     final double rightElbowX = workerX + 12.0;
     final double rightElbowY = kbY - 5.5;
     final double rightWristX = kbX + 6.5;
@@ -970,8 +945,6 @@ class MatteOfficePainter extends CustomPainter {
       ..lineTo(rightElbowX, rightElbowY)
       ..lineTo(rightWristX, rightWristY);
     canvas.drawPath(rightArmPath, shirtArm);
-
-    // Sağ el ve başparmak spacebar dokunuşu
     canvas.drawCircle(Offset(rightWristX, rightWristY), 2.2, skin);
     canvas.drawCircle(Offset(rightWristX - 1.0, rightWristY + 1.0 + thumbSpace), 1.1, skin);
   }
@@ -987,12 +960,10 @@ class MatteOfficePainter extends CustomPainter {
     if (deptId == 'staff_6') shirt = Paint()..color = const Color(0xFF0284C7); 
     if (deptId == 'staff_7') shirt = Paint()..color = const Color(0xFFD97706); 
 
-    // Doğal nefes alma ve hafif baş eğimi
     final double breathBob = math.sin(tPI) * 1.2;
     final double headTilt = math.sin(tPI * 1.5) * 0.04;
     canvas.translate(0, breathBob);
     
-    // Gövde
     canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(-12, -8, 24, 26), const Radius.circular(4)), shirt);
     
     if (deptId == 'staff_7') {
@@ -1001,12 +972,10 @@ class MatteOfficePainter extends CustomPainter {
     
     canvas.drawPath(Path()..moveTo(-4, -8)..lineTo(0, -2)..lineTo(4, -8), Paint()..color = const Color(0xFF0F172A)..style = PaintingStyle.stroke..strokeWidth = 1.2);
     
-    // Kafa & Boyun
     canvas.save();
     canvas.rotate(headTilt);
     canvas.drawCircle(const Offset(0, -18), 8, skin);
     
-    // Canlı Göz Kırpma Fiziği (Doğal periyotlarla göz kapakları kapanır)
     double blinkCycle = (tPI * 1.8 + cx) % (math.pi * 2);
     bool isBlinking = blinkCycle > (math.pi * 2 - 0.25);
 
@@ -1024,7 +993,6 @@ class MatteOfficePainter extends CustomPainter {
       canvas.drawCircle(const Offset(2.8, -18.2), 1.1, pupil);
     }
     
-    // Şapka / Baret / Kulaklık / Saç
     if (deptId == 'staff_2') {
       canvas.drawArc(const Rect.fromLTWH(-9, -27, 18, 16), math.pi, math.pi, true, Paint()..color = const Color(0xFFF59E0B));
       canvas.drawRect(const Rect.fromLTWH(-10, -19, 20, 2), Paint()..color = const Color(0xFFD97706));

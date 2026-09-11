@@ -1,7 +1,9 @@
 // lib/widgets/prestige_dialog.dart
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../services/translation_service.dart';
+import '../services/audio_service.dart';
 import '../theme/app_theme.dart';
 
 class PrestigeDialog extends StatelessWidget {
@@ -175,6 +177,8 @@ class PrestigeDialog extends StatelessWidget {
                         elevation: canPrestige ? 6 : 0,
                       ),
                       onPressed: canPrestige ? () { 
+                        HapticFeedback.heavyImpact();
+                        AudioService.instance.playSfx('cash.mp3');
                         Navigator.pop(context); 
                         onPrestigeConfirmed(); 
                       } : null,

@@ -3,9 +3,11 @@
 
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../providers/game_state.dart';
 import '../services/translation_service.dart';
+import '../services/audio_service.dart';
 import '../theme/app_theme.dart';
 
 class ResearchScreen extends StatefulWidget {
@@ -93,7 +95,7 @@ class _ResearchScreenState extends State<ResearchScreen> {
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft, end: Alignment.bottomRight,
-            colors: [Color(0xFF14141C), Color(0xFF0A0A10)], // Premium Koyu Arkaplan
+            colors: [Color(0xFF14141C), Color(0xFF0A0A10)], 
           ),
         ),
         child: Stack(
@@ -164,7 +166,10 @@ class _ResearchScreenState extends State<ResearchScreen> {
                     foregroundColor: AppColors.gold,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: AppColors.gold.withValues(alpha: 0.5))),
                     elevation: 4,
-                    onPressed: () => _scrollController.animateTo(0, duration: const Duration(milliseconds: 600), curve: Curves.easeOutCubic),
+                    onPressed: () {
+                      HapticFeedback.selectionClick();
+                      _scrollController.animateTo(0, duration: const Duration(milliseconds: 600), curve: Curves.easeOutCubic);
+                    },
                     child: const Icon(Icons.arrow_upward_rounded, size: 20),
                   ),
                   const SizedBox(height: 8),
@@ -174,7 +179,10 @@ class _ResearchScreenState extends State<ResearchScreen> {
                     foregroundColor: AppColors.gold,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: AppColors.gold.withValues(alpha: 0.5))),
                     elevation: 4,
-                    onPressed: () => _scrollController.animateTo(_scrollController.position.maxScrollExtent, duration: const Duration(milliseconds: 800), curve: Curves.easeOutCubic),
+                    onPressed: () {
+                      HapticFeedback.selectionClick();
+                      _scrollController.animateTo(_scrollController.position.maxScrollExtent, duration: const Duration(milliseconds: 800), curve: Curves.easeOutCubic);
+                    },
                     child: const Icon(Icons.arrow_downward_rounded, size: 20),
                   ),
                 ],
@@ -210,7 +218,10 @@ class _ResearchScreenState extends State<ResearchScreen> {
 
     return InkWell(
       borderRadius: BorderRadius.circular(14),
-      onTap: () => _showNodeDetailsModal(node, allNodes),
+      onTap: () {
+        HapticFeedback.selectionClick();
+        _showNodeDetailsModal(node, allNodes);
+      },
       child: ClipRRect(
         borderRadius: BorderRadius.circular(14),
         child: BackdropFilter(
@@ -421,6 +432,8 @@ class _ResearchScreenState extends State<ResearchScreen> {
                         elevation: canAfford ? 4 : 0,
                       ),
                       onPressed: canAfford ? () {
+                        HapticFeedback.mediumImpact();
+                        AudioService.instance.playSfx('click.mp3');
                         Navigator.pop(context); 
                         context.read<GameState>().upgradeResearch(node.id); 
                       } : null,
