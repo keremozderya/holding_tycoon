@@ -66,7 +66,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         backgroundColor: AppColors.background,
         centerTitle: true, elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.gold, size: 22), 
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.gold, size: 24), 
           onPressed: () {
             AudioService.instance.playSfx('click.mp3');
             Navigator.pop(context);
@@ -76,13 +76,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
         children: [
-          Text('settings.sound_settings'.tr(), style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w900, letterSpacing: 1.4, fontSize: 14)),
+          Text('settings.sound_settings'.tr().toUpperCase(), style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w900, letterSpacing: 1.4, fontSize: 14)),
           const SizedBox(height: 12),
           _buildVolumeCard(title: 'settings.music_volume'.tr(), value: _musicVolume, icon: Icons.music_note_rounded, onChanged: _saveMusicVolume),
           const SizedBox(height: 16),
           _buildVolumeCard(title: 'settings.sfx_volume'.tr(), value: _sfxVolume, icon: Icons.volume_up_rounded, onChanged: _saveSfxVolume),
           const SizedBox(height: 36),
-          Text('settings.language_options'.tr(), style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w900, letterSpacing: 1.4, fontSize: 14)),
+          Text('settings.language_options'.tr().toUpperCase(), style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w900, letterSpacing: 1.4, fontSize: 14)),
           const SizedBox(height: 12),
           _buildAnimatedLanguageAccordion(currentLangMap),
         ],
@@ -95,35 +95,35 @@ class _SettingsScreenState extends State<SettingsScreen> {
       duration: const Duration(milliseconds: 300), curve: Curves.easeInOut,
       decoration: BoxDecoration(
         color: AppColors.surface, 
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: _isLanguageExpanded ? AppColors.gold : AppColors.border, width: 2),
+        borderRadius: BorderRadius.zero,
+        border: Border.all(color: _isLanguageExpanded ? AppColors.gold : AppColors.border, width: 3),
       ),
       child: Column(
         children: [
           InkWell(
-            borderRadius: BorderRadius.circular(20),
             onTap: () { 
               HapticFeedback.selectionClick();
               AudioService.instance.playSfx('click.mp3');
               setState(() { _isLanguageExpanded = !_isLanguageExpanded; }); 
             },
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
               child: Row(
                 children: [
-                  Text(currentLangMap['flag']!, style: const TextStyle(fontSize: 28)),
+                  Container(padding: const EdgeInsets.all(6), decoration: BoxDecoration(border: Border.all(color: AppColors.border, width: 2), color: Colors.black), child: Text(currentLangMap['flag']!, style: const TextStyle(fontSize: 28))),
                   const SizedBox(width: 16),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('settings.game_language'.tr(), style: const TextStyle(color: AppColors.textSecondary, fontSize: 12, fontWeight: FontWeight.bold)),
-                      Text(currentLangMap['name']!, style: const TextStyle(color: AppColors.textPrimary, fontSize: 18, fontWeight: FontWeight.w900)),
+                      Text('settings.game_language'.tr().toUpperCase(), style: const TextStyle(color: AppColors.textSecondary, fontSize: 12, fontWeight: FontWeight.w900)),
+                      const SizedBox(height: 4),
+                      Text(currentLangMap['name']!.toUpperCase(), style: const TextStyle(color: AppColors.textPrimary, fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: 1.0)),
                     ],
                   ),
                   const Spacer(),
                   Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(color: AppColors.border, borderRadius: BorderRadius.circular(10)),
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(color: Colors.black, border: Border.all(color: AppColors.border, width: 2)),
                     child: AnimatedRotation(
                       turns: _isLanguageExpanded ? 0.5 : 0.0, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut,
                       child: const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.gold, size: 24),
@@ -139,11 +139,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: _isLanguageExpanded
                   ? Column(
                       children: [
-                        const Divider(color: AppColors.border, height: 1, thickness: 2),
+                        const Divider(color: AppColors.border, height: 1, thickness: 3),
                         ListView.separated(
                           shrinkWrap: true, physics: const NeverScrollableScrollPhysics(), padding: const EdgeInsets.symmetric(vertical: 8),
                           itemCount: _languages.length,
-                          separatorBuilder: (_, __) => const Divider(color: AppColors.border, height: 1),
+                          separatorBuilder: (_, __) => const Divider(color: AppColors.border, height: 1, thickness: 2),
                           itemBuilder: (context, index) {
                             final lang = _languages[index];
                             final currentLang = context.read<GameState>().language;
@@ -157,14 +157,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 setState(() { _isLanguageExpanded = false; });
                               },
                               child: Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                                 child: Row(
                                   children: [
                                     Text(lang['flag']!, style: const TextStyle(fontSize: 24)),
                                     const SizedBox(width: 16),
-                                    Text(lang['name']!, style: TextStyle(color: isSelected ? AppColors.gold : AppColors.textPrimary, fontSize: 16, fontWeight: isSelected ? FontWeight.w900 : FontWeight.bold)),
+                                    Text(lang['name']!.toUpperCase(), style: TextStyle(color: isSelected ? AppColors.gold : AppColors.textPrimary, fontSize: 16, fontWeight: isSelected ? FontWeight.w900 : FontWeight.bold)),
                                     const Spacer(),
-                                    if (isSelected) const Icon(Icons.check_circle_rounded, color: AppColors.gold, size: 22)
+                                    if (isSelected) const Icon(Icons.check_box_rounded, color: AppColors.gold, size: 24)
                                   ],
                                 ),
                               ),
@@ -182,27 +182,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget _buildVolumeCard({required String title, required double value, required IconData icon, required ValueChanged<double> onChanged}) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
       decoration: BoxDecoration(
         color: AppColors.surface, 
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border, width: 2),
+        borderRadius: BorderRadius.zero,
+        border: Border.all(color: AppColors.border, width: 3),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: AppColors.border, borderRadius: BorderRadius.circular(10)), child: Icon(icon, color: AppColors.gold, size: 24)),
-              const SizedBox(width: 14),
-              Text(title, style: const TextStyle(color: AppColors.textPrimary, fontSize: 16, fontWeight: FontWeight.w900)),
+              Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: Colors.black, border: Border.all(color: AppColors.border, width: 2)), child: Icon(icon, color: AppColors.gold, size: 24)),
+              const SizedBox(width: 16),
+              Text(title.toUpperCase(), style: const TextStyle(color: AppColors.textPrimary, fontSize: 16, fontWeight: FontWeight.w900)),
               const Spacer(),
-              Text('%${(value * 100).round()}', style: const TextStyle(color: AppColors.gold, fontWeight: FontWeight.w900, fontSize: 16, fontFamily: 'SpaceMono')),
+              Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), color: Colors.black, child: Text('%${(value * 100).round()}', style: const TextStyle(color: AppColors.gold, fontWeight: FontWeight.w900, fontSize: 16, fontFamily: 'SpaceMono'))),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           SliderTheme(
-            data: SliderTheme.of(context).copyWith(activeTrackColor: AppColors.gold, inactiveTrackColor: AppColors.border, thumbColor: AppColors.gold, trackHeight: 6),
+            data: SliderTheme.of(context).copyWith(activeTrackColor: AppColors.gold, inactiveTrackColor: Colors.black, thumbColor: AppColors.gold, trackHeight: 8, thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10)),
             child: Slider(value: value, min: 0.0, max: 1.0, onChanged: onChanged),
           ),
         ],

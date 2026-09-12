@@ -1,5 +1,4 @@
 // lib/services/audio_service.dart
-
 import 'package:audioplayers/audioplayers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -8,7 +7,6 @@ class AudioService {
 
   static final AudioService instance = AudioService._();
 
-  // Background music player
   final AudioPlayer _musicPlayer = AudioPlayer();
 
   double _musicVolume = 0.8;
@@ -19,7 +17,7 @@ class AudioService {
   Future<void> init() async {
     await AudioPlayer.global.setAudioContext(
       AudioContext(
-        android: AudioContextAndroid(
+        android: const AudioContextAndroid(
           isSpeakerphoneOn: false,
           stayAwake: true,
           contentType: AndroidContentType.music,
@@ -27,9 +25,8 @@ class AudioService {
           audioFocus: AndroidAudioFocus.none,
         ),
         iOS: AudioContextIOS(
-          // Kategori kuralına uymak için playback yapıyoruz
           category: AVAudioSessionCategory.playback,
-          options: {
+          options: const {
             AVAudioSessionOptions.mixWithOthers,
           },
         ),
@@ -49,14 +46,9 @@ class AudioService {
 
     if (!_isBgmInitialized) {
       await playBgm('bgm.mp3');
-
       _isBgmInitialized = true;
     }
   }
-
-  // ------------------------------------------------------------
-  // BACKGROUND MUSIC
-  // ------------------------------------------------------------
 
   Future<void> playBgm(String fileName) async {
     await _musicPlayer.play(
@@ -64,34 +56,24 @@ class AudioService {
     );
   }
 
-  // ------------------------------------------------------------
-  // SOUND EFFECTS
-  // ------------------------------------------------------------
+  // YENİ EKLENEN: Müziği duraklatma fonksiyonu
+  Future<void> pauseBgm() async {
+    if (_isBgmInitialized) {
+      await _musicPlayer.pause();
+    }
+  }
+
+  // YENİ EKLENEN: Müziği devam ettirme fonksiyonu
+  Future<void> resumeBgm() async {
+    if (_isBgmInitialized && _musicVolume > 0) {
+      await _musicPlayer.resume();
+    }
+  }
 
   Future<void> playSfx(String fileName) async {
     if (_sfxVolume <= 0) {
       return;
     }
-
-    /*
-     * Her SFX için tamamen bağımsız bir AudioPlayer oluşturuyoruz.
-     *
-     * Bunun sayesinde:
-     *
-     * click.mp3
-     * click.mp3
-     * click.mp3
-     *
-     * aynı anda çalabilir.
-     *
-     * Ayrıca:
-     *
-     * click.mp3
-     * cash.mp3
-     * click.mp3
-     *
-     * şeklinde arka arkaya gelirse hiçbirisi diğerini kesmez.
-     */
 
     final player = AudioPlayer();
 
@@ -104,7 +86,6 @@ class AudioService {
         _sfxVolume,
       );
 
-      // Ses bittiğinde player'ı temizle.
       player.onPlayerComplete.listen((_) async {
         await player.dispose();
       });
@@ -113,18 +94,12 @@ class AudioService {
         AssetSource('audio/$fileName'),
       );
     } catch (e) {
-      // Oynatma sırasında hata olursa player'ı temizle.
       await player.dispose();
     }
   }
 
-  // ------------------------------------------------------------
-  // VOLUME
-  // ------------------------------------------------------------
-
   void setMusicVolume(double volume) {
     _musicVolume = volume;
-
     _musicPlayer.setVolume(
       volume,
     );

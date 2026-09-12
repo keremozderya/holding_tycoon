@@ -53,7 +53,7 @@ class _WheelDialogState extends State<WheelDialog> with SingleTickerProviderStat
     _controller.addListener(() {
       if ((_animation.value - lastVibrationAngle).abs() > 0.15) {
         HapticFeedback.selectionClick();
-        AudioService.instance.playSfx('click.mp3'); // Çark tık sesi
+        AudioService.instance.playSfx('click.mp3');
         lastVibrationAngle = _animation.value;
       }
     });
@@ -110,7 +110,7 @@ class _WheelDialogState extends State<WheelDialog> with SingleTickerProviderStat
     HapticFeedback.heavyImpact(); 
     AudioService.instance.playSfx('cash.mp3');
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(backgroundColor: AppColors.surface, content: Text('Tebrikler! +\$${slice['line1']} kazandınız!', style: const TextStyle(color: AppColors.profit, fontWeight: FontWeight.bold))),
+      SnackBar(backgroundColor: AppColors.surface, content: Text('Tebrikler! +\$${slice['line1']} kazandınız!', style: const TextStyle(color: AppColors.profit, fontWeight: FontWeight.w900))),
     );
   }
 
@@ -120,11 +120,11 @@ class _WheelDialogState extends State<WheelDialog> with SingleTickerProviderStat
       backgroundColor: Colors.transparent,
       insetPadding: const EdgeInsets.symmetric(horizontal: 20),
       child: Container(
-        padding: const EdgeInsets.fromLTRB(16, 20, 16, 20),
+        padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
         decoration: BoxDecoration(
           color: AppColors.surface,
-          borderRadius: BorderRadius.circular(16), 
-          border: Border.all(color: AppColors.border, width: 1.5), 
+          borderRadius: BorderRadius.zero, 
+          border: Border.all(color: AppColors.border, width: 4.0), 
           boxShadow: const [BoxShadow(color: Colors.black87, blurRadius: 30, offset: Offset(0, 10))],
         ),
         child: Column(
@@ -134,9 +134,9 @@ class _WheelDialogState extends State<WheelDialog> with SingleTickerProviderStat
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const SizedBox(width: 32),
-                Text('ŞANS ÇARKI', style: AppTheme.titleStyle(fontSize: 20).copyWith(color: AppColors.textPrimary)),
+                Text('MAKİNE ÇARKI', style: AppTheme.titleStyle(fontSize: 22).copyWith(color: AppColors.textPrimary)),
                 IconButton(
-                  icon: const Icon(Icons.close_rounded, color: AppColors.textSecondary), 
+                  icon: const Icon(Icons.close_rounded, color: AppColors.textSecondary, size: 28), 
                   onPressed: _isSpinning ? null : () {
                     AudioService.instance.playSfx('click.mp3');
                     Navigator.pop(context);
@@ -144,55 +144,55 @@ class _WheelDialogState extends State<WheelDialog> with SingleTickerProviderStat
                 ),
               ],
             ),
-            const SizedBox(height: 8),
-            const Text('Yatırım fonu için çarkı çevirin.', style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
-            const SizedBox(height: 24),
+            const SizedBox(height: 12),
+            const Text('Yatırım fonu için çarkı çevirin.', style: TextStyle(color: AppColors.textSecondary, fontSize: 13, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 32),
             
             SizedBox(
-              width: 270, height: 270, 
+              width: 280, height: 280, 
               child: Stack(
                 alignment: Alignment.center,
                 children: [
                   AnimatedBuilder(
                     animation: _animation,
                     builder: (context, child) {
-                      return Transform.rotate(angle: _animation.value, child: CustomPaint(size: const Size(260, 260), painter: WheelPainter(slices: _slices)));
+                      return Transform.rotate(angle: _animation.value, child: CustomPaint(size: const Size(270, 270), painter: WheelPainter(slices: _slices)));
                     },
                   ),
                   Container(
-                    width: 40, height: 40,
-                    decoration: BoxDecoration(color: AppColors.background, shape: BoxShape.circle, border: Border.all(color: AppColors.gold, width: 2), boxShadow: const [BoxShadow(color: Colors.black87, blurRadius: 8)]),
-                    child: const Center(child: Icon(Icons.attach_money_rounded, color: AppColors.gold, size: 20)),
+                    width: 48, height: 48,
+                    decoration: BoxDecoration(color: Colors.black, border: Border.all(color: AppColors.gold, width: 3), boxShadow: const [BoxShadow(color: Colors.black87, blurRadius: 10)]),
+                    child: const Center(child: Icon(Icons.attach_money_rounded, color: AppColors.gold, size: 24)),
                   ),
                   Positioned(
-                    top: -5,
+                    top: -8,
                     child: Transform.rotate(
                       angle: math.pi,
-                      child: const Icon(Icons.arrow_drop_down_circle_rounded, color: AppColors.textPrimary, size: 28, shadows: [Shadow(color: Colors.black, blurRadius: 4, offset: Offset(0, 2))]),
+                      child: const Icon(Icons.arrow_drop_down_rounded, color: AppColors.textPrimary, size: 40, shadows: [Shadow(color: Colors.black, blurRadius: 6, offset: Offset(0, 3))]),
                     ),
                   ),
                 ],
               ),
             ),
             
-            const SizedBox(height: 32),
-            SizedBox(
-              width: double.infinity, height: 48,
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: _isSpinning ? AppColors.surfaceElevated : AppColors.gold,
-                  foregroundColor: _isSpinning ? AppColors.textSecondary : AppColors.darkBrown,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)), 
-                  elevation: 0,
-                ),
-                icon: Icon(_isSpinning ? Icons.hourglass_top_rounded : Icons.play_arrow_rounded, size: 20),
-                label: Text(_isSpinning ? 'BEKLENİYOR...' : 'REKLAMLA ÇEVİR', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13, letterSpacing: 1.0)),
-                onPressed: _isSpinning ? null : () {
-                  HapticFeedback.selectionClick();
-                  AudioService.instance.playSfx('click.mp3');
-                  _spinWheel();
-                },
-              ),
+            const SizedBox(height: 40),
+            WheelHeavyButton(
+              width: double.infinity, height: 55,
+              color: _isSpinning ? AppColors.surfaceElevated : AppColors.gold,
+              shadowColor: _isSpinning ? Colors.black : const Color(0xFF8B6B32),
+              onPressed: _isSpinning ? null : () {
+                HapticFeedback.selectionClick();
+                AudioService.instance.playSfx('click.mp3');
+                _spinWheel();
+              },
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(_isSpinning ? Icons.hourglass_top_rounded : Icons.play_arrow_rounded, size: 24, color: _isSpinning ? AppColors.textMuted : AppColors.darkBrown),
+                  const SizedBox(width: 8),
+                  Text(_isSpinning ? 'BEKLENİYOR...' : 'REKLAMLA ÇEVİR', style: TextStyle(color: _isSpinning ? AppColors.textMuted : AppColors.darkBrown, fontWeight: FontWeight.w900, fontSize: 14, letterSpacing: 1.0)),
+                ]
+              )
             ),
           ],
         ),
@@ -215,7 +215,7 @@ class WheelPainter extends CustomPainter {
       final fillPaint = Paint()..color = slices[i]['color']..style = PaintingStyle.fill;
       canvas.drawArc(rect, i * sweep, sweep, true, fillPaint);
 
-      final linePaint = Paint()..color = AppColors.background..strokeWidth = 1.5..style = PaintingStyle.stroke;
+      final linePaint = Paint()..color = Colors.black..strokeWidth = 3.0..style = PaintingStyle.stroke;
       canvas.drawArc(rect, i * sweep, sweep, true, linePaint);
 
       canvas.save();
@@ -224,7 +224,7 @@ class WheelPainter extends CustomPainter {
 
       final textSpan = TextSpan(
         children: [
-          TextSpan(text: '${slices[i]['line1']}\n', style: const TextStyle(color: AppColors.textPrimary, fontSize: 13, fontWeight: FontWeight.w800, fontFamily: 'SpaceMono')),
+          TextSpan(text: '${slices[i]['line1']}\n', style: const TextStyle(color: AppColors.textPrimary, fontSize: 14, fontWeight: FontWeight.w900, fontFamily: 'SpaceMono')),
         ],
       );
 
@@ -234,7 +234,31 @@ class WheelPainter extends CustomPainter {
       textPainter.paint(canvas, Offset(-textPainter.width / 2, -textPainter.height / 2));
       canvas.restore();
     }
-    canvas.drawCircle(Offset(radius, radius), radius - 1.0, Paint()..color = AppColors.gold..style = PaintingStyle.stroke..strokeWidth = 3.0);
+    canvas.drawCircle(Offset(radius, radius), radius - 1.5, Paint()..color = AppColors.gold..style = PaintingStyle.stroke..strokeWidth = 4.0);
   }
   @override bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+class WheelHeavyButton extends StatefulWidget {
+  final VoidCallback? onPressed; final Widget child; final Color color; final Color shadowColor; final double height; final double? width;
+  const WheelHeavyButton({super.key, required this.onPressed, required this.child, required this.color, required this.shadowColor, this.height = 50, this.width});
+  @override State<WheelHeavyButton> createState() => _WheelHeavyButtonState();
+}
+class _WheelHeavyButtonState extends State<WheelHeavyButton> {
+  bool _isPressed = false;
+  @override Widget build(BuildContext context) {
+    final bool isDisabled = widget.onPressed == null;
+    return GestureDetector(
+      onTapDown: isDisabled ? null : (_) { HapticFeedback.lightImpact(); AudioService.instance.playSfx('click.mp3'); setState(() => _isPressed = true); },
+      onTapUp: isDisabled ? null : (_) { setState(() => _isPressed = false); widget.onPressed!(); },
+      onTapCancel: isDisabled ? null : () => setState(() => _isPressed = false),
+      child: SizedBox(
+        width: widget.width, height: widget.height,
+        child: Stack(children: [
+          Positioned(bottom: 0, left: 0, right: 0, top: 6, child: Container(decoration: BoxDecoration(color: isDisabled ? AppColors.border.withValues(alpha: 0.5) : widget.shadowColor, border: Border.all(color: Colors.black87, width: 2.5)))),
+          AnimatedPositioned(duration: const Duration(milliseconds: 60), bottom: _isPressed || isDisabled ? 0 : 6, left: 0, right: 0, top: _isPressed || isDisabled ? 6 : 0, child: Container(decoration: BoxDecoration(color: isDisabled ? AppColors.surfaceElevated : widget.color, border: Border.all(color: Colors.black87, width: 2.5)), child: Center(child: widget.child))),
+        ]),
+      ),
+    );
+  }
 }

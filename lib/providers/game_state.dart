@@ -168,8 +168,40 @@ class GameState extends ChangeNotifier {
   ];
 
   int statClicks = 0; int statStocks = 0; int statUpgrades = 0; int statTaxes = 0; int statPrestige = 0; int statAdsWatched = 0; int statWheelSpins = 0; 
+  double statTotalEarned = 0.0; 
+
   List<bool> claimedTasks = List.filled(4, false);
-  List<bool> claimedAchievements = List.filled(7, false);
+  List<int> claimedAchievements = List.filled(7, 0); 
+
+  // Zırtopoz: Hedefler çok daha zorlayıcı hale getirildi!
+  static const List<List<double>> achievementTargets = [
+    [100, 500, 2500, 10000, 25000, 100000, 250000, 500000, 1000000, 2500000], // 0: Tıklama Kralı
+    [1e8, 1e11, 1e14, 1e17, 1e20, 1e23, 1e26, 1e29, 1e32, 1e35], // 1: Kasa Bekçisi (Ciro)
+    [3, 5, 7, 9, 10, 11, 12, 13, 14, 15], // 2: Holding Genişlemesi (Açılan Fabrikalar)
+    [5, 15, 30, 75, 150, 300, 600, 1500, 3000, 10000], // 3: Prestij Lordu
+    [200, 500, 1000, 1500, 2000, 2500, 3000, 3500, 4000, 4500], // 4: Seviye Canavarı
+    [50, 250, 1000, 2500, 5000, 15000, 30000, 75000, 150000, 500000], // 5: Hisse Avcısı
+    [1e7, 1e10, 1e13, 1e16, 1e19, 1e22, 1e25, 1e28, 1e31, 1e34], // 6: Zirveye Tırmanış (Net Nakit)
+  ];
+
+  double getAchievementMoneyReward(int tier) => 5000.0 * math.pow(2.5, tier); 
+  // Zırtopoz: RP ödülü daha da kısıldı ki oyuncu prestij yapmaya odaklansın
+  int getAchievementRpReward(int tier) => (tier + 1) * 3; 
+
+  double getAchievementProgress(int index) {
+    if (index == 0) return statClicks.toDouble();
+    if (index == 1) return statTotalEarned;
+    if (index == 2) return _factories.where((f) => f.isUnlocked).length.toDouble();
+    if (index == 3) return statPrestige.toDouble();
+    if (index == 4) {
+      int t = 0;
+      for (var f in _factories) { for (var p in f.products) t += p.level; }
+      return t.toDouble();
+    }
+    if (index == 5) return statStocks.toDouble();
+    if (index == 6) return _money;
+    return 0.0;
+  }
 
   bool get areTasksUnlocked => _factories.any((f) => f.isUnlocked && f.totalLevel >= 30);
 
@@ -185,19 +217,30 @@ class GameState extends ChangeNotifier {
 
   int get unclaimedAchievementsCount {
     int count = 0;
-    int unlockedFacs = _factories.where((f) => f.isUnlocked).length;
-    int maxProductLvl = 0;
-    for (var f in _factories) {
-      for (var p in f.products) { if (p.level > maxProductLvl) maxProductLvl = p.level; }
+    for (int i = 0; i < 7; i++) {
+      int tier = claimedAchievements[i];
+      if (tier < achievementTargets[i].length) {
+        if (getAchievementProgress(i) >= achievementTargets[i][tier]) count++;
+      }
     }
-    if (!claimedAchievements[0] && unlockedFacs >= 5) count++;
-    if (!claimedAchievements[1] && _money >= 1e12) count++;
-    if (!claimedAchievements[2] && statClicks >= 100) count++;
-    if (!claimedAchievements[3] && statTaxes >= 10) count++;
-    if (!claimedAchievements[4] && statStocks >= 50) count++;
-    if (!claimedAchievements[5] && maxProductLvl >= 60) count++;
-    if (!claimedAchievements[6] && _money >= 1e33) count++;
     return count;
+  }
+
+  void claimAchievement(int index) {
+    int tier = claimedAchievements[index];
+    if (tier < achievementTargets[index].length) {
+      double req = achievementTargets[index][tier];
+      if (getAchievementProgress(index) >= req) {
+        claimedAchievements[index]++;
+        double mReward = getAchievementMoneyReward(tier);
+        int rpReward = getAchievementRpReward(tier);
+        _money += mReward;
+        statTotalEarned += mReward;
+        _researchPoints += rpReward;
+        _saveGame();
+        notifyListeners();
+      }
+    }
   }
 
   DateTime? _boostEndTime; 
@@ -292,8 +335,6 @@ class GameState extends ChangeNotifier {
   GameEvent? consumeUnhandledEvent() { var ev = _unhandledEvent; _unhandledEvent = null; return ev; }
   double consumeUnhandledBagReward() { var b = _unhandledBagReward; _unhandledBagReward = 0.0; return b; }
 
-  // --- OYUN VERİLERİNİ YÜKLEME VE KAYDETME ---
-
   Future<void> loadData() async {
     final prefs = await SharedPreferences.getInstance();
     String? savedGameJson = prefs.getString('game_save_data');
@@ -303,6 +344,7 @@ class GameState extends ChangeNotifier {
       
       _starterFactoryId = data['starterFactoryId'] ?? ''; 
       _money = (data['money'] as num?)?.toDouble() ?? 0.0;
+      statTotalEarned = (data['statTotalEarned'] as num?)?.toDouble() ?? _money; 
       _researchPoints = (data['researchPoints'] as num?)?.toInt() ?? 0;
       _isFirstLaunch = data['isFirstLaunch'] ?? true;
       _language = data['language'] ?? 'tr';
@@ -317,7 +359,17 @@ class GameState extends ChangeNotifier {
       statWheelSpins = data['statWheelSpins'] ?? 0;
       
       if (data['claimedTasks'] != null) claimedTasks = List<bool>.from(data['claimedTasks']);
-      if (data['claimedAchievements'] != null) claimedAchievements = List<bool>.from(data['claimedAchievements']);
+      
+      if (data['claimedAchievements'] != null) {
+        List<dynamic> loadedAch = data['claimedAchievements'];
+        claimedAchievements = List.generate(7, (i) {
+          if (i < loadedAch.length) {
+            if (loadedAch[i] is bool) return loadedAch[i] ? 1 : 0; 
+            if (loadedAch[i] is int) return loadedAch[i];
+          }
+          return 0;
+        });
+      }
       
       if (data['officeStaffLevels'] != null) {
         List<dynamic> staffList = data['officeStaffLevels'];
@@ -373,7 +425,7 @@ class GameState extends ChangeNotifier {
     Map<String, dynamic> gameData = {
       'starterFactoryId': _starterFactoryId,
       'money': _money, 'researchPoints': _researchPoints, 'isFirstLaunch': _isFirstLaunch, 'language': _language,
-      'statClicks': statClicks, 'statStocks': statStocks, 'statUpgrades': statUpgrades, 'statTaxes': statTaxes, 'statPrestige': statPrestige, 'statAdsWatched': statAdsWatched, 'statWheelSpins': statWheelSpins,
+      'statClicks': statClicks, 'statStocks': statStocks, 'statUpgrades': statUpgrades, 'statTaxes': statTaxes, 'statPrestige': statPrestige, 'statAdsWatched': statAdsWatched, 'statWheelSpins': statWheelSpins, 'statTotalEarned': statTotalEarned,
       'claimedTasks': claimedTasks, 'claimedAchievements': claimedAchievements, 
       'officeStaffLevels': officeStaff.map((s) => {'id': s.id, 'level': s.level}).toList(), 
       'currentTaxDebt': _currentTaxDebt, 
@@ -392,7 +444,6 @@ class GameState extends ChangeNotifier {
     await prefs.setString('game_save_data', jsonEncode(gameData));
   }
 
-  // YENİ: Oyunu Komple Tasfiye Eden (Sıfırlayan) Mükemmel Fonksiyon
   Future<void> startNewGameSession() async {
     _isFirstLaunch = false;
     _starterFactoryId = ''; 
@@ -418,9 +469,9 @@ class GameState extends ChangeNotifier {
     offlineEarningsToClaim = 0.0;
 
     statClicks = 0; statStocks = 0; statUpgrades = 0; statTaxes = 0; 
-    statPrestige = 0; statAdsWatched = 0; statWheelSpins = 0;
+    statPrestige = 0; statAdsWatched = 0; statWheelSpins = 0; statTotalEarned = 0.0;
     claimedTasks = List.filled(4, false);
-    claimedAchievements = List.filled(7, false);
+    claimedAchievements = List.filled(7, 0); 
     
     await _saveGame();
     notifyListeners();
@@ -638,6 +689,7 @@ class GameState extends ChangeNotifier {
   void _processSecond() {
     if (incomePerSecond > 0) {
       _money += incomePerSecond;
+      statTotalEarned += incomePerSecond; 
     }
     
     if (DateTime.now().second % 5 == 0) {
@@ -694,7 +746,9 @@ class GameState extends ChangeNotifier {
 
   void claimOfflineEarnings(bool watchAd) {
     if (offlineEarningsToClaim > 0) {
-      _money += watchAd ? (offlineEarningsToClaim * 2) : offlineEarningsToClaim; 
+      double add = watchAd ? (offlineEarningsToClaim * 2) : offlineEarningsToClaim;
+      _money += add; 
+      statTotalEarned += add;
       offlineEarningsToClaim = 0; 
       _saveGame(); 
       notifyListeners(); 
@@ -704,7 +758,9 @@ class GameState extends ChangeNotifier {
   void claimBagReward(bool watchAd, double reward) { 
     double marketingBonus = 1.0 + officeStaff.firstWhere((s) => s.id == 'staff_5').currentEffectValue;
     double finalReward = reward * marketingBonus;
-    _money += watchAd ? (finalReward * 3) : finalReward; 
+    double add = watchAd ? (finalReward * 3) : finalReward;
+    _money += add; 
+    statTotalEarned += add;
     _saveGame(); 
     notifyListeners(); 
   }
@@ -804,9 +860,10 @@ class GameState extends ChangeNotifier {
   void completeManualProduction(String facId, int productIndex) {
     var prod = _factories.firstWhere((f) => f.id == facId).products[productIndex];
     if (prod.level > 0) { 
-      _money += prod.manualIncome * currentMultiplier; 
+      double add = prod.manualIncome * currentMultiplier;
+      _money += add; 
+      statTotalEarned += add;
       statClicks++; 
-      _saveGame(); 
       notifyListeners(); 
     }
   }
@@ -864,19 +921,19 @@ class GameState extends ChangeNotifier {
     }
   }
 
-  // YENİ: Prestij atıldığında Ar-Ge hibe yeteneklerini devasa şekilde işler
   void executePrestige(int earnedRP) {
     _researchPoints += earnedRP; 
     statPrestige++;
     
     int node92Level = _researchNodes.firstWhere((n) => n.id == 'node_092', orElse: () => _researchNodes[0]).currentLevel;
-    _money = node92Level * 1000000.0; // Melek Sermaye Mirası (Milyon Dolar Hibe)
+    _money = node92Level * 1000000.0; 
+    statTotalEarned += _money;
     
     int node93Level = _researchNodes.firstWhere((n) => n.id == 'node_093', orElse: () => _researchNodes[0]).currentLevel;
-    int freePlots = node93Level * 2; // Bedelsiz açılacak arsa sayısı
+    int freePlots = node93Level * 2; 
     
     int node94Level = _researchNodes.firstWhere((n) => n.id == 'node_094', orElse: () => _researchNodes[0]).currentLevel;
-    bool firstFacLevel30 = node94Level > 0; // İlk fabrikanın 30 seviye başlaması
+    bool firstFacLevel30 = node94Level > 0; 
     
     for (int i = 0; i < _factories.length; i++) { 
       var f = _factories[i];
@@ -923,7 +980,15 @@ class GameState extends ChangeNotifier {
 
   void incrementAdsWatched() { statAdsWatched++; _saveGame(); notifyListeners(); }
   void incrementWheelSpins() { statWheelSpins++; _saveGame(); notifyListeners(); }
-  Future<void> updateMoney(double amount) async { _money += amount; if (_money < 0) { _money = 0; } await _saveGame(); notifyListeners(); }
+  
+  Future<void> updateMoney(double amount) async { 
+    _money += amount; 
+    if (amount > 0) statTotalEarned += amount;
+    if (_money < 0) _money = 0; 
+    await _saveGame(); 
+    notifyListeners(); 
+  }
+  
   Future<void> updateResearchPoints(int amount) async { _researchPoints += amount; await _saveGame(); notifyListeners(); }
   Future<void> setLanguage(String langCode) async { _language = langCode; await TranslationService.instance.loadLanguage(_language); await _saveGame(); notifyListeners(); }
   Future<void> completeFirstLaunch() async { _isFirstLaunch = false; await _saveGame(); notifyListeners(); }
@@ -948,7 +1013,9 @@ class GameState extends ChangeNotifier {
   void sellAllStock(String stockId) {
     var s = _stocks.firstWhere((st) => st.id == stockId);
     if (s.ownedShares > 0) { 
-      _money += s.ownedShares * s.currentPrice * 0.995; 
+      double add = s.ownedShares * s.currentPrice * 0.995;
+      _money += add; 
+      statTotalEarned += add;
       s.ownedShares = 0; 
       s.totalSpent = 0; 
       _saveGame(); 

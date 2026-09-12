@@ -6,6 +6,7 @@ import 'providers/game_state.dart';
 import 'screens/main_menu_screen.dart';
 import 'screens/map_screen.dart';
 import 'theme/app_theme.dart';
+import 'services/audio_service.dart'; // AudioService eklendi
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -35,8 +36,36 @@ void main() async {
   );
 }
 
-class HoldingTycoonApp extends StatelessWidget {
+// YENİ: Arka plana atılmayı dinleyebilmek için StatefulWidget'a dönüştürüldü
+class HoldingTycoonApp extends StatefulWidget {
   const HoldingTycoonApp({super.key});
+
+  @override
+  State<HoldingTycoonApp> createState() => _HoldingTycoonAppState();
+}
+
+class _HoldingTycoonAppState extends State<HoldingTycoonApp> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  // YENİ: Uygulamanın anlık durumu değiştiğinde tetiklenen sistem (Arka plan/Ön plan)
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive || state == AppLifecycleState.hidden) {
+      AudioService.instance.pauseBgm();
+    } else if (state == AppLifecycleState.resumed) {
+      AudioService.instance.resumeBgm();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -46,7 +75,7 @@ class HoldingTycoonApp extends StatelessWidget {
           key: ValueKey(gameState.language), 
           title: 'Holding Tycoon',
           debugShowCheckedModeBanner: false,
-          theme: AppTheme.tycoonTheme, // DÜZELTİLDİ: darkTheme yerine tycoonTheme oldu
+          theme: AppTheme.tycoonTheme, 
           home: gameState.isFirstLaunch 
               ? const MainMenuScreen(isInitialLaunch: true)
               : const MapScreen(),

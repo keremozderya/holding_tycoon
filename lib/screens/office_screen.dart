@@ -33,7 +33,7 @@ class OfficeScreen extends StatelessWidget {
       context: context,
       backgroundColor: AppColors.surface,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero, side: BorderSide(color: AppColors.border, width: 3)),
       builder: (c) {
         return Consumer<GameState>(
           builder: (context, gameState, child) {
@@ -43,75 +43,71 @@ class OfficeScreen extends StatelessWidget {
 
             return Padding(
               padding: const EdgeInsets.fromLTRB(20, 24, 20, 40),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                    child: Container(width: 40, height: 4, decoration: BoxDecoration(color: AppColors.border, borderRadius: BorderRadius.circular(2))),
-                  ),
-                  const SizedBox(height: 24),
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(color: AppColors.background, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.border)),
-                        child: Icon(isMax ? Icons.workspace_premium_rounded : Icons.badge_rounded, color: AppColors.gold, size: 32),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(currentStaff.title.toUpperCase(), style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w900, fontSize: 18, letterSpacing: 1.0)),
-                            const SizedBox(height: 4),
-                            Text('Mevcut Kadro: ${currentStaff.level}/${currentStaff.maxLevel}', style: TextStyle(color: isMax ? AppColors.profit : AppColors.textSecondary, fontSize: 13, fontWeight: FontWeight.bold)),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  Text(currentStaff.baseDescription, style: const TextStyle(color: AppColors.textSecondary, fontSize: 13, height: 1.4)),
-                  const SizedBox(height: 20),
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(color: AppColors.background, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.border)),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Center(
+                      child: Container(width: 50, height: 6, decoration: const BoxDecoration(color: AppColors.border, borderRadius: BorderRadius.zero)),
+                    ),
+                    const SizedBox(height: 24),
+                    Row(
                       children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text('Mevcut Etki:', style: TextStyle(color: AppColors.textMuted, fontSize: 12, fontWeight: FontWeight.bold)),
-                            Text(currentStaff.currentEffectText, style: TextStyle(color: currentStaff.level > 0 ? AppColors.profit : AppColors.textMuted, fontSize: 13, fontWeight: FontWeight.bold)),
-                          ],
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(color: AppColors.background, borderRadius: BorderRadius.zero, border: Border.all(color: AppColors.border, width: 2)),
+                          child: Icon(isMax ? Icons.workspace_premium_rounded : Icons.badge_rounded, color: AppColors.gold, size: 32),
                         ),
-                        if (!isMax) ...[
-                          const Padding(padding: EdgeInsets.symmetric(vertical: 8), child: Divider(color: AppColors.border, height: 1)),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              FittedBox(fit: BoxFit.scaleDown, child: Text(currentStaff.title.toUpperCase(), style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w900, fontSize: 18, letterSpacing: 1.0))),
+                              const SizedBox(height: 4),
+                              Text('Mevcut Kadro: ${currentStaff.level}/${currentStaff.maxLevel}', style: TextStyle(color: isMax ? AppColors.profit : AppColors.textSecondary, fontSize: 13, fontWeight: FontWeight.bold)),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    Text(currentStaff.baseDescription, style: const TextStyle(color: AppColors.textSecondary, fontSize: 13, height: 1.4, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 20),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.zero, border: Border.all(color: AppColors.border, width: 2)),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text('Terfi Sonrası:', style: TextStyle(color: AppColors.textMuted, fontSize: 12, fontWeight: FontWeight.bold)),
-                              Text(currentStaff.nextEffectText, style: const TextStyle(color: AppColors.gold, fontSize: 13, fontWeight: FontWeight.bold)),
+                              const Text('Mevcut Etki:', style: TextStyle(color: AppColors.textMuted, fontSize: 12, fontWeight: FontWeight.w900)),
+                              Flexible(child: FittedBox(fit: BoxFit.scaleDown, child: Text(currentStaff.currentEffectText, style: TextStyle(color: currentStaff.level > 0 ? AppColors.profit : AppColors.textMuted, fontSize: 13, fontWeight: FontWeight.w900, fontFamily: 'SpaceMono')))),
                             ],
                           ),
+                          if (!isMax) ...[
+                            const Padding(padding: EdgeInsets.symmetric(vertical: 12), child: Divider(color: AppColors.border, height: 1, thickness: 2)),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text('Terfi Sonrası:', style: TextStyle(color: AppColors.textMuted, fontSize: 12, fontWeight: FontWeight.w900)),
+                                Flexible(child: FittedBox(fit: BoxFit.scaleDown, child: Text(currentStaff.nextEffectText, style: const TextStyle(color: AppColors.gold, fontSize: 13, fontWeight: FontWeight.w900, fontFamily: 'SpaceMono')))),
+                              ],
+                            ),
+                          ],
                         ],
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  SizedBox(
-                    width: double.infinity, height: 50,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: isMax ? AppColors.background : (canAfford ? AppColors.gold : AppColors.surfaceElevated),
-                        foregroundColor: isMax || !canAfford ? AppColors.textMuted : AppColors.darkBrown,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                        elevation: 0,
-                        side: BorderSide(color: isMax ? AppColors.border : Colors.transparent),
                       ),
+                    ),
+                    const SizedBox(height: 24),
+                    OfficeHeavyButton(
+                      width: double.infinity, height: 55,
+                      color: isMax ? AppColors.background : (canAfford ? AppColors.gold : AppColors.surfaceElevated),
+                      shadowColor: isMax ? Colors.black : (canAfford ? const Color(0xFF8B6B32) : Colors.black),
                       onPressed: canAfford ? () {
                         HapticFeedback.lightImpact(); 
                         AudioService.instance.playSfx('cash.mp3');
@@ -119,11 +115,11 @@ class OfficeScreen extends StatelessWidget {
                       } : null,
                       child: Text(
                         isMax ? 'MAKSİMUM KAPASİTE' : 'TERFİ VER (\$${_formatNum(currentStaff.currentCost)})',
-                        style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14, letterSpacing: 1.0),
+                        style: TextStyle(color: isMax || !canAfford ? AppColors.textMuted : AppColors.darkBrown, fontWeight: FontWeight.w900, fontSize: 14, letterSpacing: 1.0),
                       ),
-                    ),
-                  )
-                ],
+                    )
+                  ],
+                ),
               ),
             );
           },
@@ -141,7 +137,7 @@ class OfficeScreen extends StatelessWidget {
     return Scaffold(
       extendBodyBehindAppBar: true, 
       appBar: AppBar(
-        title: Text('YAZIHANE', style: AppTheme.titleStyle(fontSize: 18).copyWith(color: AppColors.textPrimary)),
+        title: Text('YAZIHANE', style: AppTheme.titleStyle(fontSize: 20).copyWith(color: AppColors.textPrimary)),
         backgroundColor: Colors.black.withValues(alpha: 0.5),
         centerTitle: true,
         elevation: 0,
@@ -152,7 +148,7 @@ class OfficeScreen extends StatelessWidget {
           ),
         ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textPrimary, size: 20),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textPrimary, size: 24),
           onPressed: () {
             AudioService.instance.playSfx('click.mp3');
             Navigator.pop(context);
@@ -177,23 +173,24 @@ class OfficeScreen extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
                   decoration: BoxDecoration(
                     color: AppColors.surface.withValues(alpha: 0.9),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppColors.border, width: 1.5),
+                    borderRadius: BorderRadius.zero,
+                    border: Border.all(color: AppColors.border, width: 3.0),
+                    boxShadow: const [BoxShadow(color: Colors.black54, blurRadius: 10, offset: Offset(0, 4))],
                   ),
                   child: Column(
                     children: [
-                      const Text('HOLDİNG YÖNETİM MERKEZİ', style: TextStyle(color: AppColors.textPrimary, fontSize: 14, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
+                      const Text('HOLDİNG YÖNETİM MERKEZİ', style: TextStyle(color: AppColors.textPrimary, fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 1.0)),
                       const SizedBox(height: 8),
                       const Text(
                         'Departmanları genişletmek ve personeli terfi ettirmek için ilgili odaya dokunun.',
                         textAlign: TextAlign.center,
-                        style: TextStyle(color: AppColors.textSecondary, fontSize: 11, height: 1.4),
+                        style: TextStyle(color: AppColors.textSecondary, fontSize: 12, height: 1.4, fontWeight: FontWeight.bold),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 16),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        decoration: BoxDecoration(color: AppColors.background, borderRadius: BorderRadius.circular(8), border: Border.all(color: AppColors.border)),
-                        child: Text('KASA: \$${_formatNum(gameState.money)}', style: const TextStyle(color: AppColors.gold, fontWeight: FontWeight.bold, fontSize: 14, fontFamily: 'SpaceMono')),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.zero, border: Border.all(color: AppColors.border, width: 2)),
+                        child: Text('KASA: \$${_formatNum(gameState.money)}', style: const TextStyle(color: AppColors.gold, fontWeight: FontWeight.w900, fontSize: 15, fontFamily: 'SpaceMono')),
                       )
                     ],
                   ),
@@ -274,12 +271,12 @@ class _VisualRoomWidgetState extends State<VisualRoomWidget> with SingleTickerPr
     switch (widget.staff.id) {
       case 'staff_1': return Icons.calculate_rounded;
       case 'staff_2': return Icons.precision_manufacturing_rounded;
-      case 'staff_3': return Icons.groups_rounded;
+      case 'staff_3': return Icons.engineering_rounded;
       case 'staff_4': return Icons.candlestick_chart_rounded;
-      case 'staff_5': return Icons.campaign_rounded;
+      case 'staff_5': return Icons.settings_input_antenna_rounded;
       case 'staff_6': return Icons.local_shipping_rounded;
-      case 'staff_7': return Icons.nights_stay_rounded;
-      default: return Icons.business_rounded;
+      case 'staff_7': return Icons.battery_charging_full_rounded;
+      default: return Icons.domain_rounded;
     }
   }
 
@@ -291,21 +288,20 @@ class _VisualRoomWidgetState extends State<VisualRoomWidget> with SingleTickerPr
     return Container(
       decoration: BoxDecoration(
         color: AppColors.background,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.zero,
         border: Border.all(
-          color: isActive ? deptColor.withValues(alpha: 0.5) : AppColors.border, 
-          width: 1.5,
+          color: isActive ? deptColor.withValues(alpha: 0.8) : AppColors.border, 
+          width: 3.0,
         ),
         boxShadow: [
           BoxShadow(
-            color: isActive ? deptColor.withValues(alpha: 0.12) : Colors.black26, 
+            color: isActive ? deptColor.withValues(alpha: 0.2) : Colors.black54, 
             blurRadius: 10, 
             offset: const Offset(0, 4)
           ),
         ],
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(14),
+      child: ClipRect(
         child: Stack(
           children: [
             AnimatedBuilder(
@@ -323,36 +319,41 @@ class _VisualRoomWidgetState extends State<VisualRoomWidget> with SingleTickerPr
               ),
             ),
             
-            Positioned(top: 10, left: 10, child: Container(width: 8, height: 8, decoration: BoxDecoration(color: isActive ? AppColors.profit : AppColors.loss, shape: BoxShape.circle))),
+            Positioned(top: 10, left: 10, child: Container(width: 10, height: 10, decoration: BoxDecoration(color: isActive ? AppColors.profit : AppColors.loss, border: Border.all(color: Colors.black, width: 1.5)))),
             Positioned(
               top: 8, right: 8, 
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), 
-                decoration: BoxDecoration(color: AppColors.background.withValues(alpha: 0.85), borderRadius: BorderRadius.circular(4), border: Border.all(color: AppColors.border)), 
-                child: Text('Lvl ${widget.staff.level}', style: const TextStyle(color: AppColors.textSecondary, fontSize: 10, fontWeight: FontWeight.bold, fontFamily: 'SpaceMono'))
+                decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.zero, border: Border.all(color: AppColors.border, width: 1.5)), 
+                child: Text('Lvl ${widget.staff.level}', style: const TextStyle(color: AppColors.textSecondary, fontSize: 11, fontWeight: FontWeight.w900, fontFamily: 'SpaceMono'))
               )
             ),
             
             Positioned(
               bottom: 0, left: 0, right: 0, 
               child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 8), 
+                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4), 
                 decoration: BoxDecoration(
                   color: AppColors.surface.withValues(alpha: 0.96),
-                  border: const Border(top: BorderSide(color: AppColors.border))
+                  border: const Border(top: BorderSide(color: AppColors.border, width: 2))
                 ), 
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(_getDepartmentIcon(), color: isActive ? deptColor : AppColors.textMuted, size: 14),
+                    Icon(_getDepartmentIcon(), color: isActive ? deptColor : AppColors.textMuted, size: 16),
                     const SizedBox(width: 6),
-                    Text(
-                      widget.staff.title
-                          .replaceAll(' Departmanı', '')
-                          .replaceAll(' Müdürlüğü', '')
-                          .replaceAll(' Operasyonu', '')
-                          .toUpperCase(), 
-                      style: TextStyle(color: isActive ? AppColors.textPrimary : AppColors.textMuted, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1.0)
+                    Flexible(
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          widget.staff.title
+                              .replaceAll(' Departmanı', '')
+                              .replaceAll(' Müdürlüğü', '')
+                              .replaceAll(' Operasyonu', '')
+                              .toUpperCase(), 
+                          style: TextStyle(color: isActive ? AppColors.textPrimary : AppColors.textMuted, fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 1.0)
+                        ),
+                      ),
                     ),
                   ],
                 )
@@ -397,8 +398,8 @@ class MatteOfficePainter extends CustomPainter {
         : const Color(0xFF262C38);
 
     Color floorColor = isActive 
-        ? const Color(0xFF6B4B35) 
-        : const Color(0xFF2E241E);
+        ? const Color(0xFF4A5568) 
+        : const Color(0xFF1E293B);
 
     Path leftWall = Path()..moveTo(0, 0)..lineTo(w * 0.15, h * 0.1)..lineTo(w * 0.15, h * 0.65)..lineTo(0, h)..close();
     canvas.drawPath(leftWall, Paint()..color = leftWallColor); 
@@ -409,14 +410,14 @@ class MatteOfficePainter extends CustomPainter {
     canvas.drawPath(floor, Paint()..color = floorColor);
 
     if (isActive) {
-      final Paint plankPaint = Paint()..color = const Color(0xFF563B29)..strokeWidth = 1.0;
+      final Paint plankPaint = Paint()..color = Colors.black45..strokeWidth = 2.0;
       canvas.drawLine(Offset(0, h * 0.77), Offset(w, h * 0.77), plankPaint);
       canvas.drawLine(Offset(0, h * 0.89), Offset(w, h * 0.89), plankPaint);
       canvas.drawLine(Offset(w * 0.35, h * 0.65), Offset(w * 0.25, h * 0.77), plankPaint);
       canvas.drawLine(Offset(w * 0.70, h * 0.65), Offset(w * 0.60, h * 0.77), plankPaint);
       canvas.drawLine(Offset(w * 0.50, h * 0.77), Offset(w * 0.40, h * 0.89), plankPaint);
 
-      canvas.drawRect(Rect.fromLTWH(w * 0.15, h * 0.635, w * 0.85, h * 0.015), Paint()..color = const Color(0xFF38251A));
+      canvas.drawRect(Rect.fromLTWH(w * 0.15, h * 0.635, w * 0.85, h * 0.015), Paint()..color = const Color(0xFF1E293B));
 
       final Path lightCone = Path()
         ..moveTo(w * 0.42, 0)
@@ -433,7 +434,7 @@ class MatteOfficePainter extends CustomPainter {
         )
       );
 
-      canvas.drawLine(Offset(w * 0.15, h * 0.1), Offset(w * 0.15, h * 0.65), Paint()..color = Colors.white12..strokeWidth = 1.5);
+      canvas.drawLine(Offset(w * 0.15, h * 0.1), Offset(w * 0.15, h * 0.65), Paint()..color = Colors.white12..strokeWidth = 2.0);
     }
 
     if (isActive) {
@@ -497,18 +498,18 @@ class MatteOfficePainter extends CustomPainter {
   void _drawOfficeChairBack(Canvas canvas, double cx, double cy, double tPI) {
     final double chairSway = math.sin(tPI * 1.5) * 0.6;
     final Rect chairRect = Rect.fromCenter(center: Offset(cx + chairSway, cy - 10), width: 28, height: 32);
-    canvas.drawRRect(RRect.fromRectAndRadius(chairRect, const Radius.circular(8)), Paint()..color = const Color(0xFF1E293B));
-    canvas.drawRRect(RRect.fromRectAndRadius(chairRect.deflate(1.5), const Radius.circular(7)), Paint()..color = const Color(0xFF334155));
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(Rect.fromCenter(center: Offset(cx + chairSway, cy - 23), width: 18, height: 8), const Radius.circular(4)),
+    canvas.drawRect(chairRect, Paint()..color = const Color(0xFF1E293B));
+    canvas.drawRect(chairRect.deflate(2.0), Paint()..color = const Color(0xFF334155));
+    canvas.drawRect(
+      Rect.fromCenter(center: Offset(cx + chairSway, cy - 23), width: 18, height: 8),
       Paint()..color = const Color(0xFF475569),
     );
   }
 
   void _drawSafe(Canvas canvas, double w, double h) {
     final Rect safeRect = Rect.fromLTWH(w * 0.18, h * 0.35, w * 0.25, h * 0.30);
-    canvas.drawRRect(RRect.fromRectAndRadius(safeRect, const Radius.circular(4)), Paint()..color = const Color(0xFF475569));
-    canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(w * 0.20, h * 0.38, w * 0.21, h * 0.24), const Radius.circular(2)), Paint()..color = const Color(0xFF334155));
+    canvas.drawRect(safeRect, Paint()..color = const Color(0xFF475569));
+    canvas.drawRect(Rect.fromLTWH(w * 0.20, h * 0.38, w * 0.21, h * 0.24), Paint()..color = const Color(0xFF334155));
     canvas.drawCircle(Offset(w * 0.38, h * 0.50), 6, Paint()..color = const Color(0xFFCBD5E1));
     canvas.drawRect(Rect.fromLTWH(w * 0.37, h * 0.50, 2, 10), Paint()..color = Colors.white);
   }
@@ -521,7 +522,7 @@ class MatteOfficePainter extends CustomPainter {
     canvas.save();
     canvas.translate(w * 0.6, h * 0.3);
     canvas.rotate(tPI * 0.5); 
-    final Paint gearPaint = Paint()..color = Colors.white70..style=PaintingStyle.stroke..strokeWidth=1.5;
+    final Paint gearPaint = Paint()..color = Colors.white70..style=PaintingStyle.stroke..strokeWidth=2.0;
     canvas.drawCircle(Offset.zero, 8, gearPaint);
     for (int i = 0; i < 4; i++) {
       canvas.rotate(math.pi / 4);
@@ -529,25 +530,25 @@ class MatteOfficePainter extends CustomPainter {
     }
     canvas.restore();
 
-    final Paint line = Paint()..color = Colors.white70..style=PaintingStyle.stroke..strokeWidth=1.5;
+    final Paint line = Paint()..color = Colors.white70..style=PaintingStyle.stroke..strokeWidth=2.0;
     canvas.drawRect(Rect.fromLTWH(w * 0.3, h * 0.25, w * 0.15, h * 0.1), line);
     canvas.drawLine(Offset(w * 0.32, h * 0.35), Offset(w * 0.48, h * 0.35), line);
   }
 
   void _drawHRPosters(Canvas canvas, double w, double h) {
     canvas.drawRect(Rect.fromLTWH(w * 0.3, h * 0.2, w * 0.15, h * 0.18), Paint()..color = const Color(0xFFF8FAFC));
-    canvas.drawRect(Rect.fromLTWH(w * 0.32, h * 0.22, w * 0.11, h * 0.14), Paint()..color = const Color(0xFF64748B)..style=PaintingStyle.stroke..strokeWidth=1);
+    canvas.drawRect(Rect.fromLTWH(w * 0.32, h * 0.22, w * 0.11, h * 0.14), Paint()..color = const Color(0xFF64748B)..style=PaintingStyle.stroke..strokeWidth=2);
     canvas.drawRect(Rect.fromLTWH(w * 0.55, h * 0.25, w * 0.2, h * 0.12), Paint()..color = const Color(0xFFF1F5F9));
-    canvas.drawCircle(Offset(w * 0.65, h * 0.31), 6, Paint()..color = const Color(0xFFEAB308)); 
+    canvas.drawRect(Rect.fromLTWH(w * 0.62, h * 0.28, 6, 6), Paint()..color = const Color(0xFFEAB308)); 
   }
 
   void _drawStockTickerWall(Canvas canvas, double w, double h, double tPI) {
     final Rect screen = Rect.fromLTWH(w * 0.2, h * 0.15, w * 0.6, h * 0.28);
     canvas.drawRect(screen, Paint()..color = const Color(0xFF1E293B));
-    canvas.drawRect(screen, Paint()..color = const Color(0xFF475569)..style=PaintingStyle.stroke..strokeWidth=2);
+    canvas.drawRect(screen, Paint()..color = const Color(0xFF475569)..style=PaintingStyle.stroke..strokeWidth=3);
 
     final Path trend = Path();
-    final Paint trendPaint = Paint()..color = AppColors.profit..style = PaintingStyle.stroke..strokeWidth = 2;
+    final Paint trendPaint = Paint()..color = AppColors.profit..style = PaintingStyle.stroke..strokeWidth = 2.5;
     double startX = screen.left + 5;
     double step = (screen.width - 10) / 15;
     
@@ -565,73 +566,73 @@ class MatteOfficePainter extends CustomPainter {
 
     double endX = startX + 15 * step;
     double endY = (screen.bottom - 10 - 30 + math.sin(tPI * 2 + 15) * 12).clamp(screen.top + 5, screen.bottom - 5);
-    canvas.drawCircle(Offset(endX, endY), 2.5 + math.sin(tPI * 4) * 1.0, Paint()..color = Colors.white);
+    canvas.drawRect(Rect.fromCenter(center: Offset(endX, endY), width: 5, height: 5), Paint()..color = Colors.white);
   }
 
   void _drawWallClock(Canvas canvas, double w, double h, double tPI) {
     final Offset center = Offset(w * 0.8, h * 0.25);
-    canvas.drawCircle(center, 10, Paint()..color = const Color(0xFFF8FAFC));
-    canvas.drawCircle(center, 10, Paint()..color = const Color(0xFF475569)..style = PaintingStyle.stroke..strokeWidth = 2);
-    canvas.drawLine(center, Offset(center.dx + math.cos(tPI * 0.1) * 4, center.dy + math.sin(tPI * 0.1) * 4), Paint()..color = const Color(0xFF0F172A)..strokeWidth = 1.8); 
-    canvas.drawLine(center, Offset(center.dx + math.cos(tPI * 2) * 6, center.dy + math.sin(tPI * 2) * 6), Paint()..color = const Color(0xFFEF4444)..strokeWidth = 1.0); 
+    canvas.drawRect(Rect.fromCenter(center: center, width: 24, height: 24), Paint()..color = const Color(0xFFF8FAFC));
+    canvas.drawRect(Rect.fromCenter(center: center, width: 24, height: 24), Paint()..color = const Color(0xFF475569)..style = PaintingStyle.stroke..strokeWidth = 3);
+    canvas.drawLine(center, Offset(center.dx + math.cos(tPI * 0.1) * 4, center.dy + math.sin(tPI * 0.1) * 4), Paint()..color = const Color(0xFF0F172A)..strokeWidth = 2.5); 
+    canvas.drawLine(center, Offset(center.dx + math.cos(tPI * 2) * 6, center.dy + math.sin(tPI * 2) * 6), Paint()..color = const Color(0xFFEF4444)..strokeWidth = 1.5); 
   }
 
   void _drawMarketingWall(Canvas canvas, double w, double h, double tPI) {
     final Rect board = Rect.fromLTWH(w * 0.25, h * 0.16, w * 0.52, h * 0.28);
-    canvas.drawRRect(RRect.fromRectAndRadius(board, const Radius.circular(4)), Paint()..color = const Color(0xFF2E1065));
-    canvas.drawRRect(RRect.fromRectAndRadius(board, const Radius.circular(4)), Paint()..color = const Color(0xFFE879F9)..style=PaintingStyle.stroke..strokeWidth=1.5);
+    canvas.drawRect(board, Paint()..color = const Color(0xFF2E1065));
+    canvas.drawRect(board, Paint()..color = const Color(0xFFE879F9)..style=PaintingStyle.stroke..strokeWidth=2.5);
     
     final Path viralPath = Path()
       ..moveTo(board.left + 5, board.bottom - 6)
-      ..quadraticBezierTo(board.left + 15, board.bottom - 16, board.right - 10, board.top + 10);
-    canvas.drawPath(viralPath, Paint()..color = const Color(0xFFFB7185)..style=PaintingStyle.stroke..strokeWidth=2);
+      ..lineTo(board.left + 15, board.bottom - 16)
+      ..lineTo(board.right - 10, board.top + 10);
+    canvas.drawPath(viralPath, Paint()..color = const Color(0xFFFB7185)..style=PaintingStyle.stroke..strokeWidth=2.5);
 
     double heartScale = 1.0 + (math.sin(tPI * 4) * 0.20) + (math.sin(tPI * 8) * 0.08);
-    canvas.drawCircle(Offset(board.right - 14, board.top + 12), 4 * heartScale, Paint()..color = const Color(0xFFF43F5E));
+    canvas.drawRect(Rect.fromCenter(center: Offset(board.right - 14, board.top + 12), width: 6 * heartScale, height: 6 * heartScale), Paint()..color = const Color(0xFFF43F5E));
   }
 
   void _drawLogisticsWall(Canvas canvas, double w, double h, double tPI) {
     final Rect mapBoard = Rect.fromLTWH(w * 0.22, h * 0.18, w * 0.56, h * 0.26);
     canvas.drawRect(mapBoard, Paint()..color = const Color(0xFF0369A1));
-    canvas.drawRect(mapBoard, Paint()..color = const Color(0xFF7DD3FC)..style=PaintingStyle.stroke..strokeWidth=1.5);
+    canvas.drawRect(mapBoard, Paint()..color = const Color(0xFF7DD3FC)..style=PaintingStyle.stroke..strokeWidth=2.5);
 
-    final Paint routePaint = Paint()..color = Colors.white70..style=PaintingStyle.stroke..strokeWidth=1.2;
-    canvas.drawCircle(Offset(mapBoard.left + 12, mapBoard.center.dy), 3, Paint()..color = const Color(0xFFBAE6FD));
-    canvas.drawCircle(Offset(mapBoard.center.dx, mapBoard.center.dy - 6), 3, Paint()..color = const Color(0xFFBAE6FD));
-    canvas.drawCircle(Offset(mapBoard.right - 12, mapBoard.center.dy + 4), 3, Paint()..color = const Color(0xFFBAE6FD));
+    final Paint routePaint = Paint()..color = Colors.white70..style=PaintingStyle.stroke..strokeWidth=2.0;
+    canvas.drawRect(Rect.fromCenter(center: Offset(mapBoard.left + 12, mapBoard.center.dy), width: 6, height: 6), Paint()..color = const Color(0xFFBAE6FD));
+    canvas.drawRect(Rect.fromCenter(center: Offset(mapBoard.center.dx, mapBoard.center.dy - 6), width: 6, height: 6), Paint()..color = const Color(0xFFBAE6FD));
+    canvas.drawRect(Rect.fromCenter(center: Offset(mapBoard.right - 12, mapBoard.center.dy + 4), width: 6, height: 6), Paint()..color = const Color(0xFFBAE6FD));
     
     double radarRadius = (time * 16) % 12;
-    canvas.drawCircle(
-      Offset(mapBoard.center.dx, mapBoard.center.dy - 6), 
-      radarRadius, 
-      Paint()..color = const Color(0xFFFDE047).withValues(alpha: (1.0 - (radarRadius / 12)).clamp(0.0, 1.0))..style = PaintingStyle.stroke..strokeWidth = 1.0,
+    canvas.drawRect(
+      Rect.fromCenter(center: Offset(mapBoard.center.dx, mapBoard.center.dy - 6), width: radarRadius * 2, height: radarRadius * 2), 
+      Paint()..color = const Color(0xFFFDE047).withValues(alpha: (1.0 - (radarRadius / 12)).clamp(0.0, 1.0))..style = PaintingStyle.stroke..strokeWidth = 1.5,
     );
 
-    Path r1 = Path()..moveTo(mapBoard.left + 12, mapBoard.center.dy)..quadraticBezierTo(mapBoard.left + 25, mapBoard.top + 8, mapBoard.center.dx, mapBoard.center.dy - 6);
-    Path r2 = Path()..moveTo(mapBoard.center.dx, mapBoard.center.dy - 6)..quadraticBezierTo(mapBoard.right - 25, mapBoard.bottom - 8, mapBoard.right - 12, mapBoard.center.dy + 4);
+    Path r1 = Path()..moveTo(mapBoard.left + 12, mapBoard.center.dy)..lineTo(mapBoard.left + 25, mapBoard.top + 8)..lineTo(mapBoard.center.dx, mapBoard.center.dy - 6);
+    Path r2 = Path()..moveTo(mapBoard.center.dx, mapBoard.center.dy - 6)..lineTo(mapBoard.right - 25, mapBoard.bottom - 8)..lineTo(mapBoard.right - 12, mapBoard.center.dy + 4);
     canvas.drawPath(r1, routePaint);
     canvas.drawPath(r2, routePaint);
 
     double progress = (tPI / (math.pi * 2));
     double markerX = mapBoard.left + 12 + (progress * (mapBoard.width - 24));
-    canvas.drawCircle(Offset(markerX, mapBoard.center.dy - math.sin(progress * math.pi) * 8), 2.4, Paint()..color = const Color(0xFFFACC15));
+    canvas.drawRect(Rect.fromCenter(center: Offset(markerX, mapBoard.center.dy - math.sin(progress * math.pi) * 8), width: 5, height: 5), Paint()..color = const Color(0xFFFACC15));
   }
 
   void _drawShiftWall(Canvas canvas, double w, double h, double tPI) {
     final Rect shiftBoard = Rect.fromLTWH(w * 0.26, h * 0.18, w * 0.48, h * 0.25);
-    canvas.drawRRect(RRect.fromRectAndRadius(shiftBoard, const Radius.circular(3)), Paint()..color = const Color(0xFF27272A));
-    canvas.drawRRect(RRect.fromRectAndRadius(shiftBoard, const Radius.circular(3)), Paint()..color = const Color(0xFFA1A1AA)..style=PaintingStyle.stroke..strokeWidth=1.5);
+    canvas.drawRect(shiftBoard, Paint()..color = const Color(0xFF27272A));
+    canvas.drawRect(shiftBoard, Paint()..color = const Color(0xFFA1A1AA)..style=PaintingStyle.stroke..strokeWidth=2.5);
 
     for (int i = 0; i < 3; i++) {
       double lineY = shiftBoard.top + 8.0 + (i * 12.0);
-      canvas.drawLine(Offset(shiftBoard.left + 6, lineY), Offset(shiftBoard.right - 6, lineY), Paint()..color = const Color(0xFF52525B)..strokeWidth = 1.2);
+      canvas.drawLine(Offset(shiftBoard.left + 6, lineY), Offset(shiftBoard.right - 6, lineY), Paint()..color = const Color(0xFF52525B)..strokeWidth = 2.0);
       canvas.drawRect(Rect.fromLTWH(shiftBoard.left + 8 + (i * 14), lineY - 3, 10, 6), Paint()..color = const Color(0xFFFBBF24));
     }
 
     final Offset beaconCenter = Offset(w * 0.82, h * 0.25);
     canvas.drawRect(Rect.fromLTWH(beaconCenter.dx - 5, beaconCenter.dy + 2, 10, 4), Paint()..color = const Color(0xFF52525B));
-    canvas.drawCircle(beaconCenter, 6, Paint()..color = const Color(0xFFF59E0B).withValues(alpha: 0.35 + (math.sin(tPI * 4) * 0.35)));
-    canvas.drawCircle(beaconCenter, 3.2, Paint()..color = const Color(0xFFFDE047));
+    canvas.drawRect(Rect.fromCenter(center: beaconCenter, width: 12, height: 12), Paint()..color = const Color(0xFFF59E0B).withValues(alpha: 0.35 + (math.sin(tPI * 4) * 0.35)));
+    canvas.drawRect(Rect.fromCenter(center: beaconCenter, width: 6, height: 6), Paint()..color = const Color(0xFFFDE047));
   }
 
   void _drawWarningLines(Canvas canvas, double w, double h) {
@@ -643,13 +644,13 @@ class MatteOfficePainter extends CustomPainter {
 
   void _drawLogisticsFloorCargo(Canvas canvas, double w, double h) {
     final Rect box1 = Rect.fromLTWH(w * 0.80, h * 0.74, 16, 14);
-    canvas.drawRRect(RRect.fromRectAndRadius(box1, const Radius.circular(2)), Paint()..color = const Color(0xFF92400E));
+    canvas.drawRect(box1, Paint()..color = const Color(0xFF92400E));
     canvas.drawRect(Rect.fromLTWH(box1.left, box1.center.dy - 1, 16, 2), Paint()..color = const Color(0xFFD97706));
   }
 
   void _drawPottedPlant(Canvas canvas, double w, double h, double tPI) {
     final Offset base = Offset(w * 0.86, h * 0.77);
-    canvas.drawOval(Rect.fromCenter(center: Offset(base.dx, base.dy + 12), width: 14, height: 4), Paint()..color = Colors.black38);
+    canvas.drawRect(Rect.fromCenter(center: Offset(base.dx, base.dy + 12), width: 14, height: 4), Paint()..color = Colors.black38);
 
     final Path potPath = Path()
       ..moveTo(base.dx - 6, base.dy)
@@ -660,8 +661,8 @@ class MatteOfficePainter extends CustomPainter {
     canvas.drawPath(potPath, Paint()..color = const Color(0xFFEA580C));
     
     final Rect rim = Rect.fromCenter(center: Offset(base.dx, base.dy), width: 14, height: 3.5);
-    canvas.drawRRect(RRect.fromRectAndRadius(rim, const Radius.circular(1.5)), Paint()..color = const Color(0xFFFB923C));
-    canvas.drawOval(Rect.fromCenter(center: Offset(base.dx, base.dy - 0.5), width: 10, height: 2), Paint()..color = const Color(0xFF451A03));
+    canvas.drawRect(rim, Paint()..color = const Color(0xFFFB923C));
+    canvas.drawRect(Rect.fromCenter(center: Offset(base.dx, base.dy - 0.5), width: 10, height: 2), Paint()..color = const Color(0xFF451A03));
 
     final double sway = (math.sin(tPI * 1.5) * 1.2) + (math.sin(tPI * 3.0) * 0.4);
     final Paint leafFill = Paint()..color = const Color(0xFF22C55E);
@@ -669,29 +670,29 @@ class MatteOfficePainter extends CustomPainter {
 
     final Path leftLeaf = Path()
       ..moveTo(base.dx, base.dy - 1)
-      ..quadraticBezierTo(base.dx - 10 + sway, base.dy - 6, base.dx - 12 + sway, base.dy - 14)
-      ..quadraticBezierTo(base.dx - 4 + sway, base.dy - 9, base.dx, base.dy - 1);
+      ..lineTo(base.dx - 12 + sway, base.dy - 14)
+      ..lineTo(base.dx - 4 + sway, base.dy - 9)..close();
     canvas.drawPath(leftLeaf, leafFill);
 
     final Path rightLeaf = Path()
       ..moveTo(base.dx, base.dy - 1)
-      ..quadraticBezierTo(base.dx + 9 + sway, base.dy - 5, base.dx + 11 + sway, base.dy - 12)
-      ..quadraticBezierTo(base.dx + 4 + sway, base.dy - 8, base.dx, base.dy - 1);
+      ..lineTo(base.dx + 11 + sway, base.dy - 12)
+      ..lineTo(base.dx + 4 + sway, base.dy - 8)..close();
     canvas.drawPath(rightLeaf, leafLight);
 
     final Path centerLeaf = Path()
       ..moveTo(base.dx, base.dy - 1)
-      ..quadraticBezierTo(base.dx - 3 + (sway * 0.5), base.dy - 10, base.dx + (sway * 0.5), base.dy - 17)
-      ..quadraticBezierTo(base.dx + 3 + (sway * 0.5), base.dy - 10, base.dx, base.dy - 1);
+      ..lineTo(base.dx + (sway * 0.5), base.dy - 17)
+      ..lineTo(base.dx + 3 + (sway * 0.5), base.dy - 10)..close();
     canvas.drawPath(centerLeaf, leafFill);
   }
 
   void _drawMatteDesk(Canvas canvas, double cx, double cy, {double width = 30, bool dark = false}) {
-    final Paint woodTop = Paint()..color = dark ? const Color(0xFF2B2118) : const Color(0xFFC49A6C); 
-    final Paint woodEdge = Paint()..color = dark ? const Color(0xFF1E1510) : const Color(0xFFA67C52);
-    final Paint metalLegs = Paint()..color = dark ? const Color(0xFF171A21) : const Color(0xFF334155);
+    final Paint woodTop = Paint()..color = dark ? const Color(0xFF2B2118) : const Color(0xFF9CA3AF); 
+    final Paint woodEdge = Paint()..color = dark ? const Color(0xFF1E1510) : const Color(0xFF475569);
+    final Paint metalLegs = Paint()..color = dark ? const Color(0xFF171A21) : const Color(0xFF1E293B);
 
-    canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromCenter(center: Offset(cx, cy), width: width, height: 4.5), const Radius.circular(1.5)), woodTop);
+    canvas.drawRect(Rect.fromCenter(center: Offset(cx, cy), width: width, height: 4.5), woodTop);
     canvas.drawRect(Rect.fromLTWH(cx - width / 2, cy + 1, width, 1.5), woodEdge);
     
     canvas.drawRect(Rect.fromLTWH(cx - width / 2 + 3, cy + 2.5, 3.5, 20), metalLegs); 
@@ -699,24 +700,24 @@ class MatteOfficePainter extends CustomPainter {
   }
 
   void _drawBgMonitorBack(Canvas canvas, double cx, double cy) {
-    canvas.drawOval(Rect.fromCenter(center: Offset(cx, cy - 1), width: 7, height: 2.2), Paint()..color = const Color(0xFF1E293B));
+    canvas.drawRect(Rect.fromCenter(center: Offset(cx, cy - 1), width: 7, height: 2.2), Paint()..color = const Color(0xFF1E293B));
     canvas.drawRect(Rect.fromLTWH(cx - 1, cy - 6, 2, 5), Paint()..color = const Color(0xFF475569));
 
     final Rect monRect = Rect.fromCenter(center: Offset(cx, cy - 9), width: 15, height: 9.5);
-    canvas.drawRRect(RRect.fromRectAndRadius(monRect, const Radius.circular(1.5)), Paint()..color = const Color(0xFF334155));
-    canvas.drawCircle(Offset(cx, cy - 9), 1.5, Paint()..color = const Color(0xFF64748B));
+    canvas.drawRect(monRect, Paint()..color = const Color(0xFF334155));
+    canvas.drawRect(Rect.fromCenter(center: Offset(cx, cy - 9), width: 3, height: 3), Paint()..color = const Color(0xFF64748B));
   }
 
   void _drawStylizedKeyboard(Canvas canvas, double cx, double cy, {double width = 32, double height = 7.5, bool isRgb = false, double tPI = 0.0}) {
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(Rect.fromCenter(center: Offset(cx, cy + 0.8), width: width + 2, height: height + 0.8), const Radius.circular(2.2)),
+    canvas.drawRect(
+      Rect.fromCenter(center: Offset(cx, cy + 0.8), width: width + 2, height: height + 0.8),
       Paint()..color = Colors.black26,
     );
 
     final Rect kbRect = Rect.fromCenter(center: Offset(cx, cy), width: width, height: height);
-    canvas.drawRRect(RRect.fromRectAndRadius(kbRect, const Radius.circular(2)), Paint()..color = const Color(0xFF1E293B));
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(Rect.fromCenter(center: Offset(cx, cy - 0.4), width: width - 1.4, height: height - 1.2), const Radius.circular(1.6)),
+    canvas.drawRect(kbRect, Paint()..color = const Color(0xFF1E293B));
+    canvas.drawRect(
+      Rect.fromCenter(center: Offset(cx, cy - 0.4), width: width - 1.4, height: height - 1.2),
       Paint()..color = const Color(0xFF334155),
     );
 
@@ -729,30 +730,30 @@ class MatteOfficePainter extends CustomPainter {
 
     for (int i = 0; i < 5; i++) {
       double kx = (cx - keyWidth / 2) + (i * (keyWidth / 5)) + 0.3;
-      canvas.drawRRect(
-        RRect.fromRectAndRadius(Rect.fromLTWH(kx, keyTopY, (keyWidth / 5) - 0.8, 1.5), const Radius.circular(0.5)),
+      canvas.drawRect(
+        Rect.fromLTWH(kx, keyTopY, (keyWidth / 5) - 0.8, 1.5),
         Paint()..color = keyBaseColor,
       );
     }
 
     for (int i = 0; i < 4; i++) {
       double kx = (cx - keyWidth / 2) + (i * (keyWidth / 4)) + 0.4;
-      canvas.drawRRect(
-        RRect.fromRectAndRadius(Rect.fromLTWH(kx, keyTopY + 2.0, (keyWidth / 4) - 1.0, 1.5), const Radius.circular(0.5)),
+      canvas.drawRect(
+        Rect.fromLTWH(kx, keyTopY + 2.0, (keyWidth / 4) - 1.0, 1.5),
         Paint()..color = keyBaseColor,
       );
     }
 
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(Rect.fromLTWH(cx - (keyWidth * 0.28), keyTopY + 4.0, keyWidth * 0.56, 1.5), const Radius.circular(0.7)),
+    canvas.drawRect(
+      Rect.fromLTWH(cx - (keyWidth * 0.28), keyTopY + 4.0, keyWidth * 0.56, 1.5),
       Paint()..color = isRgb ? const Color(0xFF38BDF8) : const Color(0xFF94A3B8),
     );
 
     final double mouseX = cx + (width / 2) + 5.5;
     final double mouseY = cy + 0.5;
-    canvas.drawOval(Rect.fromCenter(center: Offset(mouseX, mouseY + 0.8), width: 5, height: 6.8), Paint()..color = Colors.black26);
-    canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromCenter(center: Offset(mouseX, mouseY), width: 5, height: 6.8), const Radius.circular(2)), Paint()..color = const Color(0xFF1E293B));
-    canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromCenter(center: Offset(mouseX, mouseY - 0.4), width: 4, height: 5.8), const Radius.circular(1.6)), Paint()..color = const Color(0xFF475569));
+    canvas.drawRect(Rect.fromCenter(center: Offset(mouseX, mouseY + 0.8), width: 5, height: 6.8), Paint()..color = Colors.black26);
+    canvas.drawRect(Rect.fromCenter(center: Offset(mouseX, mouseY), width: 5, height: 6.8), Paint()..color = const Color(0xFF1E293B));
+    canvas.drawRect(Rect.fromCenter(center: Offset(mouseX, mouseY - 0.4), width: 4, height: 5.8), Paint()..color = const Color(0xFF475569));
   }
 
   void _drawMonitorBackChassis(Canvas canvas, {
@@ -784,63 +785,63 @@ class MatteOfficePainter extends CustomPainter {
 
     final double pulseSpread = 6.0 + (math.sin(tPI * 2.5) * 2.0);
     final Rect glowRect = Rect.fromCenter(center: const Offset(0, screenCenterY), width: width + pulseSpread, height: height + pulseSpread);
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(glowRect, const Radius.circular(6)),
+    canvas.drawRect(
+      glowRect,
       Paint()
         ..color = glowColor.withValues(alpha: 0.24)
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6),
     );
 
     final Rect basePlate = Rect.fromCenter(center: const Offset(0, -1), width: 16, height: 3.5);
-    canvas.drawOval(basePlate.translate(0, 0.8), Paint()..color = Colors.black38);
-    canvas.drawRRect(RRect.fromRectAndRadius(basePlate, const Radius.circular(1.6)), Paint()..color = const Color(0xFF334155));
-    canvas.drawRRect(RRect.fromRectAndRadius(basePlate.deflate(0.5), const Radius.circular(1.2)), Paint()..color = const Color(0xFF64748B));
+    canvas.drawRect(basePlate.translate(0, 0.8), Paint()..color = Colors.black38);
+    canvas.drawRect(basePlate, Paint()..color = const Color(0xFF334155));
+    canvas.drawRect(basePlate.deflate(0.5), Paint()..color = const Color(0xFF64748B));
 
     final Rect standArm = Rect.fromCenter(center: const Offset(0, screenCenterY / 2), width: 4.2, height: -screenCenterY + 2);
-    canvas.drawRRect(RRect.fromRectAndRadius(standArm, const Radius.circular(1.5)), Paint()..color = const Color(0xFF334155));
+    canvas.drawRect(standArm, Paint()..color = const Color(0xFF334155));
     canvas.drawRect(const Rect.fromLTWH(-1.4, screenCenterY, 2.8, -screenCenterY), Paint()..color = const Color(0xFF64748B));
 
     final Rect monRect = Rect.fromCenter(center: const Offset(0, screenCenterY), width: width, height: height);
     
-    canvas.drawRRect(RRect.fromRectAndRadius(monRect.inflate(1.0), const Radius.circular(4)), Paint()..color = const Color(0xFF0F172A));
-    canvas.drawRRect(RRect.fromRectAndRadius(monRect, const Radius.circular(3.5)), Paint()..color = const Color(0xFF273244));
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(Rect.fromLTWH(-width / 2 + 1, screenCenterY - (height / 2) + 1, width - 2, 2), const Radius.circular(1)),
+    canvas.drawRect(monRect.inflate(1.0), Paint()..color = const Color(0xFF0F172A));
+    canvas.drawRect(monRect, Paint()..color = const Color(0xFF273244));
+    canvas.drawRect(
+      Rect.fromLTWH(-width / 2 + 1, screenCenterY - (height / 2) + 1, width - 2, 2),
       Paint()..color = const Color(0xFF475569),
     );
 
     for (int i = 0; i < 4; i++) {
       double vy = screenCenterY - (height / 2) + 4.0 + (i * 1.6);
-      canvas.drawLine(Offset(-width * 0.35, vy), Offset(width * 0.35, vy), Paint()..color = const Color(0xFF1E293B)..strokeWidth = 0.8);
+      canvas.drawLine(Offset(-width * 0.35, vy), Offset(width * 0.35, vy), Paint()..color = const Color(0xFF1E293B)..strokeWidth = 1.0);
     }
 
     final Rect vesaPlate = Rect.fromCenter(center: const Offset(0, screenCenterY + 1), width: 8.5, height: 8.5);
-    canvas.drawRRect(RRect.fromRectAndRadius(vesaPlate, const Radius.circular(2)), Paint()..color = const Color(0xFF1E293B));
-    canvas.drawCircle(const Offset(0, screenCenterY + 1), 2.8, Paint()..color = const Color(0xFF475569));
-    canvas.drawCircle(const Offset(0, screenCenterY - 3.5), 1.3, Paint()..color = const Color(0xFF94A3B8));
+    canvas.drawRect(vesaPlate, Paint()..color = const Color(0xFF1E293B));
+    canvas.drawRect(Rect.fromCenter(center: const Offset(0, screenCenterY + 1), width: 4, height: 4), Paint()..color = const Color(0xFF475569));
+    canvas.drawRect(Rect.fromCenter(center: const Offset(0, screenCenterY - 3.5), width: 2, height: 2), Paint()..color = const Color(0xFF94A3B8));
 
     if (deptId == 'staff_4' || deptId == 'staff_5') {
       Color ledColor = deptId == 'staff_5' 
           ? const Color(0xFFEC4899) 
           : Color.lerp(const Color(0xFF06B6D4), const Color(0xFFA855F7), (math.sin(tPI * 3) + 1) / 2)!;
-      canvas.drawRRect(
-        RRect.fromRectAndRadius(Rect.fromCenter(center: const Offset(0, screenCenterY + 5), width: width * 0.65, height: 1.4), const Radius.circular(0.7)),
+      canvas.drawRect(
+        Rect.fromCenter(center: const Offset(0, screenCenterY + 5), width: width * 0.65, height: 1.4),
         Paint()..color = ledColor,
       );
     }
 
     final Path cablePath = Path()
       ..moveTo(2.5, screenCenterY + 3)
-      ..quadraticBezierTo(4.5, screenCenterY / 2, 2.0, -1);
-    canvas.drawPath(cablePath, Paint()..color = const Color(0xFF1E293B)..style = PaintingStyle.stroke..strokeWidth = 1.2..strokeCap = StrokeCap.round);
+      ..lineTo(4.5, screenCenterY / 2)..lineTo(2.0, -1);
+    canvas.drawPath(cablePath, Paint()..color = const Color(0xFF1E293B)..style = PaintingStyle.stroke..strokeWidth = 1.5..strokeCap = StrokeCap.square);
 
     canvas.restore();
   }
 
   void _drawMainAccessories(Canvas canvas, double w, double deskY, double tPI, String deptId, double workerX) {
     final Rect deskMat = Rect.fromCenter(center: Offset(w * 0.55, deskY - 1.5), width: w * 0.52, height: 11);
-    canvas.drawRRect(RRect.fromRectAndRadius(deskMat, const Radius.circular(2.5)), Paint()..color = const Color(0xFF1E293B));
-    canvas.drawRRect(RRect.fromRectAndRadius(deskMat.deflate(0.5), const Radius.circular(2)), Paint()..color = const Color(0xFF334155));
+    canvas.drawRect(deskMat, Paint()..color = const Color(0xFF1E293B));
+    canvas.drawRect(deskMat.deflate(0.5), Paint()..color = const Color(0xFF334155));
 
     bool isRgb = deptId == 'staff_4' || deptId == 'staff_5';
     final double kbX = workerX;
@@ -861,32 +862,32 @@ class MatteOfficePainter extends CustomPainter {
       );
 
       if (deptId == 'staff_1') {
-        canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(w * 0.28, deskY - 10, 8, 7), const Radius.circular(1)), Paint()..color = const Color(0xFFF1F5F9));
-        canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(w * 0.28, deskY - 10, 2, 7), const Radius.circular(0.8)), Paint()..color = const Color(0xFF38BDF8));
+        canvas.drawRect(Rect.fromLTWH(w * 0.28, deskY - 10, 8, 7), Paint()..color = const Color(0xFFF1F5F9));
+        canvas.drawRect(Rect.fromLTWH(w * 0.28, deskY - 10, 2, 7), Paint()..color = const Color(0xFF38BDF8));
       } else if (deptId == 'staff_2') {
-        canvas.drawOval(Rect.fromLTWH(w * 0.28, deskY - 5, 7, 3), Paint()..color = const Color(0xFFFDE68A));
+        canvas.drawRect(Rect.fromLTWH(w * 0.28, deskY - 5, 7, 3), Paint()..color = const Color(0xFFFDE68A));
       } else if (deptId == 'staff_3') {
-        canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(w * 0.28, deskY - 7, 4.5, 5.5), const Radius.circular(1)), Paint()..color = const Color(0xFFF8FAFC));
+        canvas.drawRect(Rect.fromLTWH(w * 0.28, deskY - 7, 4.5, 5.5), Paint()..color = const Color(0xFFF8FAFC));
         double steamY = math.sin(tPI * 3) * 1.5;
-        final Paint steamPaint = Paint()..color = Colors.white54..style = PaintingStyle.stroke..strokeWidth = 0.8..strokeCap = StrokeCap.round;
+        final Paint steamPaint = Paint()..color = Colors.white54..style = PaintingStyle.stroke..strokeWidth = 1.0..strokeCap = StrokeCap.square;
         canvas.drawLine(Offset(w * 0.29, deskY - 8 + steamY), Offset(w * 0.295, deskY - 11 + steamY), steamPaint);
         canvas.drawLine(Offset(w * 0.31, deskY - 8 - steamY), Offset(w * 0.305, deskY - 11 - steamY), steamPaint);
       } else if (deptId == 'staff_5') {
         final Offset micBase = Offset(w * 0.29, deskY - 2);
-        canvas.drawLine(micBase, Offset(micBase.dx, micBase.dy - 8), Paint()..color = const Color(0xFF94A3B8)..strokeWidth = 1.5);
-        canvas.drawOval(Rect.fromCenter(center: Offset(micBase.dx, micBase.dy - 10), width: 4.5, height: 6.5), Paint()..color = const Color(0xFFEC4899));
+        canvas.drawLine(micBase, Offset(micBase.dx, micBase.dy - 8), Paint()..color = const Color(0xFF94A3B8)..strokeWidth = 2.0);
+        canvas.drawRect(Rect.fromCenter(center: Offset(micBase.dx, micBase.dy - 10), width: 4.5, height: 6.5), Paint()..color = const Color(0xFFEC4899));
         double waveR = (time * 12) % 6;
-        canvas.drawCircle(Offset(micBase.dx, micBase.dy - 10), waveR, Paint()..color = const Color(0xFFEC4899).withValues(alpha: (1.0 - (waveR / 6)).clamp(0.0, 1.0))..style = PaintingStyle.stroke..strokeWidth = 0.8);
+        canvas.drawRect(Rect.fromCenter(center: Offset(micBase.dx, micBase.dy - 10), width: waveR * 2, height: waveR * 2), Paint()..color = const Color(0xFFEC4899).withValues(alpha: (1.0 - (waveR / 6)).clamp(0.0, 1.0))..style = PaintingStyle.stroke..strokeWidth = 1.0);
       } else if (deptId == 'staff_6') {
         final Rect miniBox = Rect.fromLTWH(w * 0.27, deskY - 8, 9, 8);
-        canvas.drawRRect(RRect.fromRectAndRadius(miniBox, const Radius.circular(1)), Paint()..color = const Color(0xFFD97706));
+        canvas.drawRect(miniBox, Paint()..color = const Color(0xFFD97706));
         canvas.drawRect(Rect.fromLTWH(miniBox.left, miniBox.center.dy - 0.5, 9, 1.2), Paint()..color = const Color(0xFFFEF08A));
       } else if (deptId == 'staff_7') {
         final Rect walkie = Rect.fromLTWH(w * 0.28, deskY - 9, 5, 8);
-        canvas.drawRRect(RRect.fromRectAndRadius(walkie, const Radius.circular(1)), Paint()..color = const Color(0xFF27272A));
-        canvas.drawLine(Offset(walkie.left + 1.5, walkie.top), Offset(walkie.left + 1.5, walkie.top - 4), Paint()..color = const Color(0xFF71717A)..strokeWidth = 1.2);
+        canvas.drawRect(walkie, Paint()..color = const Color(0xFF27272A));
+        canvas.drawLine(Offset(walkie.left + 1.5, walkie.top), Offset(walkie.left + 1.5, walkie.top - 4), Paint()..color = const Color(0xFF71717A)..strokeWidth = 1.5);
         double blinkAlpha = (math.sin(tPI * 6) > 0) ? 1.0 : 0.2;
-        canvas.drawCircle(Offset(walkie.right - 1.5, walkie.top + 2), 0.8, Paint()..color = const Color(0xFFEF4444).withValues(alpha: blinkAlpha));
+        canvas.drawRect(Rect.fromCenter(center: Offset(walkie.right - 1.5, walkie.top + 2), width: 1.6, height: 1.6), Paint()..color = const Color(0xFFEF4444).withValues(alpha: blinkAlpha));
       }
     } 
     else {
@@ -909,16 +910,16 @@ class MatteOfficePainter extends CustomPainter {
     final double leftShoulderX = workerX + (-9.5 * scale);
     final double rightShoulderX = workerX + (9.5 * scale);
 
-    Color armColor = isMain ? const Color(0xFFF8FAFC) : const Color(0xFF94A3B8);
+    Color armColor = isMain ? const Color(0xFFCBD5E1) : const Color(0xFF94A3B8);
     if (deptId == 'staff_6') armColor = const Color(0xFF0284C7);
-    if (deptId == 'staff_7') armColor = const Color(0xFFEAB308);
+    if (deptId == 'staff_7') armColor = const Color(0xFFD97706);
 
     final Paint shirtArm = Paint()
       ..color = armColor
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 4.2
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
+      ..strokeWidth = 4.5
+      ..strokeCap = StrokeCap.square
+      ..strokeJoin = StrokeJoin.miter;
 
     final Paint skin = Paint()..color = const Color(0xFFFDBA74);
 
@@ -932,8 +933,8 @@ class MatteOfficePainter extends CustomPainter {
       ..lineTo(leftElbowX, leftElbowY)
       ..lineTo(leftWristX, leftWristY);
     canvas.drawPath(leftArmPath, shirtArm);
-    canvas.drawCircle(Offset(leftWristX, leftWristY), 2.2, skin);
-    canvas.drawCircle(Offset(leftWristX + 1.0, leftWristY + 1.0), 1.1, skin);
+    canvas.drawRect(Rect.fromCenter(center: Offset(leftWristX, leftWristY), width: 4.4, height: 4.4), skin);
+    canvas.drawRect(Rect.fromCenter(center: Offset(leftWristX + 1.0, leftWristY + 1.0), width: 2.2, height: 2.2), skin);
 
     final double rightElbowX = workerX + 12.0;
     final double rightElbowY = kbY - 5.5;
@@ -945,8 +946,8 @@ class MatteOfficePainter extends CustomPainter {
       ..lineTo(rightElbowX, rightElbowY)
       ..lineTo(rightWristX, rightWristY);
     canvas.drawPath(rightArmPath, shirtArm);
-    canvas.drawCircle(Offset(rightWristX, rightWristY), 2.2, skin);
-    canvas.drawCircle(Offset(rightWristX - 1.0, rightWristY + 1.0 + thumbSpace), 1.1, skin);
+    canvas.drawRect(Rect.fromCenter(center: Offset(rightWristX, rightWristY), width: 4.4, height: 4.4), skin);
+    canvas.drawRect(Rect.fromCenter(center: Offset(rightWristX - 1.0, rightWristY + 1.0 + thumbSpace), width: 2.2, height: 2.2), skin);
   }
 
   void _drawMatteWorker(Canvas canvas, double cx, double cy, double tPI, double scale, {required bool isMain, required String deptId}) {
@@ -955,7 +956,7 @@ class MatteOfficePainter extends CustomPainter {
     canvas.scale(scale);
 
     final Paint skin = Paint()..color = const Color(0xFFFDBA74);
-    Paint shirt = Paint()..color = isMain ? const Color(0xFFF8FAFC) : const Color(0xFF94A3B8); 
+    Paint shirt = Paint()..color = isMain ? const Color(0xFFCBD5E1) : const Color(0xFF94A3B8); 
 
     if (deptId == 'staff_6') shirt = Paint()..color = const Color(0xFF0284C7); 
     if (deptId == 'staff_7') shirt = Paint()..color = const Color(0xFFD97706); 
@@ -964,53 +965,51 @@ class MatteOfficePainter extends CustomPainter {
     final double headTilt = math.sin(tPI * 1.5) * 0.04;
     canvas.translate(0, breathBob);
     
-    canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(-12, -8, 24, 26), const Radius.circular(4)), shirt);
+    canvas.drawRect(const Rect.fromLTWH(-12, -8, 24, 26), shirt);
     
     if (deptId == 'staff_7') {
       canvas.drawRect(const Rect.fromLTWH(-12, -2, 24, 4), Paint()..color = const Color(0xFFFEF08A));
     }
     
-    canvas.drawPath(Path()..moveTo(-4, -8)..lineTo(0, -2)..lineTo(4, -8), Paint()..color = const Color(0xFF0F172A)..style = PaintingStyle.stroke..strokeWidth = 1.2);
+    canvas.drawPath(Path()..moveTo(-4, -8)..lineTo(0, -2)..lineTo(4, -8), Paint()..color = const Color(0xFF0F172A)..style = PaintingStyle.stroke..strokeWidth = 1.5);
     
     canvas.save();
     canvas.rotate(headTilt);
-    canvas.drawCircle(const Offset(0, -18), 8, skin);
+    canvas.drawRect(const Rect.fromLTWH(-8, -26, 16, 16), skin);
     
     double blinkCycle = (tPI * 1.8 + cx) % (math.pi * 2);
     bool isBlinking = blinkCycle > (math.pi * 2 - 0.25);
 
     if (isBlinking) {
-      final Paint eyelidPaint = Paint()..color = const Color(0xFF0F172A)..style = PaintingStyle.stroke..strokeWidth = 1.4..strokeCap = StrokeCap.round;
+      final Paint eyelidPaint = Paint()..color = const Color(0xFF0F172A)..style = PaintingStyle.stroke..strokeWidth = 1.8..strokeCap = StrokeCap.square;
       canvas.drawLine(const Offset(-4.5, -18.5), const Offset(-1.5, -18.5), eyelidPaint);
       canvas.drawLine(const Offset(1.5, -18.5), const Offset(4.5, -18.5), eyelidPaint);
     } else {
       final Paint eyeWhite = Paint()..color = Colors.white;
       final Paint pupil = Paint()..color = const Color(0xFF0F172A);
       
-      canvas.drawOval(const Rect.fromLTWH(-4.5, -20, 3, 4), eyeWhite);
-      canvas.drawOval(const Rect.fromLTWH(1.5, -20, 3, 4), eyeWhite);
-      canvas.drawCircle(const Offset(-3.2, -18.2), 1.1, pupil);
-      canvas.drawCircle(const Offset(2.8, -18.2), 1.1, pupil);
+      canvas.drawRect(const Rect.fromLTWH(-4.5, -20, 3, 4), eyeWhite);
+      canvas.drawRect(const Rect.fromLTWH(1.5, -20, 3, 4), eyeWhite);
+      canvas.drawRect(const Rect.fromLTWH(-3.7, -19.2, 1.4, 2.4), pupil);
+      canvas.drawRect(const Rect.fromLTWH(2.3, -19.2, 1.4, 2.4), pupil);
     }
     
     if (deptId == 'staff_2') {
-      canvas.drawArc(const Rect.fromLTWH(-9, -27, 18, 16), math.pi, math.pi, true, Paint()..color = const Color(0xFFF59E0B));
-      canvas.drawRect(const Rect.fromLTWH(-10, -19, 20, 2), Paint()..color = const Color(0xFFD97706));
+      canvas.drawRect(const Rect.fromLTWH(-9, -29, 18, 5), Paint()..color = const Color(0xFFF59E0B));
+      canvas.drawRect(const Rect.fromLTWH(-10, -24, 20, 2), Paint()..color = const Color(0xFFD97706));
     } else if (deptId == 'staff_5') {
-      canvas.drawPath(Path()..moveTo(-9, -18)..quadraticBezierTo(0, -30, 9, -18)..close(), Paint()..color = const Color(0xFF332014));
-      canvas.drawArc(const Rect.fromLTWH(-10, -28, 20, 18), math.pi, math.pi, false, Paint()..color = const Color(0xFFEC4899)..style=PaintingStyle.stroke..strokeWidth=2);
-      canvas.drawCircle(const Offset(-8.5, -18), 2.5, Paint()..color = const Color(0xFFEC4899));
-      canvas.drawCircle(const Offset(8.5, -18), 2.5, Paint()..color = const Color(0xFFEC4899));
+      canvas.drawPath(Path()..moveTo(-9, -18)..lineTo(0, -30)..lineTo(9, -18)..close(), Paint()..color = const Color(0xFF332014));
+      canvas.drawRect(const Rect.fromLTWH(-10, -30, 20, 18), Paint()..color = const Color(0xFFEC4899)..style=PaintingStyle.stroke..strokeWidth=2.5);
     } else if (deptId == 'staff_6') {
-      canvas.drawArc(const Rect.fromLTWH(-9, -26, 18, 14), math.pi, math.pi, true, Paint()..color = const Color(0xFF0284C7));
-      canvas.drawRect(const Rect.fromLTWH(-4, -20, 15, 2.5), Paint()..color = const Color(0xFF0369A1));
+      canvas.drawRect(const Rect.fromLTWH(-9, -28, 18, 5), Paint()..color = const Color(0xFF0284C7));
+      canvas.drawRect(const Rect.fromLTWH(-4, -23, 15, 3.5), Paint()..color = const Color(0xFF0369A1));
     } else {
-      canvas.drawPath(Path()..moveTo(-9, -18)..quadraticBezierTo(0, -30, 9, -18)..close(), Paint()..color = const Color(0xFF332014));
+      canvas.drawPath(Path()..moveTo(-9, -18)..lineTo(0, -30)..lineTo(9, -18)..close(), Paint()..color = const Color(0xFF332014));
     }
     canvas.restore();
 
     if (!isMain) {
-      final Paint bgArm = Paint()..color = shirt.color..style = PaintingStyle.stroke..strokeWidth = 3.5..strokeCap = StrokeCap.round;
+      final Paint bgArm = Paint()..color = shirt.color..style = PaintingStyle.stroke..strokeWidth = 4.0..strokeCap = StrokeCap.square;
       canvas.drawPath(Path()..moveTo(-9, -4)..lineTo(-11, 6)..lineTo(-4, 9), bgArm);
       canvas.drawPath(Path()..moveTo(9, -4)..lineTo(11, 6)..lineTo(4, 9), bgArm);
     }
@@ -1019,4 +1018,29 @@ class MatteOfficePainter extends CustomPainter {
   }
 
   @override bool shouldRepaint(covariant MatteOfficePainter oldDelegate) => true;
+}
+
+class OfficeHeavyButton extends StatefulWidget {
+  final VoidCallback? onPressed; final Widget child; final Color color; final Color shadowColor; final double height; final double? width;
+  const OfficeHeavyButton({super.key, required this.onPressed, required this.child, required this.color, required this.shadowColor, this.height = 50, this.width});
+  @override State<OfficeHeavyButton> createState() => _OfficeHeavyButtonState();
+}
+
+class _OfficeHeavyButtonState extends State<OfficeHeavyButton> {
+  bool _isPressed = false;
+  @override Widget build(BuildContext context) {
+    final bool isDisabled = widget.onPressed == null;
+    return GestureDetector(
+      onTapDown: isDisabled ? null : (_) { HapticFeedback.lightImpact(); AudioService.instance.playSfx('click.mp3'); setState(() => _isPressed = true); },
+      onTapUp: isDisabled ? null : (_) { setState(() => _isPressed = false); widget.onPressed!(); },
+      onTapCancel: isDisabled ? null : () => setState(() => _isPressed = false),
+      child: SizedBox(
+        width: widget.width, height: widget.height,
+        child: Stack(children: [
+          Positioned(bottom: 0, left: 0, right: 0, top: 6, child: Container(decoration: BoxDecoration(color: isDisabled ? AppColors.border.withValues(alpha: 0.5) : widget.shadowColor, border: Border.all(color: Colors.black87, width: 2.5)))),
+          AnimatedPositioned(duration: const Duration(milliseconds: 60), bottom: _isPressed || isDisabled ? 0 : 6, left: 0, right: 0, top: _isPressed || isDisabled ? 6 : 0, child: Container(decoration: BoxDecoration(color: isDisabled ? AppColors.surfaceElevated : widget.color, border: Border.all(color: Colors.black87, width: 2.5)), child: Center(child: widget.child))),
+        ]),
+      ),
+    );
+  }
 }

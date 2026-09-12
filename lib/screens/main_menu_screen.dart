@@ -1,4 +1,6 @@
 // lib/screens/main_menu_screen.dart
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
@@ -69,19 +71,22 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
       context: context,
       builder: (c) => AlertDialog(
         backgroundColor: AppColors.surface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: const BorderSide(color: AppColors.loss)),
-        title: const Text('ŞİRKETİ TASFİYE ET', style: TextStyle(color: AppColors.loss, fontWeight: FontWeight.bold)),
-        content: const Text('Yeni bir oyun başlatmak mevcut holdinginizi, tüm fabrikalarınızı ve kasanızı kalıcı olarak silecektir. Emin misiniz?', style: TextStyle(color: AppColors.textPrimary, fontSize: 13)),
+        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero, side: BorderSide(color: AppColors.loss, width: 3)),
+        title: const Text('ŞİRKETİ TASFİYE ET', style: TextStyle(color: AppColors.loss, fontWeight: FontWeight.w900, fontFamily: 'SpaceMono')),
+        content: const Text('Yeni bir oyun başlatmak mevcut holdinginizi, tüm fabrikalarınızı ve kasanızı kalıcı olarak silecektir. Emin misiniz?', style: TextStyle(color: AppColors.textPrimary, fontSize: 13, height: 1.4)),
         actions: [
           TextButton(
             onPressed: () { 
               AudioService.instance.playSfx('click.mp3');
               Navigator.pop(c); 
             }, 
-            child: const Text('İPTAL', style: TextStyle(color: AppColors.textMuted))
+            child: const Text('İPTAL', style: TextStyle(color: AppColors.textMuted, fontWeight: FontWeight.bold))
           ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.loss, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+          MenuHeavyButton(
+            color: AppColors.loss,
+            shadowColor: const Color(0xFF7A1010),
+            height: 45,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             onPressed: () async {
               HapticFeedback.heavyImpact();
               AudioService.instance.playSfx('click.mp3');
@@ -93,7 +98,7 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                 _showHoldingSetupDialog();
               }
             }, 
-            child: const Text('SİL VE YENİDEN BAŞLA', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+            child: const Text('SİL VE YENİDEN BAŞLA', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 12)),
           ),
         ],
       )
@@ -101,11 +106,11 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
   }
 
   void _showHoldingSetupDialog() {
-    String compName = 'Köse Holding';
+    String compName = 'MyHolding';
     int logoIndex = 0;
     
     final List<IconData> logos = [
-      Icons.domain_rounded, Icons.account_balance_rounded, Icons.factory_rounded,
+      Icons.domain_rounded, Icons.account_balance_rounded, Icons.precision_manufacturing_rounded,
       Icons.rocket_launch_rounded, Icons.local_shipping_rounded, Icons.bolt_rounded,
     ];
 
@@ -117,40 +122,50 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
           return Dialog(
             backgroundColor: Colors.transparent,
             insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(16),
+            child: ClipRect(
               child: BackdropFilter(
                 filter: ui.ImageFilter.blur(sigmaX: 12, sigmaY: 12),
                 child: Container(
+                  constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.85),
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
                     color: AppColors.surface.withValues(alpha: 0.95),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppColors.border, width: 1.5),
+                    borderRadius: BorderRadius.zero,
+                    border: Border.all(color: AppColors.border, width: 4.0),
+                    boxShadow: const [BoxShadow(color: Colors.black, blurRadius: 16)],
                   ),
                   child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.assignment_rounded, color: AppColors.gold, size: 36),
-                        const SizedBox(height: 12),
-                        Text('KURUMSAL KAYIT', textAlign: TextAlign.center, style: AppTheme.titleStyle(fontSize: 18).copyWith(color: AppColors.textPrimary, letterSpacing: 2.0)),
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: AppColors.background,
+                            borderRadius: BorderRadius.zero,
+                            border: Border.all(color: AppColors.border, width: 2),
+                          ),
+                          child: const Icon(Icons.assignment_rounded, color: AppColors.gold, size: 36),
+                        ),
+                        const SizedBox(height: 16),
+                        Text('KURUMSAL KAYIT', textAlign: TextAlign.center, style: AppTheme.titleStyle(fontSize: 20).copyWith(color: AppColors.textPrimary, letterSpacing: 2.0)),
                         const SizedBox(height: 8),
-                        const Text('Lütfen ticari serüvene atılacak olan holdinginizin resmi adını ve logosunu belirleyin.', textAlign: TextAlign.center, style: TextStyle(color: AppColors.textSecondary, fontSize: 11)),
+                        const Text('Lütfen ticari serüvene atılacak olan holdinginizin resmi adını ve logosunu belirleyin.', textAlign: TextAlign.center, style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
                         const SizedBox(height: 24),
                         
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                           decoration: BoxDecoration(
                             color: AppColors.background,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: AppColors.border),
+                            borderRadius: BorderRadius.zero,
+                            border: Border.all(color: AppColors.border, width: 2),
                           ),
                           child: TextField(
-                            style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 14),
+                            style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w900, fontSize: 16, fontFamily: 'SpaceMono'),
                             decoration: const InputDecoration(
                               labelText: 'Holding Adı',
-                              labelStyle: TextStyle(color: AppColors.textMuted, fontSize: 12),
+                              labelStyle: TextStyle(color: AppColors.textMuted, fontSize: 12, fontWeight: FontWeight.bold),
                               border: InputBorder.none,
                             ),
                             onChanged: (val) => compName = val,
@@ -158,7 +173,7 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                         ),
                         
                         const SizedBox(height: 24),
-                        const Align(alignment: Alignment.centerLeft, child: Text('Tescilli Logo Seçimi', style: TextStyle(color: AppColors.textMuted, fontSize: 11, fontWeight: FontWeight.bold))),
+                        const Align(alignment: Alignment.centerLeft, child: Text('Tescilli Logo Seçimi', style: TextStyle(color: AppColors.textMuted, fontSize: 12, fontWeight: FontWeight.w900))),
                         const SizedBox(height: 12),
                         
                         Wrap(
@@ -172,14 +187,15 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                                 setDialogState(() => logoIndex = i); 
                               },
                               child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 200),
+                                duration: const Duration(milliseconds: 150),
                                 padding: const EdgeInsets.all(16),
                                 decoration: BoxDecoration(
-                                  color: isSel ? AppColors.gold.withValues(alpha: 0.1) : AppColors.background,
-                                  borderRadius: BorderRadius.circular(10),
-                                  border: Border.all(color: isSel ? AppColors.gold : AppColors.border, width: isSel ? 2 : 1),
+                                  color: isSel ? AppColors.gold : AppColors.background,
+                                  borderRadius: BorderRadius.zero,
+                                  border: Border.all(color: isSel ? AppColors.darkBrown : AppColors.border, width: 2),
+                                  boxShadow: isSel ? const [BoxShadow(color: Colors.black54, offset: Offset(0, 4))] : [],
                                 ),
-                                child: Icon(logos[i], color: isSel ? AppColors.gold : AppColors.textMuted, size: 28),
+                                child: Icon(logos[i], color: isSel ? AppColors.darkBrown : AppColors.textMuted, size: 28),
                               ),
                             );
                           }),
@@ -187,32 +203,26 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                         
                         const SizedBox(height: 32),
                         
-                        SizedBox(
+                        MenuHeavyButton(
                           width: double.infinity,
-                          height: 50,
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.gold, 
-                              foregroundColor: AppColors.darkBrown,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                              elevation: 0,
-                            ),
-                            onPressed: () async {
-                              HapticFeedback.mediumImpact();
-                              AudioService.instance.playSfx('cash.mp3');
-                              final prefs = await SharedPreferences.getInstance();
-                              await prefs.setString('holding_name', compName.isEmpty ? 'Köse Holding' : compName);
-                              await prefs.setInt('holding_logo_index', logoIndex);
-                              
-                              await context.read<GameState>().startNewGameSession();
-                              
-                              if (context.mounted) {
-                                Navigator.pop(context);
-                                _goToMap(); 
-                              }
-                            },
-                            child: const Text('TİCARİ FAALİYETE BAŞLA', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 1.0)),
-                          ),
+                          height: 55,
+                          color: AppColors.gold,
+                          shadowColor: const Color(0xFF8B6B32),
+                          onPressed: () async {
+                            HapticFeedback.mediumImpact();
+                            AudioService.instance.playSfx('cash.mp3');
+                            final prefs = await SharedPreferences.getInstance();
+                            await prefs.setString('holding_name', compName.isEmpty ? 'Köse Holding' : compName);
+                            await prefs.setInt('holding_logo_index', logoIndex);
+                            
+                            await context.read<GameState>().startNewGameSession();
+                            
+                            if (context.mounted) {
+                              Navigator.pop(context);
+                              _goToMap(); 
+                            }
+                          },
+                          child: const Text('TİCARİ FAALİYETE BAŞLA', style: TextStyle(color: AppColors.darkBrown, fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 1.0)),
                         ),
                       ],
                     ),
@@ -248,61 +258,77 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
 
           SafeArea(
             child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    width: 130, height: 130,
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: AppColors.surface.withValues(alpha: 0.8),
-                      shape: BoxShape.circle,
-                      border: Border.all(color: AppColors.border, width: 2),
-                    ),
-                    child: ClipOval(
-                      child: Image.asset(
-                        'assets/images/logo.png',
-                        fit: BoxFit.contain,
-                        errorBuilder: (context, error, stackTrace) => const Icon(Icons.account_balance_rounded, size: 60, color: AppColors.gold),
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: 140, height: 140,
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: AppColors.surface.withValues(alpha: 0.9),
+                        shape: BoxShape.rectangle,
+                        borderRadius: BorderRadius.zero,
+                        border: Border.all(color: AppColors.border, width: 4),
+                        boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(0, 8), blurRadius: 10)],
+                      ),
+                      child: ClipRect(
+                        child: Image.asset(
+                          'assets/images/logo.png',
+                          fit: BoxFit.contain,
+                          errorBuilder: (context, error, stackTrace) => const Icon(Icons.account_balance_rounded, size: 60, color: AppColors.gold),
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 32),
-                  
-                  Text(
-                    'app_title'.tr().toUpperCase(),
-                    style: AppTheme.titleStyle(fontSize: 36).copyWith(
-                      color: AppColors.textPrimary,
-                      letterSpacing: 4.0,
-                    ),
-                  ),
-                  
-                  const SizedBox(height: 80),
-
-                  if (_isAutoStarting)
-                    const Column(
-                      children: [
-                        SizedBox(
-                          width: 24, height: 24,
-                          child: CircularProgressIndicator(color: AppColors.gold, strokeWidth: 2),
+                    const SizedBox(height: 32),
+                    
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.black54,
+                        border: Border.all(color: AppColors.border, width: 2),
+                        borderRadius: BorderRadius.zero,
+                      ),
+                      child: Text(
+                        'app_title'.tr().toUpperCase(),
+                        style: AppTheme.titleStyle(fontSize: 32).copyWith(
+                          color: AppColors.textPrimary,
+                          letterSpacing: 4.0,
+                          shadows: const [Shadow(color: Colors.black, offset: Offset(2, 2), blurRadius: 4)],
                         ),
-                        SizedBox(height: 16),
-                        Text('SİSTEME BAĞLANILIYOR...', style: TextStyle(color: AppColors.textMuted, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 2.0)),
-                      ],
-                    )
-                  else
-                    Column(
-                      children: [
-                        if (state.isFirstLaunch) ...[
-                          SizedBox(
-                            width: 260, height: 55,
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.gold,
-                                foregroundColor: AppColors.darkBrown,
-                                elevation: 0,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                              ),
+                      ),
+                    ),
+                    
+                    const SizedBox(height: 80),
+
+                    if (_isAutoStarting)
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: AppColors.surfaceElevated,
+                          borderRadius: BorderRadius.zero,
+                          border: Border.all(color: AppColors.border, width: 2),
+                        ),
+                        child: const Column(
+                          children: [
+                            SizedBox(
+                              width: 24, height: 24,
+                              child: CircularProgressIndicator(color: AppColors.gold, strokeWidth: 3),
+                            ),
+                            SizedBox(height: 16),
+                            Text('SİSTEME BAĞLANILIYOR...', style: TextStyle(color: AppColors.gold, fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 2.0, fontFamily: 'SpaceMono')),
+                          ],
+                        ),
+                      )
+                    else
+                      Column(
+                        children: [
+                          if (state.isFirstLaunch) ...[
+                            MenuHeavyButton(
+                              width: 260, height: 60,
+                              color: AppColors.gold,
+                              shadowColor: const Color(0xFF8B6B32),
                               onPressed: () {
                                 HapticFeedback.selectionClick();
                                 AudioService.instance.playSfx('click.mp3');
@@ -310,20 +336,14 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                               },
                               child: const Text(
                                 'YENİ ŞİRKET KUR',
-                                style: TextStyle(fontWeight: FontWeight.w900, fontSize: 14, letterSpacing: 1.5),
+                                style: TextStyle(color: AppColors.darkBrown, fontWeight: FontWeight.w900, fontSize: 15, letterSpacing: 1.5),
                               ),
                             ),
-                          ),
-                        ] else ...[
-                          SizedBox(
-                            width: 260, height: 55,
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.gold,
-                                foregroundColor: AppColors.darkBrown,
-                                elevation: 0,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                              ),
+                          ] else ...[
+                            MenuHeavyButton(
+                              width: 260, height: 60,
+                              color: AppColors.gold,
+                              shadowColor: const Color(0xFF8B6B32),
                               onPressed: () {
                                 HapticFeedback.selectionClick();
                                 AudioService.instance.playSfx('click.mp3');
@@ -331,57 +351,61 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                               },
                               child: const Text(
                                 'YÖNETİME DÖN',
-                                style: TextStyle(fontWeight: FontWeight.w900, fontSize: 14, letterSpacing: 1.5),
+                                style: TextStyle(color: AppColors.darkBrown, fontWeight: FontWeight.w900, fontSize: 15, letterSpacing: 1.5),
                               ),
                             ),
-                          ),
-                          const SizedBox(height: 16),
-                          
-                          SizedBox(
-                            width: 260, height: 50,
-                            child: ElevatedButton.icon(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.surface,
-                                foregroundColor: AppColors.textPrimary,
-                                elevation: 0,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8), side: const BorderSide(color: AppColors.border, width: 1.5)),
-                              ),
-                              icon: const Icon(Icons.add_business_rounded, size: 18, color: AppColors.gold),
-                              label: const Text('YENİ ŞİRKET KUR', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, letterSpacing: 1.0, color: AppColors.gold)),
+                            const SizedBox(height: 16),
+                            
+                            MenuHeavyButton(
+                              width: 260, height: 55,
+                              color: AppColors.surfaceElevated,
+                              shadowColor: const Color(0xFF14161C),
                               onPressed: _confirmAndStartNewGame,
+                              child: const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.add_business_rounded, size: 18, color: AppColors.gold),
+                                  SizedBox(width: 8),
+                                  Text('YENİ ŞİRKET KUR', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 1.0, color: AppColors.gold)),
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
-                        
-                        const SizedBox(height: 16),
-                        SizedBox(
-                          width: 260, height: 50,
-                          child: ElevatedButton.icon(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.background,
-                              foregroundColor: AppColors.textPrimary,
-                              elevation: 0,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8), side: const BorderSide(color: AppColors.border, width: 1.5)),
-                            ),
-                            icon: const Icon(Icons.settings_rounded, size: 18, color: AppColors.textSecondary),
-                            label: const Text('SİSTEM AYARLARI', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, letterSpacing: 1.0, color: AppColors.textSecondary)),
+                          ],
+                          
+                          const SizedBox(height: 16),
+                          MenuHeavyButton(
+                            width: 260, height: 55,
+                            color: AppColors.background,
+                            shadowColor: Colors.black,
                             onPressed: () {
                               HapticFeedback.selectionClick();
                               AudioService.instance.playSfx('click.mp3');
                               Navigator.of(context).push(MaterialPageRoute(builder: (context) => const SettingsScreen()));
                             },
+                            child: const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.settings_suggest_rounded, size: 18, color: AppColors.textSecondary),
+                                SizedBox(width: 8),
+                                Text('SİSTEM AYARLARI', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 1.0, color: AppColors.textSecondary)),
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                ],
+                        ],
+                      ),
+                  ],
+                ),
               ),
             ),
           ),
           
           Positioned(
             bottom: 16, right: 16,
-            child: Text('Build v1.2.0.4', style: TextStyle(color: AppColors.textMuted.withValues(alpha: 0.5), fontSize: 10, fontFamily: 'SpaceMono')),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(color: Colors.black87, border: Border.all(color: AppColors.border, width: 2), borderRadius: BorderRadius.zero),
+              child: const Text('Terminal v1.2.0.4', style: TextStyle(color: AppColors.textSecondary, fontSize: 10, fontFamily: 'SpaceMono', fontWeight: FontWeight.bold)),
+            ),
           )
         ],
       ),
@@ -413,8 +437,8 @@ class CorporateGridPainter extends CustomPainter {
 
   @override void paint(Canvas canvas, Size size) {
     final double w = size.width; final double h = size.height;
-    final Paint gridPaint = Paint()..color = Colors.white.withValues(alpha: 0.03)..strokeWidth = 1.0;
-    double gridSize = 40.0;
+    final Paint gridPaint = Paint()..color = Colors.white.withValues(alpha: 0.03)..strokeWidth = 2.0;
+    double gridSize = 50.0;
     double offsetX = (time * gridSize) % gridSize; double offsetY = (time * gridSize * 0.5) % gridSize;
     for (double x = -gridSize + offsetX; x < w; x += gridSize) {
       canvas.drawLine(Offset(x, 0), Offset(x, h), gridPaint);
@@ -423,7 +447,7 @@ class CorporateGridPainter extends CustomPainter {
       canvas.drawLine(Offset(0, y), Offset(w, y), gridPaint);
     }
 
-    final Paint chartPaint = Paint()..color = AppColors.gold.withValues(alpha: 0.05)..style = PaintingStyle.stroke..strokeWidth = 2.0;
+    final Paint chartPaint = Paint()..color = AppColors.gold.withValues(alpha: 0.08)..style = PaintingStyle.stroke..strokeWidth = 3.0;
     final Path chartPath = Path(); double startY = h * 0.7;
     chartPath.moveTo(0, startY);
     for (double x = 0; x <= w; x += 20) {
@@ -432,25 +456,40 @@ class CorporateGridPainter extends CustomPainter {
     }
     canvas.drawPath(chartPath, chartPaint);
 
-    final Paint chartPaint2 = Paint()..color = AppColors.textSecondary.withValues(alpha: 0.05)..style = PaintingStyle.stroke..strokeWidth = 1.5;
-    final Path chartPath2 = Path(); double startY2 = h * 0.8;
-    chartPath2.moveTo(0, startY2);
-    for (double x = 0; x <= w; x += 20) {
-      double y = startY2 + math.cos((x / 60) + (time * math.pi * 3)) * 40;
-      chartPath2.lineTo(x, y);
-    }
-    canvas.drawPath(chartPath2, chartPaint2);
-
-    final Paint nodePaint = Paint()..color = AppColors.gold.withValues(alpha: 0.2);
+    final Paint nodePaint = Paint()..color = AppColors.gold.withValues(alpha: 0.3);
     math.Random rnd = math.Random(42); 
     for (int i = 0; i < 15; i++) {
       double nx = rnd.nextDouble() * w; double ny = rnd.nextDouble() * h;
       double pulse = (math.sin(time * math.pi * 2 * (1 + rnd.nextDouble())) + 1) / 2;
       if (pulse > 0.5) {
-        canvas.drawCircle(Offset(nx, ny), 2.0, nodePaint);
-        if (i % 3 == 0) canvas.drawLine(Offset(nx, ny), Offset(nx + 40, ny - 20), Paint()..color = AppColors.gold.withValues(alpha: 0.1 * pulse)..strokeWidth = 1);
+        canvas.drawRect(Rect.fromCenter(center: Offset(nx, ny), width: 6, height: 6), nodePaint);
+        if (i % 3 == 0) canvas.drawLine(Offset(nx, ny), Offset(nx + 40, ny - 20), Paint()..color = AppColors.gold.withValues(alpha: 0.15 * pulse)..strokeWidth = 2);
       }
     }
   }
   @override bool shouldRepaint(covariant CorporateGridPainter oldDelegate) => oldDelegate.time != time;
+}
+
+class MenuHeavyButton extends StatefulWidget {
+  final VoidCallback? onPressed; final Widget child; final Color color; final Color shadowColor; final double height; final double? width; final EdgeInsetsGeometry? padding;
+  const MenuHeavyButton({super.key, required this.onPressed, required this.child, required this.color, required this.shadowColor, this.height = 50, this.width, this.padding});
+  @override State<MenuHeavyButton> createState() => _MenuHeavyButtonState();
+}
+class _MenuHeavyButtonState extends State<MenuHeavyButton> {
+  bool _isPressed = false;
+  @override Widget build(BuildContext context) {
+    final bool isDisabled = widget.onPressed == null;
+    return GestureDetector(
+      onTapDown: isDisabled ? null : (_) => setState(() => _isPressed = true),
+      onTapUp: isDisabled ? null : (_) { setState(() => _isPressed = false); widget.onPressed!(); },
+      onTapCancel: isDisabled ? null : () => setState(() => _isPressed = false),
+      child: SizedBox(
+        width: widget.width, height: widget.height,
+        child: Stack(children: [
+          Positioned(bottom: 0, left: 0, right: 0, top: 6, child: Container(decoration: BoxDecoration(color: isDisabled ? AppColors.border.withValues(alpha: 0.5) : widget.shadowColor, borderRadius: BorderRadius.zero, border: Border.all(color: Colors.black87, width: 2.5)))),
+          AnimatedPositioned(duration: const Duration(milliseconds: 60), bottom: _isPressed || isDisabled ? 0 : 6, left: 0, right: 0, top: _isPressed || isDisabled ? 6 : 0, child: Container(padding: widget.padding, decoration: BoxDecoration(color: isDisabled ? AppColors.surfaceElevated : widget.color, borderRadius: BorderRadius.zero, border: Border.all(color: Colors.black87, width: 2.5)), child: Center(child: widget.child))),
+        ]),
+      ),
+    );
+  }
 }

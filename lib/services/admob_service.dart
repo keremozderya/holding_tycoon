@@ -2,6 +2,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'audio_service.dart'; // AudioService'i içe aktardık
 
 class AdMobService {
   static RewardedAd? _rewardedAd;
@@ -57,12 +58,11 @@ class AdMobService {
       return;
     }
 
-    // Reklam henüz hazır değilse yükleme göstergesi açıp hazır olunca başlatır
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (c) => const Center(
-        child: CircularProgressIndicator(color: Color(0xFFF3D78F)),
+        child: CircularProgressIndicator(color: Color(0xFFC5A059)),
       ),
     );
 
@@ -91,15 +91,22 @@ class AdMobService {
   static void _showLoadedAd(VoidCallback onRewardEarned) {
     if (_rewardedAd == null) return;
 
+    // YENİ: Reklam ekranda gösterilmeden hemen önce arka plan müziğini durdur
+    AudioService.instance.pauseBgm();
+
     _rewardedAd!.fullScreenContentCallback = FullScreenContentCallback(
       onAdDismissedFullScreenContent: (ad) {
         ad.dispose();
         _rewardedAd = null;
+        // YENİ: Reklam kapatıldığında müziği devam ettir
+        AudioService.instance.resumeBgm();
         loadRewardedAd();
       },
       onAdFailedToShowFullScreenContent: (ad, error) {
         ad.dispose();
         _rewardedAd = null;
+        // YENİ: Reklam gösterme hatası olursa da müziği devam ettir
+        AudioService.instance.resumeBgm();
         loadRewardedAd();
       },
     );
