@@ -173,7 +173,6 @@ class GameState extends ChangeNotifier {
   List<bool> claimedTasks = List.filled(4, false);
   List<int> claimedAchievements = List.filled(7, 0); 
 
-  // Zırtopoz: Hedefler çok daha zorlayıcı hale getirildi!
   static const List<List<double>> achievementTargets = [
     [100, 500, 2500, 10000, 25000, 100000, 250000, 500000, 1000000, 2500000], // 0: Tıklama Kralı
     [1e8, 1e11, 1e14, 1e17, 1e20, 1e23, 1e26, 1e29, 1e32, 1e35], // 1: Kasa Bekçisi (Ciro)
@@ -185,7 +184,6 @@ class GameState extends ChangeNotifier {
   ];
 
   double getAchievementMoneyReward(int tier) => 5000.0 * math.pow(2.5, tier); 
-  // Zırtopoz: RP ödülü daha da kısıldı ki oyuncu prestij yapmaya odaklansın
   int getAchievementRpReward(int tier) => (tier + 1) * 3; 
 
   double getAchievementProgress(int index) {
@@ -293,6 +291,7 @@ class GameState extends ChangeNotifier {
   double _currentTaxDebt = 0.0; 
   bool _isUnderPenalty = false;
   DateTime? _taxBonusEndTime; 
+  DateTime? _lastPenaltyCompoundTime; // Added for controlled penalty compounding
 
   double get currentTaxDebt => _currentTaxDebt; 
   bool get hasTaxDebt => _currentTaxDebt > 0; 
@@ -384,6 +383,7 @@ class GameState extends ChangeNotifier {
       if (data['lastTaxIssued'] != null) _lastTaxIssued = DateTime.parse(data['lastTaxIssued']); 
       if (data['taxDeadline'] != null) _taxDeadline = DateTime.parse(data['taxDeadline']); 
       if (data['taxBonusEndTime'] != null) _taxBonusEndTime = DateTime.parse(data['taxBonusEndTime']);
+      if (data['lastPenaltyCompoundTime'] != null) _lastPenaltyCompoundTime = DateTime.parse(data['lastPenaltyCompoundTime']);
       if (data['lastSaveTime'] != null) _lastSaveTime = DateTime.parse(data['lastSaveTime']); 
       if (data['boostEndTime'] != null) _boostEndTime = DateTime.parse(data['boostEndTime']); 
       if (data['eventEndTime'] != null && data['activeEvent'] != null) { 
@@ -432,6 +432,7 @@ class GameState extends ChangeNotifier {
       'lastTaxIssued': _lastTaxIssued?.toIso8601String(), 
       'taxDeadline': _taxDeadline?.toIso8601String(), 
       'taxBonusEndTime': _taxBonusEndTime?.toIso8601String(),
+      'lastPenaltyCompoundTime': _lastPenaltyCompoundTime?.toIso8601String(),
       'lastSaveTime': _lastSaveTime?.toIso8601String(), 
       'boostEndTime': _boostEndTime?.toIso8601String(), 
       'eventEndTime': _eventEndTime?.toIso8601String(),
@@ -461,6 +462,7 @@ class GameState extends ChangeNotifier {
     _lastTaxIssued = DateTime.now();
     _taxDeadline = DateTime.now().add(const Duration(hours: 12));
     _taxBonusEndTime = null;
+    _lastPenaltyCompoundTime = null;
     _boostEndTime = null;
     activeEvent = null;
     _eventEndTime = null;
@@ -557,7 +559,7 @@ class GameState extends ChangeNotifier {
       _n('node_017', 'Toplu Malzeme Siparişi', 'Maliyet', 'Toplu alım anlaşmaları ile tesis geliştirme maliyetini kırar.', Icons.shopping_cart_rounded, 6, 3, ['node_016'], (lvl) => 'Ekstra Geliştirme İndirimi: -%${lvl * 4}'),
       _n('node_018', 'Küresel Tedarik Zinciri', 'Maliyet', 'Uluslararası navlun anlaşmaları ile kurulum masraflarını düşürür.', Icons.public_rounded, 8, 3, ['node_017'], (lvl) => 'Tesis Kurulum Maliyet İndirimi: -%${lvl * 6}'),
       _n('node_019', 'Üretim Standartlaşması', 'Kazanç', 'Üretme kazancı çarpanını taban değerin üzerine çıkarır.', Icons.trending_up_rounded, 5, 3, ['node_016'], (lvl) => 'Üretme Kazancı Çarpanı: ${(1.03 + lvl * 0.002).toStringAsFixed(3)}x'),
-      _n('node_020', 'Yalın Kaizen Felsefesi', 'Kazanç', 'Sürekli iyileştirme prensibi ile ürün katsayılarını yükseltir.', Icons.speed_rounded, 7, 3, ['node_019'], (lvl) => 'Ürün Üretim Kazanç Bonusu: +%${lvl * 5}'),
+      _n('node_020', 'Yalın Kaizen Felsefesi', 'Kazanç', 'Sürekli iyileştirme prensibi ile ürün katsayılarını yükseltir.', Icons.speed_rounded, 7, 3, ['node_021'], (lvl) => 'Ürün Üretim Kazanç Bonusu: +%${lvl * 5}'),
       _n('node_021', 'Sürekli Akış Bandı', 'Pasif', 'Saniyelik pasif gelir oranını üretim kazancının yarısından yukarı taşır.', Icons.timer_rounded, 6, 3, ['node_019'], (lvl) => 'Saniyelik Gelir Oranı: %${50 + lvl * 3}'),
       _n('node_022', 'Vardiyasız Çalışma', 'Pasif', 'Tesislerin saniyelik pasif gelir akışını kademeli artırır.', Icons.all_inclusive_rounded, 8, 3, ['node_021'], (lvl) => 'Saniyelik Pasif Gelir İlavesi: +%${lvl * 3}'),
       _n('node_023', 'Tam Otonom Tesis', 'Pasif', 'İnsansız üretim ile saniyelik gelir çarpanını katlar.', Icons.smart_toy_rounded, 12, 3, ['node_022'], (lvl) => 'Otonom Pasif Gelir Çarpanı: +%${lvl * 10}'),
@@ -783,6 +785,7 @@ class GameState extends ChangeNotifier {
     _isUnderPenalty = false; 
     _lastTaxIssued = DateTime.now(); 
     _taxDeadline = DateTime.now().add(const Duration(hours: 12)); 
+    _lastPenaltyCompoundTime = null;
     _saveGame(); 
     notifyListeners(); 
   }
@@ -794,6 +797,7 @@ class GameState extends ChangeNotifier {
     statTaxes++; 
     _lastTaxIssued = DateTime.now(); 
     _taxDeadline = DateTime.now().add(const Duration(hours: 12)); 
+    _lastPenaltyCompoundTime = null;
     _saveGame(); 
     notifyListeners(); 
   }
@@ -809,16 +813,24 @@ class GameState extends ChangeNotifier {
       _lastTaxIssued = now; 
       _taxDeadline = now.add(const Duration(hours: 12)); 
       _isUnderPenalty = false;
+      _lastPenaltyCompoundTime = null;
       _saveGame(); 
     }
+    
     if (_currentTaxDebt > 0 && _taxDeadline != null && now.isAfter(_taxDeadline!)) {
       if (!_isUnderPenalty) {
          _isUnderPenalty = true;
+         _lastPenaltyCompoundTime = now;
          _saveGame(); 
       }
-      if (now.second == 0) {
-        _currentTaxDebt *= 1.002; 
+      
+      // REFACTORED: Compound penalty every 15 minutes instead of every single second
+      if (_lastPenaltyCompoundTime != null && now.difference(_lastPenaltyCompoundTime!).inMinutes >= 15) {
+        _currentTaxDebt *= 1.02; // Controlled 2% increase per interval
+        _lastPenaltyCompoundTime = now;
+        _saveGame();
       }
+
       if (now.difference(_taxDeadline!).inHours >= 1) {
         _executeForeclosure(); 
       }
@@ -840,6 +852,7 @@ class GameState extends ChangeNotifier {
     _isUnderPenalty = false; 
     _lastTaxIssued = DateTime.now(); 
     _taxDeadline = DateTime.now().add(const Duration(hours: 12));
+    _lastPenaltyCompoundTime = null;
     _saveGame(); 
   }
 
@@ -852,11 +865,32 @@ class GameState extends ChangeNotifier {
       statTaxes++; 
       _lastTaxIssued = DateTime.now(); 
       _taxDeadline = DateTime.now().add(const Duration(hours: 12)); 
+      _lastPenaltyCompoundTime = null;
       _saveGame(); 
       notifyListeners(); 
     }
   }
 
+  bool _manualProductionNotifyScheduled = false;
+
+  // DÜZELTME: notifyListeners() artık Dart'ın microtask kuyruğuna değil,
+  // Flutter'ın kendi frame zamanlamasına (WidgetsBinding.addPostFrameCallback)
+  // bağlandı.
+  //
+  // scheduleMicrotask() ile zamanlanan bir callback, mevcut senkron kod
+  // bittiği AN çalışır — ama bu "an", Flutter'ın bir sonraki frame'i çizmeye
+  // başladığı an ile HER ZAMAN aynı olmuyor. Cihaz yoğunken (ör. arka arkaya
+  // hızlı ÜRET tıklamaları + aynı anda çalışan CustomPaint yeniden çizimleri),
+  // birden fazla microtask farklı frame'lere "sızabiliyor" ve notifyListeners()
+  // beklenenden farklı bir sırada / farklı bir frame'de tetiklenebiliyordu.
+  // Bunun sonucu, tıklama başına eklenen para doğruydu (hiç kayıp yoktu) ama
+  // UI tarafı (üst ağacın yeniden build olması) gecikmeli/tutarsız zamanlarda
+  // gerçekleşiyor, bu da "takılma" hissini ve görsel efektlerin beklenmedik
+  // anda tetiklenmesini açıklıyordu.
+  //
+  // addPostFrameCallback, "bir sonraki frame çizildikten hemen sonra, TAM
+  // OLARAK BİR KEZ" çalışacağını garanti eder. Bayrak (flag) sayesinde art
+  // arda gelen tıklamalar tek bir notifyListeners() çağrısında birleşir.
   void completeManualProduction(String facId, int productIndex) {
     var prod = _factories.firstWhere((f) => f.id == facId).products[productIndex];
     if (prod.level > 0) { 
@@ -864,7 +898,14 @@ class GameState extends ChangeNotifier {
       _money += add; 
       statTotalEarned += add;
       statClicks++; 
-      notifyListeners(); 
+
+      if (!_manualProductionNotifyScheduled) {
+        _manualProductionNotifyScheduled = true;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _manualProductionNotifyScheduled = false;
+          notifyListeners();
+        });
+      }
     }
   }
 
@@ -968,6 +1009,7 @@ class GameState extends ChangeNotifier {
     _lastTaxIssued = DateTime.now();
     _taxDeadline = DateTime.now().add(const Duration(hours: 12));
     _taxBonusEndTime = null;
+    _lastPenaltyCompoundTime = null;
     _boostEndTime = null;
     activeEvent = null;
     _eventEndTime = null;
@@ -1005,7 +1047,7 @@ class GameState extends ChangeNotifier {
         s.totalSpent += totalCost; 
         statStocks++;
         _saveGame(); 
-        notifyListeners();
+        notifyListeners(); 
       }
     }
   }

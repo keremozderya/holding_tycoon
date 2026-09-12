@@ -1,12 +1,13 @@
 // lib/screens/map_screen.dart
+import 'dart:async' as async;
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart'; 
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
-import 'package:flame/game.dart';
-import 'package:flame/components.dart';
+import 'package:flame/game.dart' hide Timer;       // Flame Timer gizlendi
+import 'package:flame/components.dart' hide Timer; // Flame Timer gizlendi
 import 'package:flame/events.dart';
 
 import '../providers/game_state.dart';
@@ -53,7 +54,6 @@ class _MapScreenState extends State<MapScreen> {
 
   void _checkAndShowDialogs() {
     final state = context.read<GameState>();
-    
     if (state.starterFactoryId.isEmpty) {
       _showSectorSelectionDialog();
     } else if (state.offlineEarningsToClaim > 0) {
@@ -63,7 +63,6 @@ class _MapScreenState extends State<MapScreen> {
   
   void _showSectorSelectionDialog() {
     String selectedId = '1';
-
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -117,10 +116,7 @@ class _MapScreenState extends State<MapScreen> {
                       ),
                       const SizedBox(height: 32),
                       HeavyTycoonButton(
-                        width: double.infinity,
-                        height: 55,
-                        color: AppColors.gold,
-                        shadowColor: const Color(0xFF8B6B32),
+                        width: double.infinity, height: 55, color: AppColors.gold, shadowColor: const Color(0xFF8B6B32),
                         onPressed: () {
                           AudioService.instance.playSfx('click.mp3');
                           context.read<GameState>().applyStarterSector(selectedId);
@@ -648,7 +644,7 @@ class _MapScreenState extends State<MapScreen> {
       child: GestureDetector(
         onTap: onTap, behavior: HitTestBehavior.opaque,
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment: TabBarIndicatorSize.tab == TabBarIndicatorSize.tab ? MainAxisAlignment.center : MainAxisAlignment.center,
           children: [
             SizedBox(
               width: 26, height: 26,
@@ -921,12 +917,13 @@ class _AnimatedSideButtonState extends State<AnimatedSideButton> {
   @override 
   Widget build(BuildContext context) {
     Widget button = GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTapDown: (_) => setState(() => _isPressed = true),
-      onTapUp: (_) {
-        setState(() => _isPressed = false);
+      onTapUp: (_) => setState(() => _isPressed = false),
+      onTapCancel: () => setState(() => _isPressed = false),
+      onTap: () {
         widget.onTap();
       },
-      onTapCancel: () => setState(() => _isPressed = false),
       child: SizedBox(
         width: 48, height: 48,
         child: Stack(
@@ -1223,7 +1220,8 @@ class _ProductVectorPainter extends CustomPainter {
 }
 
 class FactoryInsideModal extends StatefulWidget {
-  final String factoryId; final String Function(double) formatNum;
+  final String factoryId; 
+  final String Function(double) formatNum;
   const FactoryInsideModal({super.key, required this.factoryId, required this.formatNum});
   @override State<FactoryInsideModal> createState() => _FactoryInsideModalState();
 }
@@ -1243,7 +1241,8 @@ class _FactoryInsideModalState extends State<FactoryInsideModal> with SingleTick
     super.dispose(); 
   }
 
-  @override Widget build(BuildContext context) {
+  @override 
+  Widget build(BuildContext context) {
     return Consumer<GameState>(
       builder: (context, gameState, child) {
         final currentFac = gameState.factories.firstWhere((f) => f.id == widget.factoryId);
@@ -1376,7 +1375,9 @@ class _FactoryInsideModalState extends State<FactoryInsideModal> with SingleTick
                           return const SizedBox.shrink(); 
                         }
                         return ProductionLineWidget(
+                          key: ValueKey('prodline_${currentFac.id}_${prod.name}'),
                           product: prod, 
+                          multiplier: gameState.currentMultiplier,
                           formatNum: widget.formatNum, 
                           onProduceComplete: () => gameState.completeManualProduction(currentFac.id, index),
                         );
@@ -1565,14 +1566,20 @@ class _FactoryInsideModalState extends State<FactoryInsideModal> with SingleTick
   }
 }
 
+// ============================================================================
+// SÜREKLİ HAREKET EDEN, TAMAMEN İZOLE YEŞİL PARA YAZISI VE ÜRETİM HATTI
+// ============================================================================
+
 class ProductionLineWidget extends StatefulWidget {
   final FactoryProduct product; 
+  final double multiplier; 
   final String Function(double) formatNum; 
   final VoidCallback onProduceComplete;
   
   const ProductionLineWidget({
     super.key, 
     required this.product, 
+    required this.multiplier, 
     required this.formatNum, 
     required this.onProduceComplete,
   });
@@ -1582,73 +1589,103 @@ class ProductionLineWidget extends StatefulWidget {
 }
 
 class _ProductionLineWidgetState extends State<ProductionLineWidget> with TickerProviderStateMixin {
-  final List<int> _activeItems = [];
-  final List<FloatingIncomeData> _floatingIncomes = [];
+  final List<int> _tokenIds = [];
+  final List<_FloatingTextItem> _floatingTexts = [];
   int _counter = 0;
 
-  late AnimationController _pulseController;
-  late Animation<double> _pulseAnimation;
+  late final AnimationController _beltAnimController;
+  late final AnimationController _depotBounceController;
+  late final Animation<double> _depotScaleAnimation;
 
   @override
   void initState() {
     super.initState();
-    _pulseController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1000),
-    )..repeat(reverse: true);
 
-    _pulseAnimation = Tween<double>(begin: 0.98, end: 1.03).animate(
-      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    // Bant sürekli açık ve 60 FPS mekanik olarak hareket eder
+    _beltAnimController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    )..repeat();
+
+    // Ürün kutuya vardığında yaylanma
+    _depotBounceController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 120),
+    );
+    _depotScaleAnimation = Tween<double>(begin: 1.0, end: 1.2).animate(
+      CurvedAnimation(parent: _depotBounceController, curve: Curves.easeOut),
     );
   }
 
   @override
   void dispose() {
-    _pulseController.dispose();
+    _beltAnimController.dispose();
+    _depotBounceController.dispose();
     super.dispose();
   }
 
-  void _startProduction() {
+  // HER BASILDIĞINDA FİLTRESİZ VE BAĞIMSIZ TETİKLENİR
+  void _triggerProduction() {
     final int currentId = _counter++;
-    final double randomOffsetX = (math.Random().nextDouble() * 30) - 15;
+    final double rewardAmount = widget.product.manualIncome * widget.multiplier;
     
+    // Rastgele hafif sağa-sola dağılım (yazıların üst üste yığılmasını önler)
+    final double randomOffsetX = (math.Random().nextDouble() * 30) - 15;
+
+    // 1. Oyun motoruna bildir
+    widget.onProduceComplete();
+
+    // 2. Ses çal
+    try {
+      AudioService.instance.playSfx('cash.mp3');
+    } catch (_) {}
+
+    // 3. Jeton ve yeşil para yazısını ekle
     setState(() {
-      _activeItems.add(currentId);
-      _floatingIncomes.add(FloatingIncomeData(
+      _tokenIds.add(currentId);
+      _floatingTexts.add(_FloatingTextItem(
+        key: UniqueKey(), // Her yazıya bağımsız yaşam döngüsü
         id: currentId,
-        text: '+\$${widget.formatNum(widget.product.manualIncome)}',
+        text: '+\$${widget.formatNum(rewardAmount)}',
         offsetX: randomOffsetX,
       ));
-    });
 
-    Future.delayed(const Duration(milliseconds: 800), () { 
-      AudioService.instance.playSfx('cash.mp3'); 
-      widget.onProduceComplete(); 
-      
-      if (mounted) { 
-        setState(() { 
-          _activeItems.remove(currentId); 
-        }); 
-      } 
+      // Hızlı tıklamalarda gereksiz bellek birikmesini engelle
+      if (_tokenIds.length > 8) _tokenIds.removeAt(0);
+      if (_floatingTexts.length > 8) _floatingTexts.removeAt(0);
     });
   }
 
-  void _removeFloatingIncome(int id) {
-    if (mounted) {
-      setState(() {
-        _floatingIncomes.removeWhere((item) => item.id == id);
-      });
-    }
+  void _onTokenReachedEnd(int id) {
+    if (!mounted) return;
+    _depotBounceController.forward(from: 0.0).then((_) {
+      if (mounted) _depotBounceController.reverse();
+    });
+    setState(() {
+      _tokenIds.remove(id);
+    });
+  }
+
+  void _onTextAnimationComplete(int id) {
+    if (!mounted) return;
+    setState(() {
+      _floatingTexts.removeWhere((item) => item.id == id);
+    });
   }
 
   @override 
   Widget build(BuildContext context) {
+    final double incomePerClick = widget.product.manualIncome * widget.multiplier;
+
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: AppColors.surfaceElevated,
         borderRadius: BorderRadius.zero,
         border: Border.all(color: AppColors.border, width: 2.5),
+        boxShadow: const [
+          BoxShadow(color: Colors.black45, blurRadius: 6, offset: Offset(0, 3)),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1664,7 +1701,12 @@ class _ProductionLineWidgetState extends State<ProductionLineWidget> with Ticker
                 ),
                 child: Text(
                   'Lvl ${widget.product.level}',
-                  style: const TextStyle(color: AppColors.gold, fontSize: 11, fontWeight: FontWeight.w900, fontFamily: 'SpaceMono'),
+                  style: const TextStyle(
+                    color: AppColors.gold, 
+                    fontSize: 11, 
+                    fontWeight: FontWeight.w900, 
+                    fontFamily: 'SpaceMono',
+                  ),
                 ),
               ),
               const SizedBox(width: 10),
@@ -1673,7 +1715,11 @@ class _ProductionLineWidgetState extends State<ProductionLineWidget> with Ticker
                   widget.product.name, 
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w900, fontSize: 14),
+                  style: const TextStyle(
+                    color: AppColors.textPrimary, 
+                    fontWeight: FontWeight.w900, 
+                    fontSize: 14,
+                  ),
                 ),
               ),
               const SizedBox(width: 8),
@@ -1687,11 +1733,19 @@ class _ProductionLineWidgetState extends State<ProductionLineWidget> with Ticker
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    SizedBox(width: 14, height: 14, child: CustomPaint(painter: HeavyIconPainter(type: 'boost', color: AppColors.profit))),
+                    SizedBox(
+                      width: 14, height: 14, 
+                      child: CustomPaint(painter: HeavyIconPainter(type: 'boost', color: AppColors.profit)),
+                    ),
                     const SizedBox(width: 4),
                     Text(
-                      '+\$${widget.formatNum(widget.product.manualIncome)}', 
-                      style: const TextStyle(color: AppColors.profit, fontWeight: FontWeight.w900, fontSize: 12, fontFamily: 'SpaceMono'),
+                      '+\$${widget.formatNum(incomePerClick)}', 
+                      style: const TextStyle(
+                        color: AppColors.profit, 
+                        fontWeight: FontWeight.w900, 
+                        fontSize: 12, 
+                        fontFamily: 'SpaceMono',
+                      ),
                     ),
                   ],
                 ),
@@ -1702,70 +1756,73 @@ class _ProductionLineWidgetState extends State<ProductionLineWidget> with Ticker
 
           LayoutBuilder(
             builder: (context, constraints) {
-              final double btnWidth = constraints.maxWidth < 340 ? 80.0 : 94.0;
-              final double outWidth = constraints.maxWidth < 340 ? 44.0 : 50.0;
+              final double btnWidth = constraints.maxWidth < 340 ? 84.0 : 96.0;
+              final double depotWidth = constraints.maxWidth < 340 ? 46.0 : 52.0;
 
               return SizedBox(
-                height: 60,
+                height: 62,
                 child: Stack(
                   clipBehavior: Clip.none,
                   children: [
+                    // AÇIK VE CANLI ÇALIŞAN KONVEYÖR BANDI GÖVDESİ
                     Container(
-                      height: 54,
+                      height: 56,
                       decoration: BoxDecoration(
-                        color: Colors.black,
+                        color: const Color(0xFF1B212B),
                         borderRadius: BorderRadius.zero,
-                        border: Border.all(color: AppColors.border, width: 2),
+                        border: Border.all(color: AppColors.border, width: 2.0),
                       ),
                       child: Row(
                         children: [
                           SizedBox(width: btnWidth),
 
+                          // SÜREKLİ DÖNEN SİLİNDİR VE JETON YOLU
                           Expanded(
-                            child: Stack(
-                              alignment: Alignment.centerLeft,
-                              children: [
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                  children: List.generate(
-                                    8,
-                                    (i) => Container(
-                                      width: 4, height: 26,
-                                      decoration: const BoxDecoration(
-                                        color: AppColors.surface,
-                                        borderRadius: BorderRadius.zero,
-                                      ),
+                            child: ClipRect(
+                              child: Stack(
+                                children: [
+                                  Positioned.fill(
+                                    child: AnimatedBuilder(
+                                      animation: _beltAnimController,
+                                      builder: (context, child) {
+                                        return CustomPaint(
+                                          painter: ContinuousConveyorTrackPainter(
+                                            progress: _beltAnimController.value,
+                                          ),
+                                        );
+                                      },
                                     ),
                                   ),
-                                ),
-                                Positioned(
-                                  top: 14, left: 0, right: 0,
-                                  child: Container(height: 2, color: AppColors.border),
-                                ),
-                                Positioned(
-                                  bottom: 14, left: 0, right: 0,
-                                  child: Container(height: 2, color: AppColors.border),
-                                ),
-                                ..._activeItems.map((id) => ProductTokenAnimator(
-                                  key: ValueKey(id), 
-                                  productName: widget.product.name,
-                                )),
-                              ],
+
+                                  // BANTTA İLERLEYEN ÜRÜNLER
+                                  ..._tokenIds.map((id) => SelfDismissingToken(
+                                    key: ValueKey('token_$id'),
+                                    id: id,
+                                    productName: widget.product.name,
+                                    onComplete: _onTokenReachedEnd,
+                                  )),
+                                ],
+                              ),
                             ),
                           ),
 
-                          Container(
-                            width: outWidth, height: double.infinity,
-                            decoration: const BoxDecoration(
-                              color: AppColors.surface,
-                              borderRadius: BorderRadius.zero,
-                              border: Border(left: BorderSide(color: AppColors.border, width: 2)),
-                            ),
-                            child: Center(
-                              child: ProductSvgIcon(
-                                name: widget.product.name,
-                                size: 20,
-                                color: AppColors.gold.withValues(alpha: 0.8),
+                          // SAĞ DEPO KUTUSU
+                          ScaleTransition(
+                            scale: _depotScaleAnimation,
+                            child: Container(
+                              width: depotWidth,
+                              height: double.infinity,
+                              decoration: const BoxDecoration(
+                                color: AppColors.surface,
+                                borderRadius: BorderRadius.zero,
+                                border: Border(left: BorderSide(color: AppColors.border, width: 2.0)),
+                              ),
+                              child: Center(
+                                child: ProductSvgIcon(
+                                  name: widget.product.name,
+                                  size: 22,
+                                  color: AppColors.gold,
+                                ),
                               ),
                             ),
                           ),
@@ -1773,46 +1830,45 @@ class _ProductionLineWidgetState extends State<ProductionLineWidget> with Ticker
                       ),
                     ),
 
+                    // ÜRET BUTONU (HIZLI BASILSA DA HER DEFA TETİKLER)
                     Positioned(
                       left: 0, top: 0, bottom: 6,
                       width: btnWidth,
-                      child: ScaleTransition(
-                        scale: _pulseAnimation,
-                        child: HeavyTycoonButton(
-                          height: 54, width: btnWidth,
-                          color: AppColors.gold,
-                          shadowColor: const Color(0xFF8B6B32),
-                          onTap: _startProduction,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              SizedBox(width: 18, height: 18, child: CustomPaint(painter: HeavyIconPainter(type: 'touch', color: AppColors.darkBrown))),
-                              const SizedBox(width: 4),
-                              const Flexible(
-                                child: Text(
-                                  'ÜRET',
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                    color: AppColors.darkBrown,
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w900,
-                                    letterSpacing: 1.0,
-                                  ),
-                                ),
+                      child: PreciseIndustrialButton(
+                        width: btnWidth,
+                        height: 56,
+                        onTap: _triggerProduction,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            SizedBox(
+                              width: 16, height: 16,
+                              child: CustomPaint(painter: HeavyIconPainter(type: 'touch', color: AppColors.darkBrown)),
+                            ),
+                            const SizedBox(width: 5),
+                            const Text(
+                              'ÜRET',
+                              style: TextStyle(
+                                color: AppColors.darkBrown,
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 1.0,
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
 
-                    ..._floatingIncomes.map((item) => Positioned(
-                      left: 20 + item.offsetX,
-                      bottom: 24,
-                      child: FloatingIncomeText(
-                        key: ValueKey(item.id),
-                        text: item.text,
-                        onEnd: () => _removeFloatingIncome(item.id),
+                    // TAMAMEN İZOLE YEŞİL KAZANÇ YAZILARI (+$$)
+                    ..._floatingTexts.map((fItem) => Positioned(
+                      key: fItem.key,
+                      left: (btnWidth / 2 - 24) + fItem.offsetX,
+                      bottom: 42,
+                      child: SelfDismissingIncomeText(
+                        id: fItem.id,
+                        text: fItem.text,
+                        onComplete: _onTextAnimationComplete,
                       ),
                     )),
                   ],
@@ -1826,11 +1882,313 @@ class _ProductionLineWidgetState extends State<ProductionLineWidget> with Ticker
   }
 }
 
-class FloatingIncomeData {
+class _FloatingTextItem {
+  final Key key;
   final int id;
   final String text;
   final double offsetX;
-  FloatingIncomeData({required this.id, required this.text, this.offsetX = 0.0});
+  _FloatingTextItem({
+    required this.key,
+    required this.id, 
+    required this.text, 
+    required this.offsetX,
+  });
+}
+
+// ============================================================================
+// SÜREKLİ DÖNEN METAL SİLİNDİR RAYLARI
+// ============================================================================
+
+class ContinuousConveyorTrackPainter extends CustomPainter {
+  final double progress;
+
+  ContinuousConveyorTrackPainter({required this.progress});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final Paint railPaint = Paint()
+      ..color = AppColors.border
+      ..strokeWidth = 2.0
+      ..style = PaintingStyle.stroke;
+
+    canvas.drawLine(const Offset(0, 8), Offset(size.width, 8), railPaint);
+    canvas.drawLine(Offset(0, size.height - 8), Offset(size.width, size.height - 8), railPaint);
+
+    final Paint rollerShadow = Paint()
+      ..color = Colors.black45
+      ..strokeWidth = 4.0
+      ..strokeCap = StrokeCap.square;
+
+    final Paint rollerPaint = Paint()
+      ..color = const Color(0xFF64748B) // Çelik silindir rengi
+      ..strokeWidth = 2.5
+      ..strokeCap = StrokeCap.square;
+
+    const double step = 20.0;
+    final double offset = progress * step;
+
+    for (double x = -step + offset; x < size.width + step; x += step) {
+      canvas.drawLine(Offset(x + 1.5, 10), Offset(x + 1.5, size.height - 10), rollerShadow);
+      canvas.drawLine(Offset(x, 10), Offset(x, size.height - 10), rollerPaint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant ContinuousConveyorTrackPainter oldDelegate) =>
+      oldDelegate.progress != progress;
+}
+
+// ============================================================================
+// BANTTA AKAN VE BİTİNCE OTOMATİK SİLİNEN JETON
+// ============================================================================
+
+class SelfDismissingToken extends StatefulWidget {
+  final int id;
+  final String productName;
+  final void Function(int id) onComplete;
+
+  const SelfDismissingToken({
+    super.key,
+    required this.id,
+    required this.productName,
+    required this.onComplete,
+  });
+
+  @override
+  State<SelfDismissingToken> createState() => _SelfDismissingTokenState();
+}
+
+class _SelfDismissingTokenState extends State<SelfDismissingToken> with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _slideAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 620),
+    );
+
+    _slideAnimation = Tween<double>(begin: -1.0, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.linear),
+    );
+
+    _controller.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) widget.onComplete(widget.id);
+        });
+      }
+    });
+
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _slideAnimation,
+      builder: (context, child) {
+        return Align(
+          alignment: Alignment(_slideAnimation.value, 0.0),
+          child: Container(
+            width: 26,
+            height: 26,
+            decoration: BoxDecoration(
+              color: AppColors.surfaceElevated,
+              borderRadius: BorderRadius.zero,
+              border: Border.all(color: AppColors.gold, width: 2.0),
+              boxShadow: const [
+                BoxShadow(color: Colors.black87, blurRadius: 4, offset: Offset(0, 2)),
+              ],
+            ),
+            child: Center(
+              child: ProductSvgIcon(
+                name: widget.productName,
+                size: 15,
+                color: AppColors.gold,
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+// ============================================================================
+// DİĞER TÜM SİSTEMLERDEN BAĞIMSIZ, PARLAK YEŞİL YÜZEN YAZI
+// ============================================================================
+
+class SelfDismissingIncomeText extends StatefulWidget {
+  final int id;
+  final String text;
+  final void Function(int id) onComplete;
+
+  const SelfDismissingIncomeText({
+    super.key,
+    required this.id,
+    required this.text,
+    required this.onComplete,
+  });
+
+  @override
+  State<SelfDismissingIncomeText> createState() => _SelfDismissingIncomeTextState();
+}
+
+class _SelfDismissingIncomeTextState extends State<SelfDismissingIncomeText> with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _fadeAnimation;
+  late final Animation<Offset> _slideAnimation;
+  late final Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 650),
+    );
+
+    // Yukarı doğru hızlı süzülme
+    _slideAnimation = Tween<Offset>(
+      begin: Offset.zero,
+      end: const Offset(0.0, -1.9),
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
+
+    // İlk çıkışta yaylanma (Pop-up)
+    _scaleAnimation = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween(begin: 0.7, end: 1.2).chain(CurveTween(curve: Curves.easeOutBack)), weight: 35),
+      TweenSequenceItem(tween: Tween(begin: 1.2, end: 1.0).chain(CurveTween(curve: Curves.easeIn)), weight: 65),
+    ]).animate(_controller);
+
+    // Bitişe doğru transparanlaşma
+    _fadeAnimation = Tween<double>(begin: 1.0, end: 0.0).animate(
+      CurvedAnimation(parent: _controller, curve: const Interval(0.4, 1.0, curve: Curves.easeIn)),
+    );
+
+    // Süresi bittiğinde güvenle listeden silinir
+    _controller.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) widget.onComplete(widget.id);
+        });
+      }
+    });
+
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SlideTransition(
+      position: _slideAnimation,
+      child: FadeTransition(
+        opacity: _fadeAnimation,
+        child: ScaleTransition(
+          scale: _scaleAnimation,
+          child: Text(
+            widget.text,
+            style: const TextStyle(
+              color: Color(0xFF22C55E), // Parlak, net neon yeşili
+              fontSize: 16,
+              fontWeight: FontWeight.w900,
+              fontFamily: 'SpaceMono',
+              shadows: [
+                Shadow(color: Colors.black, blurRadius: 4, offset: Offset(2, 2)),
+                Shadow(color: Colors.black, blurRadius: 8, offset: Offset(-1, -1)),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ============================================================================
+// ANINDA TEPKİ VEREN, KİLİTLENMEYEN SANAYİ BUTONU
+// ============================================================================
+
+class PreciseIndustrialButton extends StatefulWidget {
+  final VoidCallback onTap;
+  final Widget child;
+  final double width;
+  final double height;
+
+  const PreciseIndustrialButton({
+    super.key,
+    required this.onTap,
+    required this.child,
+    required this.width,
+    required this.height,
+  });
+
+  @override
+  State<PreciseIndustrialButton> createState() => _PreciseIndustrialButtonState();
+}
+
+class _PreciseIndustrialButtonState extends State<PreciseIndustrialButton> {
+  bool _isPressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTapDown: (_) => setState(() => _isPressed = true),
+      onTapCancel: () => setState(() => _isPressed = false),
+      onTap: () {
+        HapticFeedback.lightImpact();
+        setState(() => _isPressed = false);
+        widget.onTap();
+      },
+      child: SizedBox(
+        width: widget.width,
+        height: widget.height,
+        child: Stack(
+          children: [
+            Positioned(
+              bottom: 0, left: 0, right: 0, top: 5,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFF8B6B32),
+                  borderRadius: BorderRadius.zero,
+                  border: Border.all(color: Colors.black87, width: 2.0),
+                ),
+              ),
+            ),
+            AnimatedPositioned(
+              duration: const Duration(milliseconds: 30),
+              bottom: _isPressed ? 0 : 5,
+              left: 0, right: 0,
+              top: _isPressed ? 5 : 0,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: AppColors.gold,
+                  borderRadius: BorderRadius.zero,
+                  border: Border.all(color: Colors.black87, width: 2.0),
+                ),
+                child: Center(child: widget.child),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class HeavyTycoonButton extends StatefulWidget {
@@ -1868,16 +2226,18 @@ class _HeavyTycoonButtonState extends State<HeavyTycoonButton> {
     final bool isDisabled = action == null;
     
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTapDown: isDisabled ? null : (_) {
-        HapticFeedback.lightImpact(); 
-        AudioService.instance.playSfx('click.mp3');
         setState(() => _isPressed = true);
       },
       onTapUp: isDisabled ? null : (_) {
         setState(() => _isPressed = false);
-        action();
       },
       onTapCancel: isDisabled ? null : () => setState(() => _isPressed = false),
+      onTap: isDisabled ? null : () {
+        HapticFeedback.lightImpact(); 
+        action();
+      },
       child: SizedBox(
         width: widget.width,
         height: widget.height,
@@ -1908,116 +2268,6 @@ class _HeavyTycoonButtonState extends State<HeavyTycoonButton> {
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class ProductTokenAnimator extends StatefulWidget { 
-  final String productName;
-  const ProductTokenAnimator({super.key, required this.productName}); 
-  @override State<ProductTokenAnimator> createState() => _ProductTokenAnimatorState(); 
-}
-
-class _ProductTokenAnimatorState extends State<ProductTokenAnimator> {
-  bool _started = false;
-  
-  @override 
-  void initState() { 
-    super.initState(); 
-    WidgetsBinding.instance.addPostFrameCallback((_) { 
-      if (mounted) {
-        setState(() { _started = true; }); 
-      }
-    }); 
-  }
-
-  @override 
-  Widget build(BuildContext context) { 
-    return AnimatedAlign(
-      duration: const Duration(milliseconds: 800), 
-      alignment: _started ? Alignment.centerRight : Alignment.centerLeft, 
-      curve: Curves.linear, 
-      child: Container(
-        width: 30, height: 30, 
-        margin: const EdgeInsets.symmetric(horizontal: 4), 
-        decoration: BoxDecoration(
-          color: AppColors.surfaceElevated,
-          borderRadius: BorderRadius.zero,
-          border: Border.all(color: AppColors.gold, width: 2),
-          boxShadow: const [
-            BoxShadow(color: Colors.black54, blurRadius: 6, offset: Offset(0, 3)),
-          ],
-        ), 
-        child: Center(
-          child: ProductSvgIcon(
-            name: widget.productName,
-            size: 18,
-            color: AppColors.gold,
-          ),
-        ),
-      ),
-    ); 
-  }
-}
-
-class FloatingIncomeText extends StatefulWidget {
-  final String text;
-  final VoidCallback onEnd;
-  const FloatingIncomeText({super.key, required this.text, required this.onEnd});
-
-  @override 
-  State<FloatingIncomeText> createState() => _FloatingIncomeTextState();
-}
-
-class _FloatingIncomeTextState extends State<FloatingIncomeText> with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _fadeAnimation;
-  late Animation<Offset> _slideAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 750),
-    );
-
-    _fadeAnimation = Tween<double>(begin: 1.0, end: 0.0).animate(
-      CurvedAnimation(parent: _controller, curve: const Interval(0.4, 1.0, curve: Curves.easeOut)),
-    );
-
-    _slideAnimation = Tween<Offset>(begin: Offset.zero, end: const Offset(0.2, -1.8)).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
-    );
-
-    _controller.forward().then((_) => widget.onEnd());
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return SlideTransition(
-      position: _slideAnimation,
-      child: FadeTransition(
-        opacity: _fadeAnimation,
-        child: Text(
-          widget.text,
-          style: const TextStyle(
-            color: AppColors.profit,
-            fontSize: 15,
-            fontWeight: FontWeight.w900,
-            fontFamily: 'SpaceMono',
-            shadows: [
-              Shadow(color: Colors.black, blurRadius: 4, offset: Offset(2, 2)),
-            ],
-          ),
         ),
       ),
     );
