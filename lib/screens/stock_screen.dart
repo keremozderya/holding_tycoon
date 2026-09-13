@@ -14,7 +14,6 @@ class StockScreen extends StatelessWidget {
 
   String _formatNum(double value) {
     double absVal = value.abs();
-
     if (absVal >= 1e33) return '${(absVal / 1e33).toStringAsFixed(2)} Dc';
     if (absVal >= 1e30) return '${(absVal / 1e30).toStringAsFixed(2)} No';
     if (absVal >= 1e27) return '${(absVal / 1e27).toStringAsFixed(2)} Oc';
@@ -26,7 +25,7 @@ class StockScreen extends StatelessWidget {
     if (absVal >= 1e9) return '${(absVal / 1e9).toStringAsFixed(2)} B';
     if (absVal >= 1e6) return '${(absVal / 1e6).toStringAsFixed(2)} M';
     if (absVal >= 1e3) return '${(absVal / 1e3).toStringAsFixed(1)} K';
-    
+    if (absVal > 0 && absVal < 10) return absVal.toStringAsFixed(1);
     return absVal.toStringAsFixed(0);
   }
 

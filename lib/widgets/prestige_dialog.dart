@@ -1,7 +1,8 @@
 // lib/widgets/prestige_dialog.dart
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+import '../providers/game_state.dart';
 import '../services/translation_service.dart';
 import '../services/audio_service.dart';
 import '../theme/app_theme.dart';
@@ -9,8 +10,6 @@ import '../theme/app_theme.dart';
 class PrestigeDialog extends StatelessWidget {
   final double currentTurnover;
   final VoidCallback onPrestigeConfirmed;
-
-  static const double prestigeThreshold = 1.0e20;
 
   const PrestigeDialog({
     super.key,
@@ -33,14 +32,6 @@ class PrestigeDialog extends StatelessWidget {
     );
   }
 
-  int _calculateEarnableRP() {
-    if (currentTurnover < prestigeThreshold) {
-      return 0;
-    }
-    final ratio = currentTurnover / prestigeThreshold;
-    return (10 * math.sqrt(ratio)).floor();
-  }
-
   String _formatTurnover(double value) {
     if (value >= 1e24) return '${(value / 1e24).toStringAsFixed(2)} Sp';
     if (value >= 1e21) return '${(value / 1e21).toStringAsFixed(2)} Sx';
@@ -53,9 +44,11 @@ class PrestigeDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool canPrestige = currentTurnover >= prestigeThreshold;
-    final int earnableRP = _calculateEarnableRP();
-    final double progress = (currentTurnover / prestigeThreshold).clamp(0.0, 1.0);
+    final state = context.watch<GameState>();
+    final bool canPrestige = currentTurnover >= GameState.prestigeThreshold;
+    // DÜZELTME: Doğrudan GameState merkezi fonksiyonu ile tam senkronize hesaplama
+    final int earnableRP = state.calculateEarnableRP(currentTurnover);
+    final double progress = (currentTurnover / GameState.prestigeThreshold).clamp(0.0, 1.0);
 
     return Dialog(
       backgroundColor: Colors.transparent,

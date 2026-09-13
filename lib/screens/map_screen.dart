@@ -1,4 +1,6 @@
 // lib/screens/map_screen.dart
+// ignore_for_file: undefined_hidden_name, unused_import
+
 import 'dart:async' as async;
 import 'dart:math' as math;
 import 'dart:ui' as ui;
@@ -6,8 +8,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart'; 
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
-import 'package:flame/game.dart' hide Timer;       // Flame Timer gizlendi
-import 'package:flame/components.dart' hide Timer; // Flame Timer gizlendi
+import 'package:flame/game.dart' hide Timer;       
+import 'package:flame/components.dart' hide Timer; 
 import 'package:flame/events.dart';
 
 import '../providers/game_state.dart';
@@ -88,7 +90,7 @@ class _MapScreenState extends State<MapScreen> {
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(color: AppColors.background, borderRadius: BorderRadius.zero, border: Border.all(color: AppColors.border, width: 2)),
-                        child: SizedBox(width: 36, height: 36, child: CustomPaint(painter: HeavyIconPainter(type: 'boost', color: AppColors.gold))),
+                        child: SizedBox(width: 36, height: 36, child: CustomPaint(painter: HeavyIconPainter(type: 'factory', color: AppColors.gold))), 
                       ),
                       const SizedBox(height: 16),
                       Text('SEKTÖR SEÇİMİ', textAlign: TextAlign.center, style: AppTheme.titleStyle(fontSize: 20).copyWith(color: AppColors.textPrimary, letterSpacing: 2.0)),
@@ -171,18 +173,20 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   String _formatNum(double value) {
-    if (value >= 1e33) return '${(value / 1e33).toStringAsFixed(2)} Dc';
-    if (value >= 1e30) return '${(value / 1e30).toStringAsFixed(2)} No';
-    if (value >= 1e27) return '${(value / 1e27).toStringAsFixed(2)} Oc';
-    if (value >= 1e24) return '${(value / 1e24).toStringAsFixed(2)} Sp';
-    if (value >= 1e21) return '${(value / 1e21).toStringAsFixed(2)} Sx';
-    if (value >= 1e18) return '${(value / 1e18).toStringAsFixed(2)} Qi';
-    if (value >= 1e15) return '${(value / 1e15).toStringAsFixed(2)} Qa';
-    if (value >= 1e12) return '${(value / 1e12).toStringAsFixed(2)} T';
-    if (value >= 1e9) return '${(value / 1e9).toStringAsFixed(2)} B';
-    if (value >= 1e6) return '${(value / 1e6).toStringAsFixed(2)} M';
-    if (value >= 1e3) return '${(value / 1e3).toStringAsFixed(1)} K';
-    return value.toStringAsFixed(0);
+    double absVal = value.abs();
+    if (absVal >= 1e33) return '${(absVal / 1e33).toStringAsFixed(2)} Dc';
+    if (absVal >= 1e30) return '${(absVal / 1e30).toStringAsFixed(2)} No';
+    if (absVal >= 1e27) return '${(absVal / 1e27).toStringAsFixed(2)} Oc';
+    if (absVal >= 1e24) return '${(absVal / 1e24).toStringAsFixed(2)} Sp';
+    if (absVal >= 1e21) return '${(absVal / 1e21).toStringAsFixed(2)} Sx';
+    if (absVal >= 1e18) return '${(absVal / 1e18).toStringAsFixed(2)} Qi';
+    if (absVal >= 1e15) return '${(absVal / 1e15).toStringAsFixed(2)} Qa';
+    if (absVal >= 1e12) return '${(absVal / 1e12).toStringAsFixed(2)} T';
+    if (absVal >= 1e9) return '${(absVal / 1e9).toStringAsFixed(2)} B';
+    if (absVal >= 1e6) return '${(absVal / 1e6).toStringAsFixed(2)} M';
+    if (absVal >= 1e3) return '${(absVal / 1e3).toStringAsFixed(1)} K';
+    if (absVal > 0 && absVal < 10) return absVal.toStringAsFixed(1);
+    return absVal.toStringAsFixed(0);
   }
 
   void _showOfflineEarningsDialog(GameState state) {
@@ -408,7 +412,7 @@ class _MapScreenState extends State<MapScreen> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  SizedBox(width: 20, height: 20, child: CustomPaint(painter: HeavyIconPainter(type: 'boost', color: AppColors.gold))),
+                  SizedBox(width: 20, height: 20, child: CustomPaint(painter: HeavyIconPainter(type: 'speed', color: AppColors.gold))),
                   const SizedBox(width: 10),
                   const Expanded(
                     child: Text(
@@ -492,6 +496,30 @@ class _MapScreenState extends State<MapScreen> {
           Positioned(top: 0, left: 0, right: 0, child: _buildPremiumTopPanel(context, gameState)),
           Positioned(bottom: 0, left: 0, right: 0, child: _buildPremiumBottomBar(context)),
           Positioned(right: 16, top: MediaQuery.of(context).padding.top + 140, child: _buildSideActionButtons(gameState)),
+          
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 85,
+            left: 16, right: 16,
+            child: Column(
+              children: gameState.notifications.map((n) => TopNotificationItem(
+                key: ValueKey(n.id),
+                notification: n,
+                onClaim: () {
+                  if (n.type == 'task') {
+                    gameState.claimTask(n.index);
+                  } else if (n.type == 'achievement') {
+                    gameState.claimAchievement(n.index);
+                  }
+                  HapticFeedback.heavyImpact();
+                  AudioService.instance.playSfx('cash.mp3');
+                  gameState.removeNotification(n);
+                },
+                onDismiss: () {
+                  gameState.removeNotification(n);
+                }
+              )).toList(),
+            ),
+          ),
         ],
       ),
     );
@@ -644,7 +672,7 @@ class _MapScreenState extends State<MapScreen> {
       child: GestureDetector(
         onTap: onTap, behavior: HitTestBehavior.opaque,
         child: Column(
-          mainAxisAlignment: TabBarIndicatorSize.tab == TabBarIndicatorSize.tab ? MainAxisAlignment.center : MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             SizedBox(
               width: 26, height: 26,
@@ -712,13 +740,109 @@ class _MapScreenState extends State<MapScreen> {
           onTap: () { 
             HapticFeedback.selectionClick();
             AudioService.instance.playSfx('click.mp3');
-            PrestigeDialog.show(context, currentTurnover: state.money, onPrestigeConfirmed: () { 
-              AudioService.instance.playSfx('cash.mp3');
-              state.executePrestige((state.money/1e20).floor()); 
-            }); 
+            PrestigeDialog.show(
+              context, 
+              currentTurnover: state.statTotalEarned, 
+              onPrestigeConfirmed: () { 
+                AudioService.instance.playSfx('cash.mp3');
+                state.executePrestige(); 
+              }
+            ); 
           }
         ),
       ],
+    );
+  }
+}
+
+class TopNotificationItem extends StatefulWidget {
+  final InGameNotification notification;
+  final VoidCallback onClaim;
+  final VoidCallback onDismiss;
+
+  const TopNotificationItem({super.key, required this.notification, required this.onClaim, required this.onDismiss});
+
+  @override
+  State<TopNotificationItem> createState() => _TopNotificationItemState();
+}
+
+class _TopNotificationItemState extends State<TopNotificationItem> with SingleTickerProviderStateMixin {
+  late AnimationController _animCtrl;
+  late Animation<Offset> _slideAnim;
+  async.Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _animCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 400));
+    _slideAnim = Tween<Offset>(begin: const Offset(0, -1.2), end: Offset.zero).animate(CurvedAnimation(parent: _animCtrl, curve: Curves.easeOutBack));
+    _animCtrl.forward();
+
+    _timer = async.Timer(const Duration(seconds: 5), () {
+      _closeAndDismiss();
+    });
+  }
+
+  void _closeAndDismiss() {
+    if (mounted) {
+      _animCtrl.reverse().then((_) {
+        widget.onDismiss();
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _animCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SlideTransition(
+      position: _slideAnim,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 8),
+        decoration: BoxDecoration(
+          color: AppColors.surfaceElevated,
+          border: Border.all(color: widget.notification.type == 'task' ? AppColors.neonCyan : AppColors.gold, width: 2.5),
+          boxShadow: const [BoxShadow(color: Colors.black87, blurRadius: 10, offset: Offset(0, 4))],
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () {
+              _timer?.cancel();
+              widget.onClaim();
+            },
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
+                children: [
+                  Icon(widget.notification.type == 'task' ? Icons.assignment_turned_in_rounded : Icons.emoji_events_rounded, color: widget.notification.type == 'task' ? AppColors.neonCyan : AppColors.gold, size: 28),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(widget.notification.header, style: TextStyle(color: widget.notification.type == 'task' ? AppColors.neonCyan : AppColors.gold, fontSize: 11, fontWeight: FontWeight.w900)),
+                        const SizedBox(height: 2),
+                        Text(widget.notification.title, style: const TextStyle(color: AppColors.textPrimary, fontSize: 13, fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(color: Colors.black, border: Border.all(color: AppColors.profit, width: 1.5)),
+                    child: const Text('ÖDÜLÜ AL', style: TextStyle(color: AppColors.profit, fontSize: 10, fontWeight: FontWeight.w900)),
+                  )
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
@@ -1201,16 +1325,420 @@ class _ProductVectorPainter extends CustomPainter {
     final Paint stroke = Paint()
       ..color = color
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.0
-      ..strokeCap = StrokeCap.square
-      ..strokeJoin = StrokeJoin.miter;
+      ..strokeWidth = 1.5
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
 
     final Paint fill = Paint()
       ..color = color
       ..style = PaintingStyle.fill;
 
-    canvas.drawRect(const Rect.fromLTWH(4, 4, 16, 16), stroke);
-    canvas.drawRect(const Rect.fromLTWH(10, 10, 4, 4), fill);
+    switch (name) {
+      // 1. Tekstil
+      case 'T-shirt':
+        canvas.drawPath(Path()..moveTo(6, 6)..lineTo(18, 6)..lineTo(18, 10)..lineTo(15, 10)..lineTo(15, 18)..lineTo(9, 18)..lineTo(9, 10)..lineTo(6, 10)..close(), stroke);
+        break;
+      case 'Pantolon':
+        canvas.drawPath(Path()..moveTo(8, 4)..lineTo(16, 4)..lineTo(16, 20)..lineTo(13, 20)..lineTo(13, 10)..lineTo(11, 10)..lineTo(11, 20)..lineTo(8, 20)..close(), stroke);
+        break;
+      case 'Ayakkabı':
+        canvas.drawPath(Path()..moveTo(6, 16)..lineTo(12, 16)..lineTo(14, 12)..lineTo(18, 12)..lineTo(18, 20)..lineTo(6, 20)..close(), stroke);
+        break;
+      case 'Çanta':
+        canvas.drawRect(const Rect.fromLTWH(6, 10, 12, 10), stroke);
+        canvas.drawArc(const Rect.fromLTWH(9, 7, 6, 6), math.pi, math.pi, false, stroke);
+        break;
+      case 'Takım Elbise':
+        canvas.drawRect(const Rect.fromLTWH(7, 4, 10, 16), stroke);
+        canvas.drawPath(Path()..moveTo(7,4)..lineTo(12,12)..lineTo(17,4), stroke);
+        canvas.drawLine(const Offset(12,12), const Offset(12,20), stroke);
+        break;
+
+      // 2. Mobilya
+      case 'Sandalye':
+        canvas.drawLine(const Offset(8, 4), const Offset(8, 20), stroke);
+        canvas.drawLine(const Offset(16, 12), const Offset(16, 20), stroke);
+        canvas.drawLine(const Offset(8, 12), const Offset(16, 12), stroke);
+        break;
+      case 'Masa':
+        canvas.drawRect(const Rect.fromLTWH(4, 8, 16, 3), fill);
+        canvas.drawLine(const Offset(6, 11), const Offset(6, 20), stroke);
+        canvas.drawLine(const Offset(18, 11), const Offset(18, 20), stroke);
+        break;
+      case 'Koltuk':
+        canvas.drawRect(const Rect.fromLTWH(6, 12, 12, 8), stroke);
+        canvas.drawRect(const Rect.fromLTWH(4, 8, 4, 12), stroke);
+        canvas.drawRect(const Rect.fromLTWH(16, 8, 4, 12), stroke);
+        break;
+      case 'Yatak':
+        canvas.drawRect(const Rect.fromLTWH(4, 12, 16, 6), stroke);
+        canvas.drawRect(const Rect.fromLTWH(6, 9, 6, 3), stroke);
+        break;
+      case 'Dolap':
+        canvas.drawRect(const Rect.fromLTWH(6, 4, 12, 16), stroke);
+        canvas.drawLine(const Offset(12, 4), const Offset(12, 20), stroke);
+        canvas.drawCircle(const Offset(10, 12), 1, fill);
+        canvas.drawCircle(const Offset(14, 12), 1, fill);
+        break;
+
+      // 3. Tarım
+      case 'Buğday':
+        canvas.drawLine(const Offset(12, 4), const Offset(12, 20), stroke);
+        for(int i=6; i<16; i+=3) {
+          canvas.drawLine(Offset(12, i.toDouble()), Offset(8, i-3.toDouble()), stroke);
+          canvas.drawLine(Offset(12, i.toDouble()), Offset(16, i-3.toDouble()), stroke);
+        }
+        break;
+      case 'Mısır':
+        canvas.drawOval(const Rect.fromLTWH(8, 4, 8, 16), stroke);
+        canvas.drawLine(const Offset(8, 12), const Offset(16, 12), stroke);
+        canvas.drawLine(const Offset(12, 4), const Offset(12, 20), stroke);
+        break;
+      case 'Pamuk':
+        canvas.drawCircle(const Offset(12, 8), 4, stroke);
+        canvas.drawCircle(const Offset(9, 11), 3, stroke);
+        canvas.drawCircle(const Offset(15, 11), 3, stroke);
+        canvas.drawLine(const Offset(12, 14), const Offset(12, 20), stroke);
+        break;
+      case 'Safran':
+        canvas.drawPath(Path()..moveTo(8,8)..lineTo(12,14)..lineTo(16,8)..close(), stroke);
+        canvas.drawLine(const Offset(12,14), const Offset(12,20), stroke);
+        canvas.drawLine(const Offset(10,8), const Offset(10,4), stroke);
+        canvas.drawLine(const Offset(12,8), const Offset(12,3), stroke);
+        canvas.drawLine(const Offset(14,8), const Offset(14,4), stroke);
+        break;
+      case 'Hibrit Tohum':
+        canvas.drawOval(const Rect.fromLTWH(9, 10, 6, 8), stroke);
+        canvas.drawPath(Path()..moveTo(12,10)..quadraticBezierTo(8,4,14,4)..quadraticBezierTo(14,8,12,10), stroke);
+        break;
+
+      // 4. Süt
+      case 'Süt':
+        canvas.drawRect(const Rect.fromLTWH(8, 10, 8, 10), stroke);
+        canvas.drawRect(const Rect.fromLTWH(10, 4, 4, 6), stroke);
+        break;
+      case 'Yoğurt':
+        canvas.drawPath(Path()..moveTo(6,6)..lineTo(18,6)..lineTo(16,18)..lineTo(8,18)..close(), stroke);
+        canvas.drawLine(const Offset(4,6), const Offset(20,6), stroke);
+        break;
+      case 'Tereyağ':
+        canvas.drawRect(const Rect.fromLTWH(4, 10, 16, 8), stroke);
+        canvas.drawLine(const Offset(16, 10), const Offset(16, 18), stroke);
+        break;
+      case 'Arı Sütü':
+        canvas.drawPath(Path()..moveTo(12,4)..lineTo(18,8)..lineTo(18,16)..lineTo(12,20)..lineTo(6,16)..lineTo(6,8)..close(), stroke);
+        canvas.drawCircle(const Offset(12,12), 2, fill);
+        break;
+      case 'Pule Peyniri':
+        canvas.drawPath(Path()..moveTo(4,18)..lineTo(20,18)..lineTo(20,6)..close(), stroke);
+        canvas.drawCircle(const Offset(14,14), 1.5, stroke);
+        canvas.drawCircle(const Offset(17,10), 1, stroke);
+        break;
+
+      // 5. Mezbaha
+      case 'Sosis':
+        canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(4, 8, 16, 8), const Radius.circular(4)), stroke);
+        canvas.drawLine(const Offset(2, 12), const Offset(4, 12), stroke);
+        canvas.drawLine(const Offset(20, 12), const Offset(22, 12), stroke);
+        break;
+      case 'Tavuk':
+        canvas.drawCircle(const Offset(14, 10), 5, stroke);
+        canvas.drawLine(const Offset(9, 15), const Offset(4, 20), stroke..strokeWidth=2);
+        break;
+      case 'Kebap':
+        canvas.drawLine(const Offset(4, 12), const Offset(20, 12), stroke);
+        canvas.drawRect(const Rect.fromLTWH(6, 9, 3, 6), fill);
+        canvas.drawRect(const Rect.fromLTWH(11, 9, 3, 6), fill);
+        canvas.drawRect(const Rect.fromLTWH(16, 9, 3, 6), fill);
+        break;
+      case 'Timsah Derisi':
+        canvas.drawPath(Path()..moveTo(4,8)..lineTo(8,4)..lineTo(12,8)..lineTo(16,4)..lineTo(20,8)..lineTo(20,16)..lineTo(16,20)..lineTo(12,16)..lineTo(8,20)..lineTo(4,16)..close(), stroke);
+        break;
+      case 'Wagyu Eti':
+        canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(4, 6, 16, 12), const Radius.circular(3)), stroke);
+        canvas.drawPath(Path()..moveTo(6,10)..quadraticBezierTo(12,6,18,10), stroke);
+        canvas.drawPath(Path()..moveTo(6,14)..quadraticBezierTo(12,18,18,14), stroke);
+        break;
+
+      // 6. Gıda İşleme
+      case 'Un':
+        canvas.drawPath(Path()..moveTo(8,20)..lineTo(16,20)..lineTo(18,10)..lineTo(14,8)..lineTo(10,8)..lineTo(6,10)..close(), stroke);
+        canvas.drawPath(Path()..moveTo(14,8)..lineTo(16,4)..lineTo(8,4)..lineTo(10,8), stroke);
+        break;
+      case 'Şeker':
+        canvas.drawRect(const Rect.fromLTWH(6, 10, 6, 6), stroke);
+        canvas.drawRect(const Rect.fromLTWH(12, 6, 6, 6), stroke);
+        break;
+      case 'Konserve':
+        canvas.drawOval(const Rect.fromLTWH(6, 4, 12, 4), stroke);
+        canvas.drawLine(const Offset(6, 6), const Offset(6, 18), stroke);
+        canvas.drawLine(const Offset(18, 6), const Offset(18, 18), stroke);
+        canvas.drawOval(const Rect.fromLTWH(6, 16, 12, 4), stroke);
+        break;
+      case 'Havyar':
+        canvas.drawRect(const Rect.fromLTWH(6, 8, 12, 10), stroke);
+        canvas.drawRect(const Rect.fromLTWH(8, 4, 8, 4), fill);
+        canvas.drawCircle(const Offset(9, 13), 1, fill);
+        canvas.drawCircle(const Offset(12, 15), 1, fill);
+        canvas.drawCircle(const Offset(15, 12), 1, fill);
+        break;
+      case 'Gurme Çikolata':
+        canvas.drawRect(const Rect.fromLTWH(6, 4, 12, 16), stroke);
+        canvas.drawLine(const Offset(12, 4), const Offset(12, 20), stroke);
+        canvas.drawLine(const Offset(6, 9), const Offset(18, 9), stroke);
+        canvas.drawLine(const Offset(6, 15), const Offset(18, 15), stroke);
+        break;
+
+      // 7. Maden
+      case 'Kömür':
+        canvas.drawPath(Path()..moveTo(12,4)..lineTo(18,8)..lineTo(16,18)..lineTo(8,20)..lineTo(4,14)..close(), fill);
+        break;
+      case 'Demir':
+        canvas.drawLine(const Offset(8,4), const Offset(16,4), stroke..strokeWidth=3);
+        canvas.drawLine(const Offset(12,4), const Offset(12,20), stroke..strokeWidth=3);
+        canvas.drawLine(const Offset(8,20), const Offset(16,20), stroke..strokeWidth=3);
+        break;
+      case 'Gümüş':
+        canvas.drawPath(Path()..moveTo(6,14)..lineTo(8,10)..lineTo(16,10)..lineTo(18,14)..close(), stroke);
+        canvas.drawPath(Path()..moveTo(6,14)..lineTo(18,14)..lineTo(18,18)..lineTo(6,18)..close(), stroke);
+        break;
+      case 'Altın':
+        canvas.drawPath(Path()..moveTo(6,14)..lineTo(8,10)..lineTo(16,10)..lineTo(18,14)..close(), fill);
+        canvas.drawPath(Path()..moveTo(6,14)..lineTo(18,14)..lineTo(18,18)..lineTo(6,18)..close(), fill);
+        canvas.drawLine(const Offset(10,12), const Offset(14,12), Paint()..color=Colors.black..strokeWidth=1);
+        break;
+      case 'Elmas':
+        canvas.drawPath(Path()..moveTo(12,4)..lineTo(20,10)..lineTo(12,20)..lineTo(4,10)..close(), stroke);
+        canvas.drawLine(const Offset(8,6), const Offset(16,6), stroke);
+        break;
+
+      // 8. Kimya
+      case 'Gübre':
+        canvas.drawRect(const Rect.fromLTWH(6, 8, 12, 12), stroke);
+        canvas.drawLine(const Offset(12,8), const Offset(12,4), stroke);
+        canvas.drawCircle(const Offset(14,6), 2, stroke);
+        break;
+      case 'Plastik':
+        canvas.drawRect(const Rect.fromLTWH(8, 8, 8, 12), stroke);
+        canvas.drawRect(const Rect.fromLTWH(10, 4, 4, 4), stroke);
+        canvas.drawPath(Path()..moveTo(10,14)..lineTo(14,14)..lineTo(12,18)..close(), stroke);
+        break;
+      case 'Boya':
+        canvas.drawPath(Path()..moveTo(6,8)..lineTo(18,8)..lineTo(16,20)..lineTo(8,20)..close(), stroke);
+        canvas.drawPath(Path()..moveTo(4,8)..quadraticBezierTo(12,2,20,8), stroke);
+        break;
+      case 'Lüks Parfüm':
+        canvas.drawRect(const Rect.fromLTWH(6, 12, 12, 8), stroke);
+        canvas.drawRect(const Rect.fromLTWH(10, 8, 4, 4), stroke);
+        canvas.drawCircle(const Offset(12, 6), 2, fill);
+        break;
+      case 'Karbonfiber':
+        canvas.drawRect(const Rect.fromLTWH(4, 4, 16, 16), stroke);
+        for(int i=4; i<=20; i+=4) {
+          canvas.drawLine(Offset(4, i.toDouble()), Offset(i.toDouble(), 4), stroke);
+          canvas.drawLine(Offset(i.toDouble(), 20), Offset(20, i.toDouble()), stroke);
+        }
+        break;
+
+      // 9. Oto
+      case 'Lastik':
+        canvas.drawCircle(const Offset(12, 12), 8, stroke..strokeWidth=3);
+        canvas.drawCircle(const Offset(12, 12), 3, stroke);
+        break;
+      case 'Motorsiklet':
+        canvas.drawCircle(const Offset(6, 16), 4, stroke);
+        canvas.drawCircle(const Offset(18, 16), 4, stroke);
+        canvas.drawLine(const Offset(6, 16), const Offset(12, 10), stroke);
+        canvas.drawLine(const Offset(18, 16), const Offset(12, 10), stroke);
+        canvas.drawLine(const Offset(12, 10), const Offset(8, 8), stroke);
+        break;
+      case 'Otomobil':
+        canvas.drawPath(Path()..moveTo(4,16)..lineTo(4,12)..lineTo(8,8)..lineTo(16,8)..lineTo(20,12)..lineTo(20,16)..close(), stroke);
+        canvas.drawCircle(const Offset(8, 16), 2, stroke);
+        canvas.drawCircle(const Offset(16, 16), 2, stroke);
+        break;
+      case 'Vip Limuzin':
+        canvas.drawPath(Path()..moveTo(2,16)..lineTo(2,12)..lineTo(6,8)..lineTo(18,8)..lineTo(22,12)..lineTo(22,16)..close(), stroke);
+        canvas.drawCircle(const Offset(6, 16), 2, stroke);
+        canvas.drawCircle(const Offset(18, 16), 2, stroke);
+        canvas.drawLine(const Offset(10,12), const Offset(14,12), stroke);
+        break;
+      case 'Süper Spor Araç':
+        canvas.drawPath(Path()..moveTo(2,16)..lineTo(8,10)..lineTo(16,10)..lineTo(22,16)..close(), stroke);
+        canvas.drawPath(Path()..moveTo(22,16)..lineTo(22,18)..lineTo(2,18)..lineTo(2,16)..close(), stroke);
+        canvas.drawCircle(const Offset(6, 18), 2, stroke);
+        canvas.drawCircle(const Offset(18, 18), 2, stroke);
+        break;
+
+      // 10. İlaç
+      case 'Vitamin Hapı':
+        canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(6, 8, 12, 8), const Radius.circular(4)), stroke);
+        canvas.drawLine(const Offset(12, 8), const Offset(12, 16), stroke);
+        break;
+      case 'Ağrı Kesici':
+        canvas.drawCircle(const Offset(12, 12), 6, stroke);
+        canvas.drawLine(const Offset(12, 8), const Offset(12, 16), stroke);
+        canvas.drawLine(const Offset(8, 12), const Offset(16, 12), stroke);
+        break;
+      case 'Antibiyotik':
+        canvas.drawRect(const Rect.fromLTWH(10, 6, 4, 10), stroke);
+        canvas.drawLine(const Offset(12, 16), const Offset(12, 20), stroke);
+        canvas.drawLine(const Offset(8, 6), const Offset(16, 6), stroke);
+        break;
+      case 'Covi-19 Aşısı':
+        canvas.drawRect(const Rect.fromLTWH(8, 10, 8, 10), stroke);
+        canvas.drawRect(const Rect.fromLTWH(10, 6, 4, 4), stroke);
+        canvas.drawLine(const Offset(12, 13), const Offset(12, 17), stroke);
+        canvas.drawLine(const Offset(10, 15), const Offset(14, 15), stroke);
+        break;
+      case 'Kanser İlacı':
+        canvas.drawRect(const Rect.fromLTWH(8, 8, 8, 12), stroke);
+        canvas.drawPath(Path()..moveTo(10,10)..quadraticBezierTo(14,14,10,18), stroke);
+        canvas.drawPath(Path()..moveTo(14,10)..quadraticBezierTo(10,14,14,18), stroke);
+        break;
+
+      // 11. Elektronik
+      case 'Hesap Makinesi':
+        canvas.drawRect(const Rect.fromLTWH(6, 4, 12, 16), stroke);
+        canvas.drawRect(const Rect.fromLTWH(8, 6, 8, 4), stroke);
+        canvas.drawRect(const Rect.fromLTWH(8, 12, 2, 2), fill);
+        canvas.drawRect(const Rect.fromLTWH(11, 12, 2, 2), fill);
+        canvas.drawRect(const Rect.fromLTWH(14, 12, 2, 2), fill);
+        canvas.drawRect(const Rect.fromLTWH(8, 15, 2, 2), fill);
+        break;
+      case 'Telefon':
+        canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(7, 4, 10, 16), const Radius.circular(2)), stroke);
+        canvas.drawCircle(const Offset(12, 17), 1, stroke);
+        break;
+      case 'Televizyon':
+        canvas.drawRect(const Rect.fromLTWH(4, 6, 16, 10), stroke);
+        canvas.drawLine(const Offset(12, 16), const Offset(12, 18), stroke);
+        canvas.drawLine(const Offset(8, 18), const Offset(16, 18), stroke);
+        break;
+      case 'İnsansız Hava Aracı':
+        canvas.drawLine(const Offset(6, 6), const Offset(18, 18), stroke);
+        canvas.drawLine(const Offset(18, 6), const Offset(6, 18), stroke);
+        canvas.drawCircle(const Offset(6, 6), 2, stroke);
+        canvas.drawCircle(const Offset(18, 6), 2, stroke);
+        canvas.drawCircle(const Offset(6, 18), 2, stroke);
+        canvas.drawCircle(const Offset(18, 18), 2, stroke);
+        break;
+      case 'Kuantum PC':
+        canvas.drawRect(const Rect.fromLTWH(6, 6, 12, 12), stroke);
+        canvas.drawRect(const Rect.fromLTWH(9, 9, 6, 6), stroke);
+        canvas.drawLine(const Offset(12, 6), const Offset(12, 9), stroke);
+        canvas.drawLine(const Offset(12, 15), const Offset(12, 18), stroke);
+        canvas.drawLine(const Offset(6, 12), const Offset(9, 12), stroke);
+        canvas.drawLine(const Offset(15, 12), const Offset(18, 12), stroke);
+        break;
+
+      // 12. Yapay Zeka
+      case 'Sohbet Botu':
+        canvas.drawRect(const Rect.fromLTWH(4, 6, 16, 10), stroke);
+        canvas.drawPath(Path()..moveTo(8,16)..lineTo(8,20)..lineTo(12,16)..close(), stroke);
+        break;
+      case 'Satranç Botu':
+        canvas.drawPath(Path()..moveTo(12,6)..lineTo(14,10)..lineTo(10,10)..close(), stroke);
+        canvas.drawRect(const Rect.fromLTWH(10, 10, 4, 8), stroke);
+        canvas.drawLine(const Offset(8, 18), const Offset(16, 18), stroke);
+        break;
+      case 'Görsel Oluşturma Botu':
+        canvas.drawRect(const Rect.fromLTWH(4, 6, 16, 12), stroke);
+        canvas.drawCircle(const Offset(16, 10), 1.5, stroke);
+        canvas.drawPath(Path()..moveTo(4,18)..lineTo(10,12)..lineTo(14,16)..lineTo(16,14)..lineTo(20,18), stroke);
+        break;
+      case 'Kodlama Botu':
+        canvas.drawLine(const Offset(10, 8), const Offset(6, 12), stroke);
+        canvas.drawLine(const Offset(6, 12), const Offset(10, 16), stroke);
+        canvas.drawLine(const Offset(14, 8), const Offset(18, 12), stroke);
+        canvas.drawLine(const Offset(18, 12), const Offset(14, 16), stroke);
+        break;
+      case 'Humanoid Robot':
+        canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(6, 6, 12, 12), const Radius.circular(2)), stroke);
+        canvas.drawCircle(const Offset(10, 10), 1.5, fill);
+        canvas.drawCircle(const Offset(14, 10), 1.5, fill);
+        canvas.drawLine(const Offset(10, 14), const Offset(14, 14), stroke);
+        break;
+
+      // 13. Enerji
+      case 'Güneş Paneli':
+        canvas.drawPath(Path()..moveTo(6,14)..lineTo(10,6)..lineTo(20,6)..lineTo(16,14)..close(), stroke);
+        canvas.drawLine(const Offset(8,10), const Offset(18,10), stroke);
+        canvas.drawLine(const Offset(13,6), const Offset(11,14), stroke);
+        break;
+      case 'Rüzgar Tribünü':
+        canvas.drawLine(const Offset(12, 12), const Offset(12, 22), stroke);
+        canvas.drawLine(const Offset(12, 12), const Offset(12, 4), stroke);
+        canvas.drawLine(const Offset(12, 12), const Offset(6, 16), stroke);
+        canvas.drawLine(const Offset(12, 12), const Offset(18, 16), stroke);
+        break;
+      case 'Nükleer Santral':
+        canvas.drawPath(Path()..moveTo(6,20)..lineTo(8,12)..lineTo(8,8)..lineTo(16,8)..lineTo(16,12)..lineTo(18,20)..close(), stroke);
+        canvas.drawPath(Path()..moveTo(10,6)..quadraticBezierTo(12,2,14,6), stroke);
+        break;
+      case 'Parçacık Hızlandırıcı':
+        canvas.drawCircle(const Offset(12, 12), 8, stroke);
+        canvas.drawCircle(const Offset(12, 12), 5, stroke);
+        canvas.drawLine(const Offset(12, 4), const Offset(12, 6), stroke);
+        canvas.drawLine(const Offset(12, 18), const Offset(12, 20), stroke);
+        break;
+      case 'Füzyon Çekirdeği':
+        canvas.drawCircle(const Offset(12, 12), 8, stroke);
+        canvas.drawPath(Path()..moveTo(12,7)..lineTo(13,11)..lineTo(17,12)..lineTo(13,13)..lineTo(12,17)..lineTo(11,13)..lineTo(7,12)..lineTo(11,11)..close(), fill);
+        break;
+
+      // 14. Biyo
+      case 'Kök Hücre':
+        canvas.drawPath(Path()..moveTo(12,6)..quadraticBezierTo(18,6,18,12)..quadraticBezierTo(18,18,12,18)..quadraticBezierTo(6,18,6,12)..quadraticBezierTo(6,6,12,6), stroke);
+        canvas.drawCircle(const Offset(12,12), 2, fill);
+        break;
+      case '3D Biyo-Yazıcı':
+        canvas.drawRect(const Rect.fromLTWH(4, 6, 16, 12), stroke);
+        canvas.drawLine(const Offset(4, 10), const Offset(20, 10), stroke);
+        canvas.drawLine(const Offset(12, 10), const Offset(12, 14), stroke);
+        canvas.drawCircle(const Offset(12, 15), 1, fill);
+        break;
+      case 'Biyonik Organ':
+        canvas.drawPath(Path()..moveTo(12,18)..quadraticBezierTo(4,10,12,6)..quadraticBezierTo(20,10,12,18), stroke);
+        canvas.drawLine(const Offset(12, 6), const Offset(12, 18), stroke);
+        canvas.drawLine(const Offset(8, 12), const Offset(16, 12), stroke);
+        break;
+      case 'Biyoçip':
+        canvas.drawRect(const Rect.fromLTWH(8, 8, 8, 8), stroke);
+        canvas.drawPath(Path()..moveTo(16,8)..quadraticBezierTo(20,4,16,4)..quadraticBezierTo(12,4,16,8), stroke);
+        break;
+      case 'Klon Canlı':
+        canvas.drawCircle(const Offset(12, 12), 6, stroke);
+        canvas.drawCircle(const Offset(12, 12), 2, fill);
+        break;
+
+      // 15. Uzay
+      case 'Roket Motoru':
+        canvas.drawPath(Path()..moveTo(8,16)..lineTo(12,6)..lineTo(16,16)..close(), stroke);
+        break;
+      case 'Uydu':
+        canvas.drawRect(const Rect.fromLTWH(4, 10, 6, 4), stroke);
+        canvas.drawRect(const Rect.fromLTWH(14, 10, 6, 4), stroke);
+        canvas.drawCircle(const Offset(12, 12), 2, stroke);
+        break;
+      case 'Uzay Mekiği':
+        canvas.drawPath(Path()..moveTo(12,4)..lineTo(16,12)..lineTo(18,18)..lineTo(6,18)..lineTo(8,12)..close(), stroke);
+        break;
+      case 'Ay İniş Aracı':
+        canvas.drawRect(const Rect.fromLTWH(8,8,8,6), stroke);
+        canvas.drawLine(const Offset(8,14), const Offset(4,20), stroke);
+        canvas.drawLine(const Offset(16,14), const Offset(20,20), stroke);
+        break;
+      case 'Yıldız Gemisi':
+        canvas.drawOval(const Rect.fromLTWH(4,10,16,4), stroke);
+        canvas.drawOval(const Rect.fromLTWH(8,6,8,4), stroke);
+        break;
+
+      default:
+        canvas.drawRect(const Rect.fromLTWH(4, 4, 16, 16), stroke);
+        canvas.drawRect(const Rect.fromLTWH(10, 10, 4, 4), fill);
+        break;
+    }
     canvas.restore();
   }
 
@@ -1353,7 +1881,7 @@ class _FactoryInsideModalState extends State<FactoryInsideModal> with SingleTick
                     labelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900, letterSpacing: 0.5),
                     dividerColor: Colors.transparent,
                     tabs: [
-                      Tab(child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [SizedBox(width: 16, height: 16, child: CustomPaint(painter: HeavyIconPainter(type: 'boost', color: AppColors.gold))), const SizedBox(width: 6), const Flexible(child: Text("ÜRETİM BANDI", overflow: TextOverflow.ellipsis))])),
+                      Tab(child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [SizedBox(width: 16, height: 16, child: CustomPaint(painter: HeavyIconPainter(type: 'touch', color: AppColors.gold))), const SizedBox(width: 6), const Flexible(child: Text("ÜRETİM BANDI", overflow: TextOverflow.ellipsis))])),
                       Tab(child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [SizedBox(width: 16, height: 16, child: CustomPaint(painter: HeavyIconPainter(type: 'upgrade', color: AppColors.gold))), const SizedBox(width: 6), const Flexible(child: Text("TESİS GELİŞTİRME", overflow: TextOverflow.ellipsis))])),
                     ],
                   ),
@@ -1566,10 +2094,6 @@ class _FactoryInsideModalState extends State<FactoryInsideModal> with SingleTick
   }
 }
 
-// ============================================================================
-// SÜREKLİ HAREKET EDEN, TAMAMEN İZOLE YEŞİL PARA YAZISI VE ÜRETİM HATTI
-// ============================================================================
-
 class ProductionLineWidget extends StatefulWidget {
   final FactoryProduct product; 
   final double multiplier; 
@@ -1601,13 +2125,11 @@ class _ProductionLineWidgetState extends State<ProductionLineWidget> with Ticker
   void initState() {
     super.initState();
 
-    // Bant sürekli açık ve 60 FPS mekanik olarak hareket eder
     _beltAnimController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 900),
     )..repeat();
 
-    // Ürün kutuya vardığında yaylanma
     _depotBounceController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 120),
@@ -1624,33 +2146,26 @@ class _ProductionLineWidgetState extends State<ProductionLineWidget> with Ticker
     super.dispose();
   }
 
-  // HER BASILDIĞINDA FİLTRESİZ VE BAĞIMSIZ TETİKLENİR
   void _triggerProduction() {
     final int currentId = _counter++;
     final double rewardAmount = widget.product.manualIncome * widget.multiplier;
-    
-    // Rastgele hafif sağa-sola dağılım (yazıların üst üste yığılmasını önler)
     final double randomOffsetX = (math.Random().nextDouble() * 30) - 15;
 
-    // 1. Oyun motoruna bildir
     widget.onProduceComplete();
 
-    // 2. Ses çal
     try {
       AudioService.instance.playSfx('cash.mp3');
     } catch (_) {}
 
-    // 3. Jeton ve yeşil para yazısını ekle
     setState(() {
       _tokenIds.add(currentId);
       _floatingTexts.add(_FloatingTextItem(
-        key: UniqueKey(), // Her yazıya bağımsız yaşam döngüsü
+        key: UniqueKey(), 
         id: currentId,
         text: '+\$${widget.formatNum(rewardAmount)}',
         offsetX: randomOffsetX,
       ));
 
-      // Hızlı tıklamalarda gereksiz bellek birikmesini engelle
       if (_tokenIds.length > 8) _tokenIds.removeAt(0);
       if (_floatingTexts.length > 8) _floatingTexts.removeAt(0);
     });
@@ -1732,11 +2247,9 @@ class _ProductionLineWidgetState extends State<ProductionLineWidget> with Ticker
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    SizedBox(
-                      width: 14, height: 14, 
-                      child: CustomPaint(painter: HeavyIconPainter(type: 'boost', color: AppColors.profit)),
-                    ),
+                    const Icon(Icons.trending_up_rounded, color: AppColors.profit, size: 16),
                     const SizedBox(width: 4),
                     Text(
                       '+\$${widget.formatNum(incomePerClick)}', 
@@ -1764,7 +2277,6 @@ class _ProductionLineWidgetState extends State<ProductionLineWidget> with Ticker
                 child: Stack(
                   clipBehavior: Clip.none,
                   children: [
-                    // AÇIK VE CANLI ÇALIŞAN KONVEYÖR BANDI GÖVDESİ
                     Container(
                       height: 56,
                       decoration: BoxDecoration(
@@ -1775,8 +2287,6 @@ class _ProductionLineWidgetState extends State<ProductionLineWidget> with Ticker
                       child: Row(
                         children: [
                           SizedBox(width: btnWidth),
-
-                          // SÜREKLİ DÖNEN SİLİNDİR VE JETON YOLU
                           Expanded(
                             child: ClipRect(
                               child: Stack(
@@ -1793,8 +2303,6 @@ class _ProductionLineWidgetState extends State<ProductionLineWidget> with Ticker
                                       },
                                     ),
                                   ),
-
-                                  // BANTTA İLERLEYEN ÜRÜNLER
                                   ..._tokenIds.map((id) => SelfDismissingToken(
                                     key: ValueKey('token_$id'),
                                     id: id,
@@ -1805,8 +2313,6 @@ class _ProductionLineWidgetState extends State<ProductionLineWidget> with Ticker
                               ),
                             ),
                           ),
-
-                          // SAĞ DEPO KUTUSU
                           ScaleTransition(
                             scale: _depotScaleAnimation,
                             child: Container(
@@ -1829,8 +2335,6 @@ class _ProductionLineWidgetState extends State<ProductionLineWidget> with Ticker
                         ],
                       ),
                     ),
-
-                    // ÜRET BUTONU (HIZLI BASILSA DA HER DEFA TETİKLER)
                     Positioned(
                       left: 0, top: 0, bottom: 6,
                       width: btnWidth,
@@ -1859,8 +2363,6 @@ class _ProductionLineWidgetState extends State<ProductionLineWidget> with Ticker
                         ),
                       ),
                     ),
-
-                    // TAMAMEN İZOLE YEŞİL KAZANÇ YAZILARI (+$$)
                     ..._floatingTexts.map((fItem) => Positioned(
                       key: fItem.key,
                       left: (btnWidth / 2 - 24) + fItem.offsetX,
@@ -1895,10 +2397,6 @@ class _FloatingTextItem {
   });
 }
 
-// ============================================================================
-// SÜREKLİ DÖNEN METAL SİLİNDİR RAYLARI
-// ============================================================================
-
 class ContinuousConveyorTrackPainter extends CustomPainter {
   final double progress;
 
@@ -1920,7 +2418,7 @@ class ContinuousConveyorTrackPainter extends CustomPainter {
       ..strokeCap = StrokeCap.square;
 
     final Paint rollerPaint = Paint()
-      ..color = const Color(0xFF64748B) // Çelik silindir rengi
+      ..color = const Color(0xFF64748B) 
       ..strokeWidth = 2.5
       ..strokeCap = StrokeCap.square;
 
@@ -1937,10 +2435,6 @@ class ContinuousConveyorTrackPainter extends CustomPainter {
   bool shouldRepaint(covariant ContinuousConveyorTrackPainter oldDelegate) =>
       oldDelegate.progress != progress;
 }
-
-// ============================================================================
-// BANTTA AKAN VE BİTİNCE OTOMATİK SİLİNEN JETON
-// ============================================================================
 
 class SelfDismissingToken extends StatefulWidget {
   final int id;
@@ -2023,10 +2517,6 @@ class _SelfDismissingTokenState extends State<SelfDismissingToken> with SingleTi
   }
 }
 
-// ============================================================================
-// DİĞER TÜM SİSTEMLERDEN BAĞIMSIZ, PARLAK YEŞİL YÜZEN YAZI
-// ============================================================================
-
 class SelfDismissingIncomeText extends StatefulWidget {
   final int id;
   final String text;
@@ -2057,24 +2547,20 @@ class _SelfDismissingIncomeTextState extends State<SelfDismissingIncomeText> wit
       duration: const Duration(milliseconds: 650),
     );
 
-    // Yukarı doğru hızlı süzülme
     _slideAnimation = Tween<Offset>(
       begin: Offset.zero,
       end: const Offset(0.0, -1.9),
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
 
-    // İlk çıkışta yaylanma (Pop-up)
     _scaleAnimation = TweenSequence<double>([
       TweenSequenceItem(tween: Tween(begin: 0.7, end: 1.2).chain(CurveTween(curve: Curves.easeOutBack)), weight: 35),
       TweenSequenceItem(tween: Tween(begin: 1.2, end: 1.0).chain(CurveTween(curve: Curves.easeIn)), weight: 65),
     ]).animate(_controller);
 
-    // Bitişe doğru transparanlaşma
     _fadeAnimation = Tween<double>(begin: 1.0, end: 0.0).animate(
       CurvedAnimation(parent: _controller, curve: const Interval(0.4, 1.0, curve: Curves.easeIn)),
     );
 
-    // Süresi bittiğinde güvenle listeden silinir
     _controller.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -2103,7 +2589,7 @@ class _SelfDismissingIncomeTextState extends State<SelfDismissingIncomeText> wit
           child: Text(
             widget.text,
             style: const TextStyle(
-              color: Color(0xFF22C55E), // Parlak, net neon yeşili
+              color: Color(0xFF22C55E),
               fontSize: 16,
               fontWeight: FontWeight.w900,
               fontFamily: 'SpaceMono',
@@ -2118,10 +2604,6 @@ class _SelfDismissingIncomeTextState extends State<SelfDismissingIncomeText> wit
     );
   }
 }
-
-// ============================================================================
-// ANINDA TEPKİ VEREN, KİLİTLENMEYEN SANAYİ BUTONU
-// ============================================================================
 
 class PreciseIndustrialButton extends StatefulWidget {
   final VoidCallback onTap;

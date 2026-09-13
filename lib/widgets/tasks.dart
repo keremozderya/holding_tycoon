@@ -16,16 +16,37 @@ class TasksDialog extends StatefulWidget {
 }
 
 class _TasksDialogState extends State<TasksDialog> {
+  String _formatNum(double value) {
+    if (value >= 1e33) return '${(value / 1e33).toStringAsFixed(2)} Dc';
+    if (value >= 1e30) return '${(value / 1e30).toStringAsFixed(2)} No';
+    if (value >= 1e27) return '${(value / 1e27).toStringAsFixed(2)} Oc';
+    if (value >= 1e24) return '${(value / 1e24).toStringAsFixed(2)} Sp';
+    if (value >= 1e21) return '${(value / 1e21).toStringAsFixed(2)} Sx';
+    if (value >= 1e18) return '${(value / 1e18).toStringAsFixed(2)} Qi';
+    if (value >= 1e15) return '${(value / 1e15).toStringAsFixed(2)} Qa';
+    if (value >= 1e12) return '${(value / 1e12).toStringAsFixed(2)} T';
+    if (value >= 1e9) return '${(value / 1e9).toStringAsFixed(2)} B';
+    if (value >= 1e6) return '${(value / 1e6).toStringAsFixed(2)} M';
+    if (value >= 1e3) return '${(value / 1e3).toStringAsFixed(1)} K';
+    if (value > 0 && value < 10) return value.toStringAsFixed(1);
+    return value.toStringAsFixed(0);
+  }
 
-  void _claimTask(int index, double money, int rp) {
+  void _claimTask(int index) {
     final state = context.read<GameState>();
     if (state.claimedTasks[index]) return;
-    state.claimedTasks[index] = true;
-    if (money > 0) state.updateMoney(money);
-    if (rp > 0) state.updateResearchPoints(rp);
-    HapticFeedback.heavyImpact();
-    AudioService.instance.playSfx('cash.mp3');
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(backgroundColor: AppColors.surface, content: Text('Görev Tamamlandı!', style: TextStyle(color: AppColors.profit, fontWeight: FontWeight.w900))));
+    
+    bool claimed = state.claimTask(index);
+    if (claimed) {
+      HapticFeedback.heavyImpact();
+      AudioService.instance.playSfx('cash.mp3');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          backgroundColor: AppColors.surface, 
+          content: Text('Görev Tamamlandı!', style: TextStyle(color: AppColors.profit, fontWeight: FontWeight.w900)),
+        ),
+      );
+    }
   }
 
   @override
@@ -33,71 +54,123 @@ class _TasksDialogState extends State<TasksDialog> {
     final state = context.watch<GameState>();
     
     final List<Map<String, dynamic>> tasks = [
-      {'title': 'Sermaye Enjeksiyonu (3 Reklam İzle)', 'icon': Icons.settings_input_antenna_rounded, 'curr': state.statAdsWatched, 'targ': 3, 'money': 50000.0, 'rp': 0, 'claimed': state.claimedTasks[0]},
-      {'title': 'Makine Çarkı (1 Kez Çark Çevir)', 'icon': Icons.settings_rounded, 'curr': state.statWheelSpins, 'targ': 1, 'money': 0.0, 'rp': 5, 'claimed': state.claimedTasks[1]},
-      {'title': 'Aktif Mesai (20 Kez Manuel Üret)', 'icon': Icons.precision_manufacturing_rounded, 'curr': state.statClicks, 'targ': 20, 'money': 15000.0, 'rp': 0, 'claimed': state.claimedTasks[2]},
-      {'title': 'Piyasayı Yokla (Borsada 3 İşlem)', 'icon': Icons.candlestick_chart_rounded, 'curr': state.statStocks, 'targ': 3, 'money': 0.0, 'rp': 2, 'claimed': state.claimedTasks[3]},
+      {'title': 'Sermaye Enjeksiyonu (3 Reklam İzle)', 'icon': Icons.settings_input_antenna_rounded, 'curr': state.statAdsWatched, 'targ': 3, 'money': state.getTaskMoneyReward(0), 'claimed': state.claimedTasks[0]},
+      {'title': 'Makine Çarkı (1 Kez Çark Çevir)', 'icon': Icons.settings_rounded, 'curr': state.statWheelSpins, 'targ': 1, 'money': state.getTaskMoneyReward(1), 'claimed': state.claimedTasks[1]},
+      {'title': 'Aktif Mesai (20 Kez Manuel Üret)', 'icon': Icons.precision_manufacturing_rounded, 'curr': state.statClicks, 'targ': 20, 'money': state.getTaskMoneyReward(2), 'claimed': state.claimedTasks[2]},
+      {'title': 'Piyasayı Yokla (Borsada 3 İşlem)', 'icon': Icons.candlestick_chart_rounded, 'curr': state.statStocks, 'targ': 3, 'money': state.getTaskMoneyReward(3), 'claimed': state.claimedTasks[3]},
     ];
 
-    bool isUnlocked = state.areTasksUnlocked;
-
     return Dialog(
-      backgroundColor: Colors.transparent, insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+      backgroundColor: Colors.transparent, 
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
       child: Container(
         constraints: const BoxConstraints(maxHeight: 560),
-        decoration: BoxDecoration(color: AppColors.background, borderRadius: BorderRadius.zero, border: Border.all(color: AppColors.border, width: 4), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.8), blurRadius: 25, offset: const Offset(0, 10))]),
+        decoration: BoxDecoration(
+          color: AppColors.background, 
+          borderRadius: BorderRadius.zero, 
+          border: Border.all(color: AppColors.border, width: 4), 
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.8), blurRadius: 25, offset: const Offset(0, 10))],
+        ),
         child: Column(
           children: [
             Container(
               padding: const EdgeInsets.fromLTRB(20, 18, 14, 14),
-              decoration: const BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.zero, border: Border(bottom: BorderSide(color: AppColors.border, width: 4))),
+              decoration: const BoxDecoration(
+                color: AppColors.surface, 
+                borderRadius: BorderRadius.zero, 
+                border: Border(bottom: BorderSide(color: AppColors.border, width: 4)),
+              ),
               child: Row(
                 children: [
-                  Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.zero, border: Border.all(color: AppColors.neonCyan, width: 2)), child: const Icon(Icons.assignment_turned_in_rounded, color: AppColors.neonCyan, size: 28)),
+                  Container(
+                    padding: const EdgeInsets.all(10), 
+                    decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.zero, border: Border.all(color: AppColors.neonCyan, width: 2)), 
+                    child: const Icon(Icons.assignment_turned_in_rounded, color: AppColors.neonCyan, size: 28),
+                  ),
                   const SizedBox(width: 16),
-                  Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('tasks.title'.tr().toUpperCase(), style: AppTheme.titleStyle(fontSize: 20).copyWith(color: AppColors.neonCyan)), const SizedBox(height: 4), Text('tasks.refresh_info'.tr().toUpperCase(), style: const TextStyle(color: AppColors.textPrimary, fontSize: 11, fontWeight: FontWeight.w900))])),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start, 
+                      children: [
+                        Text('tasks.title'.tr().toUpperCase(), style: AppTheme.titleStyle(fontSize: 20).copyWith(color: AppColors.neonCyan)), 
+                        const SizedBox(height: 4), 
+                        Text('tasks.refresh_info'.tr().toUpperCase(), style: const TextStyle(color: AppColors.textPrimary, fontSize: 11, fontWeight: FontWeight.w900)),
+                      ],
+                    ),
+                  ),
                   IconButton(
                     icon: const Icon(Icons.close_rounded, color: AppColors.textMuted, size: 28), 
                     onPressed: () {
                       AudioService.instance.playSfx('click.mp3');
                       Navigator.pop(context);
-                    }
+                    },
                   ),
                 ],
               ),
             ),
             Expanded(
-              child: isUnlocked ? ListView.separated(
+              child: ListView.separated(
                 physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.all(16), itemCount: tasks.length, separatorBuilder: (_, __) => const SizedBox(height: 16),
+                padding: const EdgeInsets.all(16), 
+                itemCount: tasks.length, 
+                separatorBuilder: (_, __) => const SizedBox(height: 16),
                 itemBuilder: (context, i) {
                   var t = tasks[i];
                   bool isCompleted = (t['curr'] as int) >= (t['targ'] as int);
                   double progress = ((t['curr'] as int) / (t['targ'] as int)).clamp(0.0, 1.0);
-                  
+                  double moneyVal = t['money'] as double;
+
                   return Container(
                     padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.zero, border: Border.all(color: isCompleted ? AppColors.profit : AppColors.border, width: 3)),
+                    decoration: BoxDecoration(
+                      color: AppColors.surface, 
+                      borderRadius: BorderRadius.zero, 
+                      border: Border.all(color: isCompleted ? AppColors.profit : AppColors.border, width: 3),
+                    ),
                     child: Row(
                       children: [
-                        Container(width: 44, height: 44, decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.zero, border: Border.all(color: isCompleted ? AppColors.profit : AppColors.border, width: 2)), child: Icon(t['icon'], color: isCompleted ? AppColors.profit : AppColors.textSecondary, size: 24)),
+                        Container(
+                          width: 44, height: 44, 
+                          decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.zero, border: Border.all(color: isCompleted ? AppColors.profit : AppColors.border, width: 2)), 
+                          child: Icon(t['icon'], color: isCompleted ? AppColors.profit : AppColors.textSecondary, size: 24),
+                        ),
                         const SizedBox(width: 14),
-                        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                          Text(t['title'].toString().toUpperCase(), style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 0.5)), const SizedBox(height: 10),
-                          Row(children: [Expanded(child: Container(decoration: BoxDecoration(border: Border.all(color: AppColors.border, width: 1.5)), child: LinearProgressIndicator(value: progress, minHeight: 8, backgroundColor: Colors.black, valueColor: AlwaysStoppedAnimation<Color>(isCompleted ? AppColors.profit : AppColors.neonCyan)))), const SizedBox(width: 10), Text('${t['curr']}/${t['targ']}', style: const TextStyle(color: AppColors.textSecondary, fontSize: 12, fontWeight: FontWeight.w900, fontFamily: 'SpaceMono'))]),
-                        ])),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start, 
+                            children: [
+                              Text(t['title'].toString().toUpperCase(), style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 0.5)), 
+                              const SizedBox(height: 10),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Container(
+                                      decoration: BoxDecoration(border: Border.all(color: AppColors.border, width: 1.5)), 
+                                      child: LinearProgressIndicator(value: progress, minHeight: 8, backgroundColor: Colors.black, valueColor: AlwaysStoppedAnimation<Color>(isCompleted ? AppColors.profit : AppColors.neonCyan)),
+                                    ),
+                                  ), 
+                                  const SizedBox(width: 10), 
+                                  Text('${t['curr']}/${t['targ']}', style: const TextStyle(color: AppColors.textSecondary, fontSize: 12, fontWeight: FontWeight.w900, fontFamily: 'SpaceMono')),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
                         const SizedBox(width: 12),
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
-                            if (t['money'] > 0) Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), color: Colors.black, child: Text('+\$${(t['money'] / 1000).toStringAsFixed(0)}K', style: const TextStyle(color: AppColors.profit, fontWeight: FontWeight.w900, fontSize: 12, fontFamily: 'SpaceMono'))),
-                            if (t['rp'] > 0) Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), color: Colors.black, child: Text('+${t['rp']} RP', style: const TextStyle(color: AppColors.gold, fontWeight: FontWeight.w900, fontSize: 12, fontFamily: 'SpaceMono'))),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), 
+                              color: Colors.black, 
+                              child: Text('+\$${_formatNum(moneyVal)}', style: const TextStyle(color: AppColors.profit, fontWeight: FontWeight.w900, fontSize: 12, fontFamily: 'SpaceMono')),
+                            ),
                             const SizedBox(height: 10),
                             TaskHeavyButton(
                               width: 70, height: 35,
                               color: t['claimed'] ? AppColors.border : (isCompleted ? AppColors.profit : AppColors.surfaceElevated),
                               shadowColor: t['claimed'] ? Colors.black : (isCompleted ? const Color(0xFF1B5E20) : Colors.black),
-                              onPressed: (isCompleted && !t['claimed']) ? () => _claimTask(i, t['money'], t['rp']) : null,
+                              onPressed: (isCompleted && !t['claimed']) ? () => _claimTask(i) : null,
                               child: Text(t['claimed'] ? 'ALINDI' : (isCompleted ? 'AL' : 'BEKLİYOR'), style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: isCompleted && !t['claimed'] ? AppColors.darkBrown : Colors.white54)),
                             ),
                           ],
@@ -106,7 +179,7 @@ class _TasksDialogState extends State<TasksDialog> {
                     ),
                   );
                 },
-              ) : Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: Colors.black, border: Border.all(color: AppColors.loss, width: 3)), child: const Icon(Icons.lock_rounded, color: AppColors.loss, size: 56)), const SizedBox(height: 20), Text('tasks.locked_title'.tr().toUpperCase(), style: AppTheme.titleStyle(fontSize: 20).copyWith(color: AppColors.loss)), const SizedBox(height: 16), const Padding(padding: EdgeInsets.symmetric(horizontal: 32), child: Text('GÜNLÜK GÖREVLERİN AÇILMASI İÇİN EN AZ 1 FABRİKAYI SEVİYE 30 YAPMALISINIZ.', textAlign: TextAlign.center, style: TextStyle(color: AppColors.textPrimary, fontSize: 13, height: 1.5, fontWeight: FontWeight.w900)))]))
+              ),
             ),
           ],
         ),

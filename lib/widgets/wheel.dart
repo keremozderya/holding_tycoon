@@ -53,7 +53,7 @@ class _WheelDialogState extends State<WheelDialog> with SingleTickerProviderStat
     _controller.addListener(() {
       if ((_animation.value - lastVibrationAngle).abs() > 0.15) {
         HapticFeedback.selectionClick();
-        AudioService.instance.playSfx('click.mp3');
+        // DÜZELTME: Kulak tırmalayan tıklama sesi kaldırıldı, yalnızca titreşim bırakıldı.
         lastVibrationAngle = _animation.value;
       }
     });

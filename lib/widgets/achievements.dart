@@ -29,6 +29,7 @@ class _AchievementsDialogState extends State<AchievementsDialog> {
     if (value >= 1e9) return '${(value / 1e9).toStringAsFixed(2)} B';
     if (value >= 1e6) return '${(value / 1e6).toStringAsFixed(2)} M';
     if (value >= 1e3) return '${(value / 1e3).toStringAsFixed(1)} K';
+    if (value > 0 && value < 10) return value.toStringAsFixed(1);
     return value.toStringAsFixed(0);
   }
 
@@ -36,53 +37,138 @@ class _AchievementsDialogState extends State<AchievementsDialog> {
     HapticFeedback.heavyImpact();
     AudioService.instance.playSfx('cash.mp3');
     context.read<GameState>().claimAchievement(index);
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(backgroundColor: AppColors.surface, content: Text('KADEME ÖDÜLÜ ALINDI!', style: TextStyle(color: AppColors.profit, fontWeight: FontWeight.w900))));
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        backgroundColor: AppColors.surface, 
+        content: Text('KADEME ÖDÜLÜ ALINDI!', style: TextStyle(color: AppColors.profit, fontWeight: FontWeight.w900)),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final state = context.watch<GameState>();
     
-    int unlockedFacs = state.factories.where((f) => f.isUnlocked).length;
-    int totalProductLevels = 0;
-    for (var f in state.factories) {
-      for (var p in f.products) { totalProductLevels += p.level; }
+    if (!state.areAchievementsUnlocked) {
+      return Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: AppColors.background,
+            borderRadius: BorderRadius.zero,
+            border: Border.all(color: AppColors.loss, width: 4),
+            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.8), blurRadius: 24, offset: const Offset(0, 10))],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.close_rounded, color: AppColors.textMuted, size: 28),
+                    onPressed: () {
+                      AudioService.instance.playSfx('click.mp3');
+                      Navigator.pop(context);
+                    },
+                  )
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(color: Colors.black, border: Border.all(color: AppColors.loss, width: 3)),
+                child: const Icon(Icons.lock_rounded, color: AppColors.loss, size: 56),
+              ),
+              const SizedBox(height: 20),
+              Text('BAŞARIMLAR KİLİTLİ', style: AppTheme.titleStyle(fontSize: 20).copyWith(color: AppColors.loss)),
+              const SizedBox(height: 16),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16),
+                child: Text(
+                  'HOLDİNG BAŞARIMLARINA ERİŞMEK İÇİN HERHANGİ BİR FABRİKANIZI EN AZ SEVİYE 30 YAPMALISINIZ.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: AppColors.textPrimary, fontSize: 13, height: 1.5, fontWeight: FontWeight.w900),
+                ),
+              ),
+              const SizedBox(height: 24),
+              AchieveHeavyButton(
+                width: double.infinity,
+                height: 48,
+                color: AppColors.surfaceElevated,
+                shadowColor: Colors.black,
+                onPressed: () {
+                  AudioService.instance.playSfx('click.mp3');
+                  Navigator.pop(context);
+                },
+                child: const Text('ANLAŞILDI', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w900, fontSize: 12)),
+              ),
+            ],
+          ),
+        ),
+      );
     }
 
     final List<Map<String, dynamic>> achDefs = [
-      {'title': 'Tıklama Kralı', 'desc': 'Manuel üretim hattında {T} kez üretim yap.', 'icon': 'touch', 'curr': state.statClicks.toDouble()},
-      {'title': 'Kasa Bekçisi', 'desc': 'Holding tarihinde toplam \$ {T} ciro elde et.', 'icon': 'receipt', 'curr': state.statTotalEarned},
-      {'title': 'Holding Genişlemesi', 'desc': '{T} farklı sanayi tesisini faaliyete geçir.', 'icon': 'factory', 'curr': unlockedFacs.toDouble()},
-      {'title': 'Prestij Lordu', 'desc': '{T} kez holdingi tasfiye edip prestij yap.', 'icon': 'prestige', 'curr': state.statPrestige.toDouble()},
-      {'title': 'Seviye Canavarı', 'desc': 'Tesis bantlarında toplam {T} seviyeye ulaş.', 'icon': 'upgrade', 'curr': totalProductLevels.toDouble()},
-      {'title': 'Hisse Avcısı', 'desc': 'Borsada {T} kez hisse senedi alım satımı yap.', 'icon': 'stock', 'curr': state.statStocks.toDouble()},
-      {'title': 'Zirveye Tırmanış', 'desc': 'Tek seferde \$ {T} net nakit paraya ulaş.', 'icon': 'chart', 'curr': state.money},
+      {'title': 'Tıklama Kralı', 'desc': 'Kilit açıldıktan sonra üretim hattında {T} kez üretim yap.', 'icon': 'touch', 'curr': state.getAchievementProgress(0)},
+      {'title': 'Kasa Bekçisi', 'desc': 'Kilit açıldıktan sonra toplam \$ {T} ciro elde et.', 'icon': 'receipt', 'curr': state.getAchievementProgress(1)},
+      {'title': 'Holding Genişlemesi', 'desc': 'Kilit açıldıktan sonra {T} yeni sanayi tesisini faaliyete geçir.', 'icon': 'factory', 'curr': state.getAchievementProgress(2)},
+      {'title': 'Prestij Lordu', 'desc': 'Kilit açıldıktan sonra {T} kez holdingi tasfiye edip prestij yap.', 'icon': 'prestige', 'curr': state.getAchievementProgress(3)},
+      {'title': 'Seviye Canavarı', 'desc': 'Kilit açıldıktan sonra tesis bantlarında toplam {T} ilave seviyeye ulaş.', 'icon': 'upgrade', 'curr': state.getAchievementProgress(4)},
+      {'title': 'Hisse Avcısı', 'desc': 'Kilit açıldıktan sonra borsada {T} kez hisse senedi işlemi yap.', 'icon': 'stock', 'curr': state.getAchievementProgress(5)},
+      {'title': 'Zirveye Tırmanış', 'desc': 'Kilit açıldıktan sonra \$ {T} net birikim nakit paraya ulaş.', 'icon': 'chart', 'curr': state.getAchievementProgress(6)},
     ];
 
     int completedCount = state.claimedAchievements.fold(0, (sum, val) => sum + val);
     int totalCount = achDefs.length * 10; 
 
     return Dialog(
-      backgroundColor: Colors.transparent, insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+      backgroundColor: Colors.transparent, 
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
       child: Container(
-        width: double.infinity, constraints: const BoxConstraints(maxHeight: 680),
-        decoration: BoxDecoration(color: AppColors.background, borderRadius: BorderRadius.zero, border: Border.all(color: AppColors.border, width: 4), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.8), blurRadius: 24, offset: const Offset(0, 10))]),
+        width: double.infinity, 
+        constraints: const BoxConstraints(maxHeight: 680),
+        decoration: BoxDecoration(
+          color: AppColors.background, 
+          borderRadius: BorderRadius.zero, 
+          border: Border.all(color: AppColors.border, width: 4), 
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.8), blurRadius: 24, offset: const Offset(0, 10))],
+        ),
         child: Column(
           children: [
             Container(
               padding: const EdgeInsets.fromLTRB(20, 18, 14, 14),
-              decoration: const BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.zero, border: Border(bottom: BorderSide(color: AppColors.border, width: 4))),
+              decoration: const BoxDecoration(
+                color: AppColors.surface, 
+                borderRadius: BorderRadius.zero, 
+                border: Border(bottom: BorderSide(color: AppColors.border, width: 4)),
+              ),
               child: Row(
                 children: [
-                  Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.zero, border: Border.all(color: AppColors.gold, width: 2)), child: SizedBox(width: 28, height: 28, child: CustomPaint(painter: HeavyIconPainter(type: 'achievements', color: AppColors.gold)))),
+                  Container(
+                    padding: const EdgeInsets.all(10), 
+                    decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.zero, border: Border.all(color: AppColors.gold, width: 2)), 
+                    child: SizedBox(width: 28, height: 28, child: CustomPaint(painter: HeavyIconPainter(type: 'achievements', color: AppColors.gold))),
+                  ),
                   const SizedBox(width: 16),
-                  Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('BAŞARIMLAR', style: AppTheme.titleStyle(fontSize: 20).copyWith(color: AppColors.gold)), const SizedBox(height: 4), Text('TOPLAM İLERLEME: $completedCount / $totalCount', style: const TextStyle(color: AppColors.textPrimary, fontSize: 11, fontWeight: FontWeight.w900, fontFamily: 'SpaceMono', letterSpacing: 0.5))])),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start, 
+                      children: [
+                        Text('BAŞARIMLAR', style: AppTheme.titleStyle(fontSize: 20).copyWith(color: AppColors.gold)), 
+                        const SizedBox(height: 4), 
+                        Text('TOPLAM İLERLEME: $completedCount / $totalCount', style: const TextStyle(color: AppColors.textPrimary, fontSize: 11, fontWeight: FontWeight.w900, fontFamily: 'SpaceMono', letterSpacing: 0.5)),
+                      ],
+                    ),
+                  ),
                   IconButton(
                     icon: const Icon(Icons.close_rounded, color: AppColors.textMuted, size: 28), 
                     onPressed: () {
                       AudioService.instance.playSfx('click.mp3');
                       Navigator.pop(context);
-                    }
+                    },
                   ),
                 ],
               ),
@@ -90,7 +176,9 @@ class _AchievementsDialogState extends State<AchievementsDialog> {
             Expanded(
               child: ListView.separated(
                 physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.all(14), itemCount: achDefs.length, separatorBuilder: (_, __) => const SizedBox(height: 10),
+                padding: const EdgeInsets.all(14), 
+                itemCount: achDefs.length, 
+                separatorBuilder: (_, __) => const SizedBox(height: 10),
                 itemBuilder: (context, i) {
                   final def = achDefs[i];
                   final tier = state.claimedAchievements[i];
@@ -110,14 +198,27 @@ class _AchievementsDialogState extends State<AchievementsDialog> {
 
                   return Container(
                     padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.zero, border: Border.all(color: isCompleted ? AppColors.gold : AppColors.border, width: 3)),
+                    decoration: BoxDecoration(
+                      color: AppColors.surface, 
+                      borderRadius: BorderRadius.zero, 
+                      border: Border.all(color: isCompleted ? AppColors.gold : AppColors.border, width: 3),
+                    ),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Container(
                           width: 44, height: 44, 
-                          decoration: BoxDecoration(color: isCompleted ? AppColors.gold.withValues(alpha: 0.2) : Colors.black, borderRadius: BorderRadius.zero, border: Border.all(color: isCompleted ? AppColors.gold : AppColors.border, width: 2)), 
-                          child: Center(child: SizedBox(width: 24, height: 24, child: CustomPaint(painter: HeavyIconPainter(type: def['icon'], color: isCompleted ? AppColors.gold : AppColors.textMuted))))
+                          decoration: BoxDecoration(
+                            color: isCompleted ? AppColors.gold.withValues(alpha: 0.2) : Colors.black, 
+                            borderRadius: BorderRadius.zero, 
+                            border: Border.all(color: isCompleted ? AppColors.gold : AppColors.border, width: 2),
+                          ), 
+                          child: Center(
+                            child: SizedBox(
+                              width: 24, height: 24, 
+                              child: CustomPaint(painter: HeavyIconPainter(type: def['icon'], color: isCompleted ? AppColors.gold : AppColors.textMuted)),
+                            ),
+                          ),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
@@ -129,7 +230,7 @@ class _AchievementsDialogState extends State<AchievementsDialog> {
                                 children: [
                                   if (!isMaxed) Container(padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2), decoration: BoxDecoration(color: Colors.black, border: Border.all(color: AppColors.border)), child: Text('KADEME ${tier + 1}/10', style: const TextStyle(color: AppColors.gold, fontSize: 9, fontWeight: FontWeight.w900, fontFamily: 'SpaceMono'))),
                                   if (isMaxed) Container(padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2), decoration: BoxDecoration(color: Colors.black, border: Border.all(color: AppColors.profit)), child: const Text('MAKSİMUM', style: TextStyle(color: AppColors.profit, fontSize: 9, fontWeight: FontWeight.w900, fontFamily: 'SpaceMono'))),
-                                ]
+                                ],
                               ),
                               const SizedBox(height: 4),
                               Text(def['title'].toString().toUpperCase(), style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w900, fontSize: 13)), 
@@ -138,13 +239,18 @@ class _AchievementsDialogState extends State<AchievementsDialog> {
                               const SizedBox(height: 8),
                               Row(
                                 children: [
-                                  Expanded(child: Container(decoration: BoxDecoration(border: Border.all(color: AppColors.border, width: 1.5)), child: LinearProgressIndicator(value: isMaxed ? 1.0 : progress, minHeight: 6, backgroundColor: Colors.black, valueColor: AlwaysStoppedAnimation<Color>(isMaxed ? AppColors.profit : (isCompleted ? AppColors.gold : AppColors.neonCyan))))), 
+                                  Expanded(
+                                    child: Container(
+                                      decoration: BoxDecoration(border: Border.all(color: AppColors.border, width: 1.5)), 
+                                      child: LinearProgressIndicator(value: isMaxed ? 1.0 : progress, minHeight: 6, backgroundColor: Colors.black, valueColor: AlwaysStoppedAnimation<Color>(isMaxed ? AppColors.profit : (isCompleted ? AppColors.gold : AppColors.neonCyan))),
+                                    ),
+                                  ), 
                                   const SizedBox(width: 8), 
-                                  Text(isMaxed ? 'TAMAMLANDI' : '$formattedCurr/$formattedTarget', style: const TextStyle(color: AppColors.textMuted, fontSize: 10, fontWeight: FontWeight.w900, fontFamily: 'SpaceMono'))
-                                ]
+                                  Text(isMaxed ? 'TAMAMLANDI' : '$formattedCurr/$formattedTarget', style: const TextStyle(color: AppColors.textMuted, fontSize: 10, fontWeight: FontWeight.w900, fontFamily: 'SpaceMono')),
+                                ],
                               ),
-                            ]
-                          )
+                            ],
+                          ),
                         ),
                         const SizedBox(width: 10),
                         Column(
@@ -152,7 +258,7 @@ class _AchievementsDialogState extends State<AchievementsDialog> {
                           children: [
                             if (!isMaxed) Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), color: Colors.black, child: Text('+${rpReward.toString()} RP', style: const TextStyle(color: AppColors.gold, fontWeight: FontWeight.w900, fontSize: 11, fontFamily: 'SpaceMono'))),
                             if (!isMaxed) const SizedBox(height: 4),
-                            if (!isMaxed) Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), color: Colors.black, child: Text('+\$${mReward >= 1e6 ? "${(mReward / 1e6).toStringAsFixed(1)}M" : "${(mReward / 1000).toStringAsFixed(0)}K"}', style: const TextStyle(color: AppColors.profit, fontWeight: FontWeight.w900, fontSize: 11, fontFamily: 'SpaceMono'))),
+                            if (!isMaxed) Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), color: Colors.black, child: Text('+\$${_formatNum(mReward)}', style: const TextStyle(color: AppColors.profit, fontWeight: FontWeight.w900, fontSize: 11, fontFamily: 'SpaceMono'))),
                             if (!isMaxed) const SizedBox(height: 8),
                             AchieveHeavyButton(
                               width: 64, height: 32,

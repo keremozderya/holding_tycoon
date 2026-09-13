@@ -30,11 +30,10 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
   void initState() {
     super.initState();
     
+    // DÜZELTME: main.dart zaten loadData() çalıştırdığından mükerrer yükleme kaldırıldı
     if (widget.isInitialLaunch) {
-      WidgetsBinding.instance.addPostFrameCallback((_) async {
-        await context.read<GameState>().loadData();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
-        
         final state = context.read<GameState>();
         
         if (!state.isFirstLaunch) {
@@ -94,7 +93,7 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
               final prefs = await SharedPreferences.getInstance();
               await prefs.clear();
               if (mounted) {
-                await context.read<GameState>().loadData();
+                await context.read<GameState>().startNewGameSession();
                 _showHoldingSetupDialog();
               }
             }, 
