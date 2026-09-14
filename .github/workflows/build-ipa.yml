@@ -1,0 +1,33 @@
+name: Ücretsiz IPA Çıktısı Al
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build_ios:
+    runs-on: macos-latest
+    
+    steps:
+      - name: Kodları Depodan Çek
+        uses: actions/checkout@v3
+
+      - name: Flutter Ortamını Kur
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      - name: Paketleri İndir
+        run: flutter pub get
+
+      - name: iOS Uygulamasını Derle ( unsigned / ipa )
+        run: |
+          # Ücretsiz test için imzasız/development modunda build alıyoruz
+          flutter build ipa --release --no-codesign
+
+      - name: IPA Dosyasını GitHub'a Yükle (Artifacts)
+        uses: actions/upload-artifact@v3
+        with:
+          name: holding-tycoon-ipa
+          path: build/ios/ipa/*.ipa
