@@ -81,7 +81,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
         'title': 'Arayüz Teması',
         'light': 'Açık',
         'dark': 'Koyu',
-        'description': 'Koyu tema beyaz yüzeyleri daha koyu, karikatür tarzı bir mavi tona dönüştürür.',
       },
       'en': {
         'section': 'Appearance',
@@ -169,7 +168,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       duration: const Duration(milliseconds: 220),
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: AppColors.surfaceFor(dark),
+        color: dark ? const Color(0xFF252238) : Colors.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: Colors.black, width: 4),
         boxShadow: const [BoxShadow(color: Colors.black26, offset: Offset(0, 6))],
