@@ -4118,7 +4118,7 @@ class HoldingTycoonGame extends FlameGame with ScaleDetector {
     } catch (e) { 
       debugPrint('Map asset could not be loaded; using the interactive fallback: $e');
     }
-    final List<Vector2> plotPositions = [Vector2(540, 420), Vector2(330, 520), Vector2(700, 560), Vector2(320, 720), Vector2(720, 750), Vector2(310, 930), Vector2(680, 950), Vector2(460, 1080), Vector2(650, 1180), Vector2(360, 1240), Vector2(530, 1280), Vector2(320, 1390), Vector2(500, 1440), Vector2(420, 1550), Vector2(580, 1680)];
+    final List<Vector2> plotPositions = [Vector2(340, 420), Vector2(330, 520), Vector2(445, 1290), Vector2(320, 220), Vector2(800, 1450), Vector2(310, 130), Vector2(680, 250), Vector2(60, 1080), Vector2(50, 1180), Vector2(60, 1000), Vector2(330, 880), Vector2(820, 1990), Vector2(800, 1040), Vector2(920, 1550), Vector2(1080, 1680)];
     for (int i = 0; i < plotPositions.length; i++) {
       mapWorld.add(FactoryPlotComponent(factoryId: (i + 1).toString(), position: plotPositions[i], onTap: onFactoryTap));
     }
