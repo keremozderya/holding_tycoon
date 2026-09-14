@@ -1,5 +1,5 @@
 // lib/providers/game_state.dart
-// ignore_for_file: curly_braces_in_flow_control_structures
+// ignore_for_file: discarded_futures, curly_braces_in_flow_control_structures
 
 import 'dart:convert';
 import 'dart:async';
@@ -112,6 +112,7 @@ class GameState extends ChangeNotifier {
   bool _saveRequested = false;
   Future<void>? _saveInProgress;
   String _language = 'tr';
+  bool _useDarkTheme = false;
   String _starterFactoryId = ''; 
   String get starterFactoryId => _starterFactoryId;
 
@@ -574,7 +575,8 @@ class GameState extends ChangeNotifier {
   double get money => _money; 
   int get researchPoints => _researchPoints; 
   bool get isFirstLaunch => _isFirstLaunch; 
-  String get language => _language; 
+  String get language => _language;
+  bool get useDarkTheme => _useDarkTheme;
   List<Stock> get stocks => _stocks; 
   List<FactoryData> get factories => _factories; 
   List<ResearchNode> get researchNodes => _researchNodes;
@@ -615,6 +617,7 @@ class GameState extends ChangeNotifier {
     _isInitialized = true;
 
     final prefs = await SharedPreferences.getInstance();
+    _useDarkTheme = prefs.getBool('use_dark_theme') ?? false;
     final savedGameJson = prefs.getString('game_save_data');
     Map<String, dynamic>? decodedSave;
     if (savedGameJson != null) {
@@ -1202,6 +1205,34 @@ class GameState extends ChangeNotifier {
     notifyListeners();
   }
 
+  bool _sameGameEvent(GameEvent? a, GameEvent b) {
+    if (a == null) return false;
+    return a.title == b.title &&
+        a.multiplier == b.multiplier &&
+        a.durationMinutes == b.durationMinutes &&
+        a.preventCost == b.preventCost;
+  }
+
+  bool isEventActiveFor(GameEvent ev) => isEventActive && _sameGameEvent(activeEvent, ev);
+
+  /// Rewarded-ad resolution for world events.
+  /// Crises are prevented for free (or removed if they already started after a timeout),
+  /// while positive chances are activated immediately.
+  void resolveEventWithAd(GameEvent ev) {
+    final bool isCrisis = ev.preventCost > 0;
+    if (isCrisis) {
+      if (_sameGameEvent(activeEvent, ev)) {
+        activeEvent = null;
+        _eventEndTime = null;
+      }
+    } else {
+      activeEvent = ev;
+      _eventEndTime = DateTime.now().add(Duration(minutes: ev.durationMinutes));
+    }
+    _saveGame();
+    notifyListeners();
+  }
+
   void claimOfflineEarnings(bool watchAd) {
     if (offlineEarningsToClaim > 0) {
       double multiplier = 1.0;
@@ -1512,6 +1543,15 @@ class GameState extends ChangeNotifier {
     await _saveGame();
     notifyListeners();
   }
+
+  Future<void> setDarkTheme(bool enabled) async {
+    if (_useDarkTheme == enabled) return;
+    _useDarkTheme = enabled;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('use_dark_theme', enabled);
+    notifyListeners();
+  }
+
   Future<void> completeFirstLaunch() async { _isFirstLaunch = false; await _saveGame(); notifyListeners(); }
   
   void buyStockWithAmount(String stockId, double inputAmount) {

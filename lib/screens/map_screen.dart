@@ -1,5 +1,5 @@
 // lib/screens/map_screen.dart
-// ignore_for_file: prefer_const_constructors, curly_braces_in_flow_control_structures, undefined_hidden_name, unused_import
+// ignore_for_file: discarded_futures, prefer_const_constructors, curly_braces_in_flow_control_structures, undefined_hidden_name, unused_import
 
 import 'dart:async' as async;
 import 'dart:math' as math;
@@ -29,6 +29,10 @@ import 'office_screen.dart';
 
 const Color themeOceanBlue = Color(0xFF38BDF8);
 
+Color _uiSurface(BuildContext context) => AppColors.surfaceFor(context.watch<GameState>().useDarkTheme);
+Color _uiSoftSurface(BuildContext context) => AppColors.softSurfaceFor(context.watch<GameState>().useDarkTheme);
+Color _uiMutedSurface(BuildContext context) => AppColors.mutedSurfaceFor(context.watch<GameState>().useDarkTheme);
+
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
   @override 
@@ -40,6 +44,7 @@ class _MapScreenState extends State<MapScreen> {
   int _holdingLogoIndex = 0; 
   late final HoldingTycoonGame _game;
   bool _pendingFrameScheduled = false;
+  bool _worldEventDialogOpen = false;
   
   final List<IconData> _defaultLogos = const [
     Icons.domain_rounded, Icons.account_balance_rounded, Icons.factory_rounded,
@@ -77,7 +82,7 @@ class _MapScreenState extends State<MapScreen> {
             child: Container(
               padding: const EdgeInsets.all(28),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: _uiSurface(context),
                 borderRadius: BorderRadius.circular(32),
                 border: Border.all(color: Colors.black, width: 4.0),
                 boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 10, offset: Offset(0, 10))],
@@ -143,7 +148,7 @@ class _MapScreenState extends State<MapScreen> {
           margin: const EdgeInsets.symmetric(horizontal: 4),
           padding: const EdgeInsets.symmetric(vertical: 16),
           decoration: BoxDecoration(
-            color: isSel ? AppColors.gold : const Color(0xFFF1F5F9),
+            color: isSel ? AppColors.gold : _uiSoftSurface(context),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(color: Colors.black, width: 3.0),
             boxShadow: isSel ? const [BoxShadow(color: Colors.black26, offset: Offset(0, 4))] : [],
@@ -198,7 +203,7 @@ class _MapScreenState extends State<MapScreen> {
     showDialog(
       context: context, barrierDismissible: false,
       builder: (context) => AlertDialog(
-        backgroundColor: Colors.white, 
+        backgroundColor: _uiSurface(context), 
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32), side: const BorderSide(color: Colors.black, width: 4)),
         title: Text('GECE MESAİSİ', textAlign: TextAlign.center, style: AppTheme.titleStyle(fontSize: 24).copyWith(color: Colors.black, shadows: [])),
         content: Column(
@@ -211,7 +216,7 @@ class _MapScreenState extends State<MapScreen> {
             
             Container(
               padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(color: const Color(0xFFF1F5F9), borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.black, width: 2.5)),
+              decoration: BoxDecoration(color: _uiSoftSurface(context), borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.black, width: 2.5)),
               child: Column(
                 children: [
                   Row(
@@ -240,7 +245,7 @@ class _MapScreenState extends State<MapScreen> {
         actionsAlignment: MainAxisAlignment.spaceEvenly,
         actions: [
           HeavyTycoonButton(
-            height: 55, color: const Color(0xFFF1F5F9), shadowColor: Colors.grey.shade400, padding: const EdgeInsets.symmetric(horizontal: 12),
+            height: 55, color: _uiSoftSurface(context), shadowColor: Colors.grey.shade400, padding: const EdgeInsets.symmetric(horizontal: 12),
             onPressed: () { 
               AudioService.instance.playSfx('cash.mp3');
               state.claimOfflineEarnings(false); 
@@ -287,7 +292,7 @@ class _MapScreenState extends State<MapScreen> {
     showDialog(
       context: context, barrierDismissible: false,
       builder: (c) => AlertDialog(
-        backgroundColor: Colors.white, 
+        backgroundColor: _uiSurface(context), 
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32), side: const BorderSide(color: Colors.black, width: 4)),
         title: Text('FİNANSMAN', textAlign: TextAlign.center, style: AppTheme.titleStyle(fontSize: 24).copyWith(color: Colors.black, shadows: [])),
         content: Column(
@@ -301,7 +306,7 @@ class _MapScreenState extends State<MapScreen> {
         actionsAlignment: MainAxisAlignment.spaceEvenly,
         actions: [
           HeavyTycoonButton(
-            height: 55, color: const Color(0xFFF1F5F9), shadowColor: Colors.grey.shade400, padding: const EdgeInsets.symmetric(horizontal: 16),
+            height: 55, color: _uiSoftSurface(context), shadowColor: Colors.grey.shade400, padding: const EdgeInsets.symmetric(horizontal: 16),
             onPressed: () { 
               AudioService.instance.playSfx('cash.mp3');
               state.claimBagReward(false, reward); 
@@ -337,13 +342,13 @@ class _MapScreenState extends State<MapScreen> {
         final double finalPrice = state.factoryUnlockCost(fac.id) ?? fac.price;
 
         return AlertDialog(
-          backgroundColor: Colors.white, 
+          backgroundColor: _uiSurface(context), 
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32), side: const BorderSide(color: Colors.black, width: 4)),
           title: Text('ARSA SATIN ALIMI', textAlign: TextAlign.center, style: AppTheme.titleStyle(fontSize: 22).copyWith(color: Colors.black, shadows: [])),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: const Color(0xFFE2E8F0), borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.black, width: 3)), child: SizedBox(width: 48, height: 48, child: CustomPaint(painter: HeavyIconPainter(type: 'land', color: Colors.black)))), 
+              Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: _uiMutedSurface(context), borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.black, width: 3)), child: SizedBox(width: 48, height: 48, child: CustomPaint(painter: HeavyIconPainter(type: 'land', color: Colors.black)))), 
               const SizedBox(height: 20),
               Text('${fac.name} inşası için arsa bedeli:', textAlign: TextAlign.center, style: const TextStyle(color: AppColors.textSecondary, fontSize: 15, fontWeight: FontWeight.bold)), 
               const SizedBox(height: 16),
@@ -353,7 +358,7 @@ class _MapScreenState extends State<MapScreen> {
           actionsAlignment: MainAxisAlignment.spaceEvenly,
           actions: [
             HeavyTycoonButton(
-              height: 55, color: const Color(0xFFF1F5F9), shadowColor: Colors.grey.shade400, padding: const EdgeInsets.symmetric(horizontal: 16),
+              height: 55, color: _uiSoftSurface(context), shadowColor: Colors.grey.shade400, padding: const EdgeInsets.symmetric(horizontal: 16),
               onPressed: () {
                 AudioService.instance.playSfx('click.mp3');
                 Navigator.pop(context);
@@ -396,7 +401,7 @@ class _MapScreenState extends State<MapScreen> {
     showDialog(
       context: context,
       builder: (c) => AlertDialog(
-        backgroundColor: Colors.white,
+        backgroundColor: _uiSurface(context),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32), side: const BorderSide(color: Colors.black, width: 4)),
         title: Row(
           children: [
@@ -413,7 +418,7 @@ class _MapScreenState extends State<MapScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                color: const Color(0xFFF1F5F9),
+                color: _uiSoftSurface(context),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: Colors.black, width: 3),
               ),
@@ -464,7 +469,7 @@ class _MapScreenState extends State<MapScreen> {
         actionsAlignment: MainAxisAlignment.spaceEvenly,
         actions: [
           HeavyTycoonButton(
-            height: 55, color: const Color(0xFFF1F5F9), shadowColor: Colors.grey.shade400, padding: const EdgeInsets.symmetric(horizontal: 16),
+            height: 55, color: _uiSoftSurface(context), shadowColor: Colors.grey.shade400, padding: const EdgeInsets.symmetric(horizontal: 16),
             onPressed: gameState.money >= gameState.currentTaxDebt
                 ? () {
                     HapticFeedback.lightImpact();
@@ -508,6 +513,10 @@ class _MapScreenState extends State<MapScreen> {
     final gameState = context.watch<GameState>();
     _game.updateState(gameState);
     _schedulePendingWorldEvents(gameState);
+    final bool hasTopStatuses = gameState.hasTaxDebt || gameState.isBoostActive || gameState.isTaxBonusActive || gameState.isEventActive;
+    final double topPanelHeight = _mapTopPanelHeight(context, hasTopStatuses);
+    final double sideButtonsTop = topPanelHeight + 14;
+    final double notificationTop = topPanelHeight + 8;
 
     return Scaffold(
       backgroundColor: themeOceanBlue, 
@@ -518,13 +527,13 @@ class _MapScreenState extends State<MapScreen> {
           Positioned(bottom: 0, left: 0, right: 0, child: _buildPremiumBottomBar(context)),
           Positioned(
             right: 16,
-            top: MediaQuery.of(context).padding.top + 150,
+            top: sideButtonsTop,
             bottom: MediaQuery.of(context).padding.bottom + 90,
             child: SingleChildScrollView(child: _buildSideActionButtons(gameState)),
           ),
           
           Positioned(
-            top: MediaQuery.of(context).padding.top + 95,
+            top: notificationTop,
             left: 16, right: 16,
             child: Column(
               children: gameState.notifications.take(3).map((n) => TopNotificationItem(
@@ -557,165 +566,375 @@ class _MapScreenState extends State<MapScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _pendingFrameScheduled = false;
       if (!mounted) return;
-      final ev = gameState.consumeUnhandledEvent();
-      if (ev != null) {
-        showDialog<void>(
-          context: context,
-          barrierDismissible: false,
-          builder: (_) => EventTimerDialog(ev: ev, gameState: gameState, formatNum: _formatNum),
-        );
+      if (!_worldEventDialogOpen) {
+        final ev = gameState.consumeUnhandledEvent();
+        if (ev != null) {
+          _worldEventDialogOpen = true;
+          _presentWorldEvent(ev, gameState);
+        }
       }
       final bagReward = gameState.consumeUnhandledBagReward();
       if (bagReward > 0) _game.spawnFlyingBag(bagReward);
     });
   }
 
+  Future<void> _presentWorldEvent(GameEvent ev, GameState gameState) async {
+    try {
+      final result = await showDialog<EventDialogResult>(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => EventTimerDialog(ev: ev, gameState: gameState, formatNum: _formatNum),
+      );
+      if (!mounted || result == null) return;
+      await showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => EventResultDialog(result: result, gameState: gameState, formatNum: _formatNum),
+      );
+    } finally {
+      _worldEventDialogOpen = false;
+      if (mounted) setState(() {});
+    }
+  }
+
+  double _mapTopPanelHeight(BuildContext context, bool hasStatuses) {
+    final width = MediaQuery.sizeOf(context).width;
+    final safeTop = MediaQuery.paddingOf(context).top;
+    final bool narrow = width < 360;
+    final double headerHeight = narrow ? 44 : 50;
+    final double metricsHeight = narrow ? 42 : 46;
+    final double statusHeight = hasStatuses ? (narrow ? 36 : 38) : 0;
+    final double statusGap = hasStatuses ? 8 : 0;
+
+    // Safe area + top/bottom padding + header + row gaps + metrics + optional statuses + bottom border.
+    return safeTop + 8 + headerHeight + 8 + metricsHeight + statusGap + statusHeight + 10 + 4;
+  }
+
   Widget _buildPremiumTopPanel(BuildContext context, GameState gameState) {
-    IconData holdingIcon = _defaultLogos.isNotEmpty && _holdingLogoIndex >= 0 && _holdingLogoIndex < _defaultLogos.length ? _defaultLogos[_holdingLogoIndex] : Icons.domain_rounded;
-    final double topSafe = MediaQuery.of(context).padding.top;
+    final IconData holdingIcon = _defaultLogos.isNotEmpty &&
+            _holdingLogoIndex >= 0 &&
+            _holdingLogoIndex < _defaultLogos.length
+        ? _defaultLogos[_holdingLogoIndex]
+        : Icons.domain_rounded;
+    final bool hasStatuses = gameState.hasTaxDebt ||
+        gameState.isBoostActive ||
+        gameState.isTaxBonusActive ||
+        gameState.isEventActive;
+    final Color panelColor = _uiSurface(context);
+    final Color softColor = _uiSoftSurface(context);
+    final Color moneyGreen = gameState.useDarkTheme
+        ? AppColors.profit
+        : const Color(0xFF16A34A);
 
     return Container(
-      padding: EdgeInsets.only(top: topSafe + 16, left: 16, right: 16, bottom: 16),
-      decoration: const BoxDecoration(
-        color: Colors.white, 
-        border: Border(bottom: BorderSide(color: Colors.black, width: 4.0)),
-        boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 10, offset: Offset(0, 6))],
+      decoration: BoxDecoration(
+        color: panelColor,
+        border: const Border(bottom: BorderSide(color: Colors.black, width: 4)),
+        boxShadow: const [
+          BoxShadow(color: Colors.black26, blurRadius: 10, offset: Offset(0, 6)),
+        ],
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final bool compact = constraints.maxWidth < 390;
-              final double rightGap = compact ? 4.0 : 8.0;
-              final double incomeHorizontalPadding = compact ? 6.0 : 10.0;
-              final double incomeFontSize = compact ? 11.5 : 13.0;
-              final double menuIconSize = compact ? 30.0 : 32.0;
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 760),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final double width = constraints.maxWidth;
+                  final bool narrow = width < 360;
+                  final bool compact = width < 430;
+                  final double headerHeight = narrow ? 44 : 50;
+                  final double logoSize = narrow ? 42 : compact ? 46 : 50;
+                  final double logoIconSize = narrow ? 25 : compact ? 28 : 30;
+                  final double menuSize = narrow ? 42 : 46;
+                  final double metricsHeight = narrow ? 42 : 46;
+                  final double moneyFont = narrow ? 20 : compact ? 23 : 26;
+                  final double incomeFont = narrow ? 10.5 : compact ? 11.5 : 12.5;
+                  final double chipFont = narrow ? 11 : 12;
 
-              return Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    flex: 5,
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 52, height: 52, 
-                          decoration: BoxDecoration(color: AppColors.neonCyan, borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.black, width: 3)), 
-                          child: Center(child: Icon(holdingIcon, size: 32, color: Colors.white)),
+                  Widget statusChip({
+                    required Widget icon,
+                    required String text,
+                    required Color background,
+                    double? maxWidth,
+                  }) {
+                    return ConstrainedBox(
+                      constraints: BoxConstraints(maxWidth: maxWidth ?? 240),
+                      child: Container(
+                        height: narrow ? 34 : 36,
+                        padding: EdgeInsets.symmetric(horizontal: narrow ? 8 : 10),
+                        decoration: BoxDecoration(
+                          color: background,
+                          borderRadius: BorderRadius.circular(11),
+                          border: Border.all(color: Colors.black, width: 2),
                         ),
-                        const SizedBox(width: 14),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start, 
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              FittedBox(
-                                fit: BoxFit.scaleDown,
-                                alignment: Alignment.centerLeft,
-                                child: Text(_holdingName.toUpperCase(), style: const TextStyle(color: Colors.black, fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 1.2)),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            SizedBox(width: 16, height: 16, child: icon),
+                            const SizedBox(width: 6),
+                            Flexible(
+                              child: Text(
+                                text,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  color: Colors.black,
+                                  fontSize: chipFont,
+                                  fontWeight: FontWeight.w900,
+                                  fontFamily: 'SpaceMono',
+                                ),
                               ),
-                              const SizedBox(height: 2),
-                              FittedBox(
-                                fit: BoxFit.scaleDown,
-                                alignment: Alignment.centerLeft,
-                                child: AnimatedMoneyText(money: gameState.money, formatNum: _formatNum, style: const TextStyle(color: AppColors.gold, fontSize: 22, fontWeight: FontWeight.w900, fontFamily: 'SpaceMono', shadows: [])),
-                              ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    flex: 4,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Expanded(
-                          child: Container(
-                            padding: EdgeInsets.symmetric(horizontal: incomeHorizontalPadding, vertical: 8),
-                            decoration: BoxDecoration(color: const Color(0xFFF1F5F9), borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.black, width: 3)),
-                            child: Text(
-                              gameState.incomePerSecond > 0 ? '+\$${_formatNum(gameState.incomePerSecond)}/s' : 'Beklemede',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: gameState.currentMultiplier > 1 ? AppColors.gold : Colors.black87,
-                                fontSize: incomeFontSize,
-                                fontWeight: FontWeight.w900,
-                                fontFamily: 'SpaceMono',
+                      ),
+                    );
+                  }
+
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SizedBox(
+                        height: headerHeight,
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Container(
+                              width: logoSize,
+                              height: logoSize,
+                              decoration: BoxDecoration(
+                                color: AppColors.neonCyan,
+                                borderRadius: BorderRadius.circular(narrow ? 12 : 15),
+                                border: Border.all(color: Colors.black, width: 3),
+                                boxShadow: const [
+                                  BoxShadow(color: Colors.black26, offset: Offset(0, 3)),
+                                ],
                               ),
+                              child: Icon(holdingIcon, size: logoIconSize, color: Colors.white),
+                            ),
+                            SizedBox(width: narrow ? 8 : 12),
+                            Expanded(
+                              child: Align(
+                                alignment: Alignment.centerLeft,
+                                child: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  alignment: Alignment.centerLeft,
+                                  child: Text(
+                                    _holdingName.toUpperCase(),
+                                    maxLines: 1,
+                                    softWrap: false,
+                                    style: TextStyle(
+                                      color: Colors.black,
+                                      fontSize: narrow ? 17 : compact ? 20 : 23,
+                                      fontWeight: FontWeight.w900,
+                                      letterSpacing: narrow ? .45 : .8,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            SizedBox(width: narrow ? 4 : 8),
+                            SizedBox(
+                              width: menuSize,
+                              height: menuSize,
+                              child: Theme(
+                                data: Theme.of(context).copyWith(
+                                  popupMenuTheme: PopupMenuThemeData(
+                                    color: panelColor,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                      side: const BorderSide(color: Colors.black, width: 3),
+                                    ),
+                                  ),
+                                ),
+                                child: PopupMenuButton<String>(
+                                  padding: EdgeInsets.zero,
+                                  tooltip: 'Menü',
+                                  icon: Icon(Icons.menu_rounded, size: narrow ? 29 : 32, color: Colors.black),
+                                  offset: Offset(0, menuSize),
+                                  onSelected: (value) {
+                                    AudioService.instance.playSfx('click.mp3');
+                                    if (value == 'settings') {
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute(builder: (_) => const SettingsScreen()),
+                                      );
+                                    } else if (value == 'main_menu') {
+                                      Navigator.of(context).pushReplacement(
+                                        MaterialPageRoute(builder: (_) => const MainMenuScreen(isInitialLaunch: false)),
+                                      );
+                                    }
+                                  },
+                                  itemBuilder: (_) => const [
+                                    PopupMenuItem(
+                                      value: 'settings',
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.settings_rounded, color: Colors.black87, size: 24),
+                                          SizedBox(width: 12),
+                                          Text('Ayarlar', style: TextStyle(color: Colors.black, fontSize: 16, fontWeight: FontWeight.w900)),
+                                        ],
+                                      ),
+                                    ),
+                                    PopupMenuDivider(height: 2),
+                                    PopupMenuItem(
+                                      value: 'main_menu',
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.exit_to_app_rounded, color: AppColors.loss, size: 24),
+                                          SizedBox(width: 12),
+                                          Text('Oturumu Kapat', style: TextStyle(color: AppColors.loss, fontSize: 16, fontWeight: FontWeight.w900)),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      SizedBox(
+                        height: metricsHeight,
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Container(
+                                height: metricsHeight,
+                                padding: EdgeInsets.symmetric(horizontal: narrow ? 10 : 14),
+                                decoration: BoxDecoration(
+                                  color: gameState.useDarkTheme
+                                      ? const Color(0xFF2E654D)
+                                      : const Color(0xFFEAF8EE),
+                                  borderRadius: BorderRadius.circular(13),
+                                  border: Border.all(color: Colors.black, width: 3),
+                                ),
+                                child: Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    alignment: Alignment.centerLeft,
+                                    child: AnimatedMoneyText(
+                                      money: gameState.money,
+                                      formatNum: _formatNum,
+                                      style: TextStyle(
+                                        color: moneyGreen,
+                                        fontSize: moneyFont,
+                                        fontWeight: FontWeight.w900,
+                                        fontFamily: 'SpaceMono',
+                                        shadows: const [],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            SizedBox(width: narrow ? 7 : 10),
+                            ConstrainedBox(
+                              constraints: BoxConstraints(
+                                minWidth: narrow ? 100 : 116,
+                                maxWidth: narrow ? 126 : compact ? 148 : 170,
+                              ),
+                              child: Container(
+                                height: metricsHeight,
+                                padding: EdgeInsets.symmetric(horizontal: narrow ? 7 : 10),
+                                decoration: BoxDecoration(
+                                  color: softColor,
+                                  borderRadius: BorderRadius.circular(13),
+                                  border: Border.all(color: Colors.black, width: 3),
+                                ),
+                                child: Center(
+                                  child: FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Text(
+                                      gameState.incomePerSecond > 0
+                                          ? '+\$${_formatNum(gameState.incomePerSecond)}/s'
+                                          : 'Beklemede',
+                                      maxLines: 1,
+                                      softWrap: false,
+                                      style: TextStyle(
+                                        color: gameState.currentMultiplier > 1
+                                            ? AppColors.gold
+                                            : Colors.black87,
+                                        fontSize: incomeFont,
+                                        fontWeight: FontWeight.w900,
+                                        fontFamily: 'SpaceMono',
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (hasStatuses) ...[
+                        const SizedBox(height: 8),
+                        SizedBox(
+                          height: narrow ? 36 : 38,
+                          width: double.infinity,
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            physics: const BouncingScrollPhysics(),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                if (gameState.hasTaxDebt) ...[
+                                  PulsingTaxIcon(
+                                    onTap: () {
+                                      HapticFeedback.selectionClick();
+                                      AudioService.instance.playSfx('click.mp3');
+                                      _showTaxDialog(context, gameState);
+                                    },
+                                  ),
+                                  const SizedBox(width: 8),
+                                ],
+                                if (gameState.isBoostActive) ...[
+                                  statusChip(
+                                    background: const Color(0xFFFEF3C7),
+                                    icon: CustomPaint(painter: HeavyIconPainter(type: 'boost', color: AppColors.gold)),
+                                    text: '2X (${gameState.boostTimeLeft})',
+                                  ),
+                                  const SizedBox(width: 8),
+                                ],
+                                if (gameState.isTaxBonusActive) ...[
+                                  statusChip(
+                                    background: const Color(0xFFDCFCE7),
+                                    icon: CustomPaint(painter: HeavyIconPainter(type: 'speed', color: AppColors.profit)),
+                                    text: '+%20 (${gameState.taxBonusTimeLeft})',
+                                  ),
+                                  const SizedBox(width: 8),
+                                ],
+                                if (gameState.isEventActive)
+                                  statusChip(
+                                    maxWidth: narrow ? 200 : 255,
+                                    background: gameState.activeEvent!.multiplier > 1
+                                        ? const Color(0xFFDCFCE7)
+                                        : const Color(0xFFFEE2E2),
+                                    icon: CustomPaint(
+                                      painter: HeavyIconPainter(
+                                        type: gameState.activeEvent!.multiplier > 1 ? 'trend_up' : 'trend_down',
+                                        color: gameState.activeEvent!.multiplier > 1 ? AppColors.profit : AppColors.loss,
+                                      ),
+                                    ),
+                                    text: '${gameState.activeEvent!.title} (${gameState.activeEventTimeLeft})',
+                                  ),
+                              ],
                             ),
                           ),
                         ),
-                        SizedBox(width: rightGap),
-                        if (gameState.hasTaxDebt) ...[
-                          PulsingTaxIcon(
-                            onTap: () { 
-                              HapticFeedback.selectionClick(); 
-                              AudioService.instance.playSfx('click.mp3');
-                              _showTaxDialog(context, gameState); 
-                            },
-                          ),
-                          SizedBox(width: rightGap),
-                        ],
-                        Theme(
-                          data: Theme.of(context).copyWith(popupMenuTheme: PopupMenuThemeData(color: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: const BorderSide(color: Colors.black, width: 3)))), 
-                          child: PopupMenuButton<String>(
-                            icon: Icon(Icons.menu_rounded, size: menuIconSize, color: Colors.black), offset: const Offset(0, 48), 
-                            onSelected: (value) { 
-                              AudioService.instance.playSfx('click.mp3');
-                              if (value == 'settings') {
-                                Navigator.of(context).push(MaterialPageRoute(builder: (context) => const SettingsScreen())); 
-                              } else if (value == 'main_menu') {
-                                Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const MainMenuScreen(isInitialLaunch: false))); 
-                              }
-                            }, 
-                            itemBuilder: (context) => [
-                              const PopupMenuItem(value: 'settings', child: Row(children: [Icon(Icons.settings_rounded, color: Colors.black87, size: 24), SizedBox(width: 12), Text('Ayarlar', style: TextStyle(color: Colors.black, fontSize: 16, fontWeight: FontWeight.w900))])), 
-                              const PopupMenuDivider(height: 2), 
-                              const PopupMenuItem(value: 'main_menu', child: Row(children: [Icon(Icons.exit_to_app_rounded, color: AppColors.loss, size: 24), SizedBox(width: 12), Text('Oturumu Kapat', style: TextStyle(color: AppColors.loss, fontSize: 16, fontWeight: FontWeight.w900))])),
-                            ],
-                          ),
-                        ),
                       ],
-                    ),
-                  ),
-                ],
-              );
-            },
-          ),
-          if (gameState.isBoostActive || gameState.isTaxBonusActive || gameState.isEventActive) ...[
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                if (gameState.isBoostActive)
-                  Container(
-                    margin: const EdgeInsets.only(right: 10), padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(color: const Color(0xFFFEF3C7), borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.black, width: 2)),
-                    child: Row(children: [SizedBox(width: 16, height: 16, child: CustomPaint(painter: HeavyIconPainter(type: 'boost', color: AppColors.gold))), const SizedBox(width: 8), Text('2X (${gameState.boostTimeLeft})', style: const TextStyle(color: Colors.black, fontSize: 13, fontWeight: FontWeight.w900, fontFamily: 'SpaceMono'))]),
-                  ),
-                if (gameState.isTaxBonusActive)
-                  Container(
-                    margin: const EdgeInsets.only(right: 10), padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(color: const Color(0xFFDCFCE7), borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.black, width: 2)),
-                    child: Row(children: [SizedBox(width: 16, height: 16, child: CustomPaint(painter: HeavyIconPainter(type: 'speed', color: AppColors.profit))), const SizedBox(width: 8), Text('+%20 (${gameState.taxBonusTimeLeft})', style: const TextStyle(color: Colors.black, fontSize: 13, fontWeight: FontWeight.w900, fontFamily: 'SpaceMono'))]),
-                  ),
-                if (gameState.isEventActive)
-                  Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                      decoration: BoxDecoration(color: gameState.activeEvent!.multiplier > 1 ? const Color(0xFFDCFCE7) : const Color(0xFFFEE2E2), borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.black, width: 2)),
-                      child: Row(children: [SizedBox(width: 16, height: 16, child: CustomPaint(painter: HeavyIconPainter(type: gameState.activeEvent!.multiplier > 1 ? 'trend_up' : 'trend_down', color: gameState.activeEvent!.multiplier > 1 ? AppColors.profit : AppColors.loss))), const SizedBox(width: 8), Expanded(child: Text('${gameState.activeEvent!.title} (${gameState.activeEventTimeLeft})', overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.black, fontSize: 13, fontWeight: FontWeight.w900, fontFamily: 'SpaceMono')))]),
-                    ),
-                  ),
-              ],
+                    ],
+                  );
+                },
+              ),
             ),
-          ]
-        ],
+          ),
+        ),
       ),
     );
   }
@@ -725,10 +944,10 @@ class _MapScreenState extends State<MapScreen> {
     return Container(
       height: 80 + botSafe,
       padding: EdgeInsets.only(bottom: botSafe),
-      decoration: const BoxDecoration(
-        color: Colors.white, 
-        border: Border(top: BorderSide(color: Colors.black, width: 4.0)),
-        boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 10, offset: Offset(0, -6))],
+      decoration: BoxDecoration(
+        color: _uiSurface(context), 
+        border: const Border(top: BorderSide(color: Colors.black, width: 4.0)),
+        boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 10, offset: Offset(0, -6))],
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -893,7 +1112,7 @@ class _TopNotificationItemState extends State<TopNotificationItem> with SingleTi
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: _uiSurface(context),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: Colors.black, width: 3.5),
           boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 10, offset: Offset(0, 6))],
@@ -939,6 +1158,24 @@ class _TopNotificationItemState extends State<TopNotificationItem> with SingleTi
   }
 }
 
+enum EventOutcome {
+  crisisPrevented,
+  crisisPreventedByAd,
+  crisisAccepted,
+  chanceAccepted,
+  chanceAcceptedByAd,
+  chanceRejected,
+  crisisTimedOut,
+  chanceTimedOut,
+}
+
+class EventDialogResult {
+  final GameEvent event;
+  final EventOutcome outcome;
+
+  const EventDialogResult({required this.event, required this.outcome});
+}
+
 class EventTimerDialog extends StatefulWidget {
   final GameEvent ev;
   final GameState gameState;
@@ -951,27 +1188,51 @@ class EventTimerDialog extends StatefulWidget {
 }
 
 class _EventTimerDialogState extends State<EventTimerDialog> with SingleTickerProviderStateMixin {
+  static const int eventDecisionSeconds = 15;
   late AnimationController _controller;
   bool _resolved = false;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(vsync: this, duration: const Duration(seconds: 10));
+    _controller = AnimationController(vsync: this, duration: const Duration(seconds: eventDecisionSeconds));
     _controller.reverse(from: 1.0).then((_) {
-      if (mounted && !_resolved) {
-        _handleTimeout();
-      }
+      if (mounted && !_resolved) _handleTimeout();
     });
   }
 
-  void _handleTimeout() {
+  void _finish(EventOutcome outcome) {
+    if (_resolved || !mounted) return;
     _resolved = true;
-    bool isCrisis = widget.ev.preventCost > 0;
+    _controller.stop();
+    Navigator.pop(context, EventDialogResult(event: widget.ev, outcome: outcome));
+  }
+
+  void _handleTimeout() {
+    final isCrisis = widget.ev.preventCost > 0;
     if (isCrisis) {
       widget.gameState.resolveEvent(false, widget.ev);
+      _finish(EventOutcome.crisisTimedOut);
+    } else {
+      _finish(EventOutcome.chanceTimedOut);
     }
-    Navigator.pop(context);
+  }
+
+  void _watchAdToPreventCrisis() {
+    if (_resolved || widget.ev.preventCost <= 0) return;
+    final gameState = widget.gameState;
+    final event = widget.ev;
+    AudioService.instance.playSfx('click.mp3');
+    AdMobService.showRewardedAd(
+      context: context,
+      onRewardEarned: () {
+        gameState.incrementAdsWatched();
+        gameState.resolveEventWithAd(event);
+        if (mounted && !_resolved) {
+          _finish(EventOutcome.crisisPreventedByAd);
+        }
+      },
+    );
   }
 
   @override
@@ -982,18 +1243,30 @@ class _EventTimerDialogState extends State<EventTimerDialog> with SingleTickerPr
 
   @override
   Widget build(BuildContext context) {
-    bool isCrisis = widget.ev.preventCost > 0;
-    bool canAffordPrevent = widget.gameState.money >= widget.ev.preventCost;
+    final isCrisis = widget.ev.preventCost > 0;
+    final canAffordPrevent = widget.gameState.money >= widget.ev.preventCost;
 
     return AlertDialog(
-      backgroundColor: Colors.white, 
+      backgroundColor: _uiSurface(context),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(32), 
+        borderRadius: BorderRadius.circular(32),
         side: const BorderSide(color: Colors.black, width: 4.0),
       ),
       title: Row(
         children: [
-          Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: isCrisis ? AppColors.loss : AppColors.profit, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.black, width: 2)), child: SizedBox(width: 28, height: 28, child: CustomPaint(painter: HeavyIconPainter(type: 'warning', color: Colors.white)))),
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: isCrisis ? AppColors.loss : AppColors.profit,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.black, width: 2),
+            ),
+            child: SizedBox(
+              width: 28,
+              height: 28,
+              child: CustomPaint(painter: HeavyIconPainter(type: 'warning', color: Colors.white)),
+            ),
+          ),
           const SizedBox(width: 12),
           Expanded(child: Text(widget.ev.title, style: AppTheme.titleStyle(fontSize: 22).copyWith(color: Colors.black, shadows: []))),
         ],
@@ -1015,56 +1288,287 @@ class _EventTimerDialogState extends State<EventTimerDialog> with SingleTickerPr
                       child: LinearProgressIndicator(
                         value: _controller.value,
                         minHeight: 16,
-                        backgroundColor: const Color(0xFFF1F5F9),
+                        backgroundColor: _uiSoftSurface(context),
                         valueColor: AlwaysStoppedAnimation<Color>(isCrisis ? AppColors.loss : AppColors.profit),
                       ),
                     ),
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'Kalan Süre: ${(_controller.value * 10).ceil()}s',
+                    'Kalan Süre: ${(_controller.value * eventDecisionSeconds).ceil()}s',
                     style: const TextStyle(color: AppColors.textSecondary, fontSize: 14, fontWeight: FontWeight.w900, fontFamily: 'SpaceMono'),
-                  )
+                  ),
                 ],
               );
-            }
+            },
           ),
+          if (isCrisis) ...[
+            const SizedBox(height: 16),
+            HeavyTycoonButton(
+              width: double.infinity,
+              height: 50,
+              color: AppColors.gold,
+              shadowColor: Colors.orange.shade700,
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              onPressed: _watchAdToPreventCrisis,
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.play_circle_fill_rounded, color: Colors.black, size: 20),
+                  SizedBox(width: 8),
+                  Flexible(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        'REKLAMLA ÖNLE',
+                        style: TextStyle(color: Colors.black, fontSize: 13, fontWeight: FontWeight.w900),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ],
       ),
       actionsAlignment: MainAxisAlignment.spaceEvenly,
       actions: [
-        if (isCrisis) 
+        if (isCrisis)
           HeavyTycoonButton(
-            height: 55, color: const Color(0xFFF1F5F9), shadowColor: Colors.grey.shade400, padding: const EdgeInsets.symmetric(horizontal: 16),
-            onPressed: canAffordPrevent ? () { 
-              _resolved = true;
-              AudioService.instance.playSfx('cash.mp3');
-              widget.gameState.resolveEvent(true, widget.ev); 
-              Navigator.pop(context); 
-            } : null, 
-            child: FittedBox(fit: BoxFit.scaleDown, child: Text('ÖNLE (\$${widget.formatNum(widget.ev.preventCost)})', style: TextStyle(color: canAffordPrevent ? Colors.black : Colors.black38, fontSize: 13, fontWeight: FontWeight.w900))),
+            height: 55,
+            color: _uiSoftSurface(context),
+            shadowColor: Colors.grey.shade400,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            onPressed: canAffordPrevent
+                ? () {
+                    AudioService.instance.playSfx('cash.mp3');
+                    widget.gameState.resolveEvent(true, widget.ev);
+                    _finish(EventOutcome.crisisPrevented);
+                  }
+                : null,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                'ÖNLE (\$${widget.formatNum(widget.ev.preventCost)})',
+                style: TextStyle(color: canAffordPrevent ? Colors.black : Colors.black38, fontSize: 13, fontWeight: FontWeight.w900),
+              ),
+            ),
           )
         else
           HeavyTycoonButton(
-            height: 55, color: const Color(0xFFF1F5F9), shadowColor: Colors.grey.shade400, padding: const EdgeInsets.symmetric(horizontal: 16),
-            onPressed: () { 
-              _resolved = true;
+            height: 55,
+            color: _uiSoftSurface(context),
+            shadowColor: Colors.grey.shade400,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            onPressed: () {
               AudioService.instance.playSfx('click.mp3');
-              Navigator.pop(context); 
-            }, 
-            child: const FittedBox(fit: BoxFit.scaleDown, child: Text('REDDET', style: TextStyle(color: Colors.black, fontSize: 14, fontWeight: FontWeight.w900))),
+              _finish(EventOutcome.chanceRejected);
+            },
+            child: const FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text('REDDET', style: TextStyle(color: Colors.black, fontSize: 14, fontWeight: FontWeight.w900)),
+            ),
           ),
         HeavyTycoonButton(
-          height: 55, color: isCrisis ? AppColors.loss : AppColors.profit, shadowColor: isCrisis ? Colors.red.shade900 : Colors.green.shade900, padding: const EdgeInsets.symmetric(horizontal: 16),
-          onPressed: () { 
-            _resolved = true;
+          height: 55,
+          color: isCrisis ? AppColors.loss : AppColors.profit,
+          shadowColor: isCrisis ? Colors.red.shade900 : Colors.green.shade900,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          onPressed: () {
             AudioService.instance.playSfx('click.mp3');
-            widget.gameState.resolveEvent(false, widget.ev); 
-            Navigator.pop(context); 
-          }, 
-          child: FittedBox(fit: BoxFit.scaleDown, child: Text(isCrisis ? 'KATLAN' : 'KABUL ET', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 14))),
+            widget.gameState.resolveEvent(false, widget.ev);
+            _finish(isCrisis ? EventOutcome.crisisAccepted : EventOutcome.chanceAccepted);
+          },
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(isCrisis ? 'KATLAN' : 'KABUL ET', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 14)),
+          ),
         ),
       ],
+    );
+  }
+}
+
+class EventResultDialog extends StatefulWidget {
+  final EventDialogResult result;
+  final GameState gameState;
+  final String Function(double) formatNum;
+
+  const EventResultDialog({super.key, required this.result, required this.gameState, required this.formatNum});
+
+  @override
+  State<EventResultDialog> createState() => _EventResultDialogState();
+}
+
+class _EventResultDialogState extends State<EventResultDialog> {
+  bool _recoveredByAd = false;
+
+  String _multiplierText(double multiplier) {
+    if (multiplier == multiplier.roundToDouble()) return multiplier.toStringAsFixed(0);
+    return multiplier.toStringAsFixed(2).replaceFirst(RegExp(r'0+$'), '').replaceFirst(RegExp(r'\.$'), '');
+  }
+
+  void _watchRecoveryAd() {
+    final ev = widget.result.event;
+    final state = widget.gameState;
+    AudioService.instance.playSfx('click.mp3');
+    AdMobService.showRewardedAd(
+      context: context,
+      onRewardEarned: () {
+        state.incrementAdsWatched();
+        state.resolveEventWithAd(ev);
+        if (mounted) setState(() => _recoveredByAd = true);
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: widget.gameState,
+      builder: (context, _) {
+        final ev = widget.result.event;
+        final outcome = widget.result.outcome;
+        final bool timedOutCrisis = outcome == EventOutcome.crisisTimedOut;
+        final bool timedOutChance = outcome == EventOutcome.chanceTimedOut;
+        final bool recoveredFromTimeout = _recoveredByAd ||
+            (timedOutCrisis && !widget.gameState.isEventActiveFor(ev)) ||
+            (timedOutChance && widget.gameState.isEventActiveFor(ev));
+
+        late final String title;
+        late final String message;
+        late final Color accent;
+        late final IconData icon;
+
+        if (recoveredFromTimeout && timedOutCrisis) {
+          title = 'KRİZ REKLAMLA ÖNLENDİ';
+          message = '${ev.title} son anda engellendi. Reklam ödülü sayesinde kriz etkisi kaldırıldı ve önleme bedeli ödenmedi.';
+          accent = AppColors.profit;
+          icon = Icons.shield_rounded;
+        } else if (recoveredFromTimeout && timedOutChance) {
+          title = 'FIRSAT GERİ KAZANILDI';
+          message = '${ev.title} reklam ödülüyle kabul edildi. Gelir ${_multiplierText(ev.multiplier)}x oldu ve bu etki ${ev.durationMinutes} dakika sürecek.';
+          accent = AppColors.profit;
+          icon = Icons.replay_circle_filled_rounded;
+        } else {
+          switch (outcome) {
+            case EventOutcome.crisisPrevented:
+              title = 'KRİZ ÖNLENDİ';
+              message = '${ev.title} engellendi. \$${widget.formatNum(ev.preventCost)} ödendi ve gelir düşüşü uygulanmadı.';
+              accent = AppColors.profit;
+              icon = Icons.shield_rounded;
+              break;
+            case EventOutcome.crisisPreventedByAd:
+              title = 'KRİZ REKLAMLA ÖNLENDİ';
+              message = '${ev.title} reklam ödülüyle ücretsiz engellendi. Önleme bedeli ödenmedi ve gelir düşüşü uygulanmadı.';
+              accent = AppColors.profit;
+              icon = Icons.play_circle_fill_rounded;
+              break;
+            case EventOutcome.crisisAccepted:
+              title = 'KRİZ KABUL EDİLDİ';
+              message = '${ev.title} devreye girdi. Gelir ${_multiplierText(ev.multiplier)}x seviyesine düştü ve bu etki ${ev.durationMinutes} dakika sürecek.';
+              accent = AppColors.loss;
+              icon = Icons.trending_down_rounded;
+              break;
+            case EventOutcome.chanceAccepted:
+              title = 'FIRSAT KABUL EDİLDİ';
+              message = '${ev.title} etkinleştirildi. Gelir ${_multiplierText(ev.multiplier)}x oldu ve bu etki ${ev.durationMinutes} dakika sürecek.';
+              accent = AppColors.profit;
+              icon = Icons.trending_up_rounded;
+              break;
+            case EventOutcome.chanceAcceptedByAd:
+              title = 'FIRSAT REKLAMLA KABUL EDİLDİ';
+              message = '${ev.title} reklam ödülüyle etkinleştirildi. Gelir ${_multiplierText(ev.multiplier)}x oldu ve bu etki ${ev.durationMinutes} dakika sürecek.';
+              accent = AppColors.profit;
+              icon = Icons.play_circle_fill_rounded;
+              break;
+            case EventOutcome.chanceRejected:
+              title = 'FIRSAT REDDEDİLDİ';
+              message = '${ev.title} reddedildi. Herhangi bir gelir etkisi uygulanmadı.';
+              accent = AppColors.textMuted;
+              icon = Icons.close_rounded;
+              break;
+            case EventOutcome.crisisTimedOut:
+              title = 'SÜRE DOLDU — KRİZ DEVREDE';
+              message = '15 saniye içinde karar verilmedi. ${ev.title} otomatik olarak devreye girdi; gelir ${_multiplierText(ev.multiplier)}x seviyesinde ${ev.durationMinutes} dakika etkilenecek. İstersen reklam izleyerek krizi şimdi kaldırabilirsin.';
+              accent = AppColors.loss;
+              icon = Icons.timer_off_rounded;
+              break;
+            case EventOutcome.chanceTimedOut:
+              title = 'SÜRE DOLDU — FIRSAT KAÇTI';
+              message = '15 saniye içinde karar verilmedi. ${ev.title} kabul edilmedi. İstersen reklam izleyerek fırsatı geri kazanabilirsin.';
+              accent = AppColors.textMuted;
+              icon = Icons.timer_off_rounded;
+              break;
+          }
+        }
+
+        final bool canRecoverByAd = (timedOutCrisis || timedOutChance) && !recoveredFromTimeout;
+
+        return AlertDialog(
+          backgroundColor: _uiSurface(context),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28), side: const BorderSide(color: Colors.black, width: 4)),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(9),
+                decoration: BoxDecoration(color: accent, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.black, width: 2)),
+                child: Icon(icon, color: Colors.white, size: 26),
+              ),
+              const SizedBox(width: 12),
+              Expanded(child: Text(title, style: AppTheme.titleStyle(fontSize: 18).copyWith(color: Colors.black, shadows: []))),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(color: _uiSoftSurface(context), borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.black, width: 2.5)),
+                child: Text(message, textAlign: TextAlign.center, style: const TextStyle(color: Colors.black87, fontSize: 14, fontWeight: FontWeight.bold, height: 1.45)),
+              ),
+              if (canRecoverByAd) ...[
+                const SizedBox(height: 16),
+                HeavyTycoonButton(
+                  width: double.infinity,
+                  height: 52,
+                  color: AppColors.gold,
+                  shadowColor: Colors.orange.shade700,
+                  onPressed: _watchRecoveryAd,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.play_circle_fill_rounded, color: Colors.black, size: 21),
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            timedOutCrisis ? 'REKLAMLA KRİZİ ÖNLE' : 'REKLAMLA FIRSATI KABUL ET',
+                            style: const TextStyle(color: Colors.black, fontSize: 13, fontWeight: FontWeight.w900),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ],
+          ),
+          actions: [
+            HeavyTycoonButton(
+              height: 52,
+              color: recoveredFromTimeout ? AppColors.profit : AppColors.gold,
+              shadowColor: recoveredFromTimeout ? Colors.green.shade900 : Colors.orange.shade700,
+              onPressed: () {
+                AudioService.instance.playSfx('click.mp3');
+                Navigator.pop(context);
+              },
+              child: Text(recoveredFromTimeout ? 'TAMAM — UYGULANDI' : 'TAMAM', style: TextStyle(color: recoveredFromTimeout ? Colors.white : Colors.black, fontSize: 14, fontWeight: FontWeight.w900)),
+            ),
+          ],
+        );
+      },
     );
   }
 }
@@ -1167,7 +1671,7 @@ class _AnimatedSideButtonState extends State<AnimatedSideButton> {
               left: 0, right: 0, top: _isPressed ? 6 : 0,
               child: Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: _uiSurface(context),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: Colors.black, width: 3),
                 ),
@@ -1263,13 +1767,45 @@ class HeavyIconPainter extends CustomPainter {
         canvas.drawLine(const Offset(12, 17), const Offset(20, 17), stroke);
         break;
       case 'prestige':
-        canvas.drawPath(Path()..moveTo(12, 2)..lineTo(22, 10)..lineTo(12, 22)..lineTo(2, 10)..close(), stroke);
-        canvas.drawLine(const Offset(2, 10), const Offset(22, 10), stroke);
-        canvas.drawLine(const Offset(7, 10), const Offset(12, 22), stroke);
-        canvas.drawLine(const Offset(17, 10), const Offset(12, 22), stroke);
-        canvas.drawLine(const Offset(12, 2), const Offset(12, 10), stroke);
-        canvas.drawLine(const Offset(7, 10), const Offset(12, 2), stroke);
-        canvas.drawLine(const Offset(17, 10), const Offset(12, 2), stroke);
+        // Five-piece faceted diamond. The outer silhouette now reads clearly
+        // as a gemstone while preserving the reference image's bold cutouts.
+        final topLeft = Path()
+          ..moveTo(2.4, 10.55)
+          ..lineTo(6.45, 4.15)
+          ..lineTo(10.25, 4.15)
+          ..lineTo(8.55, 10.55)
+          ..close();
+
+        final topCenter = Path()
+          ..moveTo(12.0, 3.35)
+          ..lineTo(15.0, 10.55)
+          ..lineTo(9.0, 10.55)
+          ..close();
+
+        final topRight = Path()
+          ..moveTo(13.75, 4.15)
+          ..lineTo(17.55, 4.15)
+          ..lineTo(21.6, 10.55)
+          ..lineTo(15.45, 10.55)
+          ..close();
+
+        final bottomLeft = Path()
+          ..moveTo(2.75, 12.65)
+          ..lineTo(10.85, 12.65)
+          ..lineTo(11.45, 21.65)
+          ..close();
+
+        final bottomRight = Path()
+          ..moveTo(13.15, 12.65)
+          ..lineTo(21.25, 12.65)
+          ..lineTo(12.55, 21.65)
+          ..close();
+
+        canvas.drawPath(topLeft, fill);
+        canvas.drawPath(topCenter, fill);
+        canvas.drawPath(topRight, fill);
+        canvas.drawPath(bottomLeft, fill);
+        canvas.drawPath(bottomRight, fill);
         break;
       case 'research':
         canvas.drawPath(Path()..moveTo(12, 22)..lineTo(12, 8)..lineTo(6, 2), stroke..strokeWidth = 3.0);
@@ -2277,7 +2813,7 @@ class _FactoryInsideModalState extends State<FactoryInsideModal> with SingleTick
         return Container(
           height: MediaQuery.of(context).size.height * 0.86, 
           decoration: BoxDecoration(
-            color: Colors.white, 
+            color: _uiSurface(context), 
             borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
             border: Border.all(color: Colors.black, width: 4.5),
             boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 20, offset: Offset(0, -6))],
@@ -2356,7 +2892,7 @@ class _FactoryInsideModalState extends State<FactoryInsideModal> with SingleTick
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Container(
                   height: 52,
-                  decoration: BoxDecoration(color: const Color(0xFFF1F5F9), borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.black, width: 3)),
+                  decoration: BoxDecoration(color: _uiSoftSurface(context), borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.black, width: 3)),
                   child: TabBar(
                     controller: _tabController,
                     indicator: BoxDecoration(color: AppColors.gold, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.black, width: 2)),
@@ -2408,13 +2944,13 @@ class _FactoryInsideModalState extends State<FactoryInsideModal> with SingleTick
                         if (!canUnlock) {
                           return Container(
                             padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(color: const Color(0xFFF1F5F9), borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.black, width: 3)),
+                            decoration: BoxDecoration(color: _uiSoftSurface(context), borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.black, width: 3)),
                             child: Row(
                               children: [
                                 SizedBox.square(
                                   dimension: 52,
                                   child: DecoratedBox(
-                                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.black, width: 2)),
+                                    decoration: BoxDecoration(color: _uiSurface(context), borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.black, width: 2)),
                                     child: Stack(
                                       clipBehavior: Clip.hardEdge,
                                       children: [
@@ -2457,7 +2993,7 @@ class _FactoryInsideModalState extends State<FactoryInsideModal> with SingleTick
                         return Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: _uiSurface(context),
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(color: canAfford ? AppColors.neonCyan : Colors.black, width: 3.0),
                             boxShadow: const [BoxShadow(color: Colors.black12, offset: Offset(0, 4))],
@@ -2470,7 +3006,7 @@ class _FactoryInsideModalState extends State<FactoryInsideModal> with SingleTick
                                   Container(
                                     width: 52, height: 52,
                                     decoration: BoxDecoration(
-                                      color: canAfford ? const Color(0xFFE0F2FE) : const Color(0xFFF1F5F9),
+                                      color: canAfford ? const Color(0xFFE0F2FE) : _uiSoftSurface(context),
                                       borderRadius: BorderRadius.circular(16),
                                       border: Border.all(color: canAfford ? AppColors.neonCyan : Colors.black, width: 3),
                                     ),
@@ -2507,7 +3043,7 @@ class _FactoryInsideModalState extends State<FactoryInsideModal> with SingleTick
                                   const SizedBox(width: 12),
                                   HeavyTycoonButton(
                                     width: 90, height: 52,
-                                    color: isMax ? const Color(0xFFE2E8F0) : (canAfford ? AppColors.gold : const Color(0xFFF1F5F9)),
+                                    color: isMax ? _uiMutedSurface(context) : (canAfford ? AppColors.gold : _uiSoftSurface(context)),
                                     shadowColor: isMax ? Colors.grey.shade400 : (canAfford ? Colors.orange.shade700 : Colors.grey.shade400),
                                     onPressed: isMax || !canAfford 
                                         ? null 
@@ -2537,7 +3073,7 @@ class _FactoryInsideModalState extends State<FactoryInsideModal> with SingleTick
                                   child: LinearProgressIndicator(
                                     value: progressRatio,
                                     minHeight: 10,
-                                    backgroundColor: const Color(0xFFF1F5F9),
+                                    backgroundColor: _uiSoftSurface(context),
                                     valueColor: AlwaysStoppedAnimation<Color>(isMax ? AppColors.profit : (canAfford ? AppColors.neonCyan : Colors.grey.shade400)),
                                   ),
                                 ),
@@ -2580,23 +3116,19 @@ class _ProductionLineWidgetState extends State<ProductionLineWidget> with Ticker
   final List<int> _tokenIds = [];
   final List<_FloatingTextItem> _floatingTexts = [];
   int _counter = 0;
+  int _packingTrigger = 0;
 
   late final AnimationController _beltAnimController;
-  late final AnimationController _depotBounceController;
-  late final Animation<double> _depotScaleAnimation;
 
   @override
   void initState() {
     super.initState();
     _beltAnimController = AnimationController(vsync: this, duration: const Duration(milliseconds: 900))..repeat();
-    _depotBounceController = AnimationController(vsync: this, duration: const Duration(milliseconds: 120));
-    _depotScaleAnimation = Tween<double>(begin: 1.0, end: 1.2).animate(CurvedAnimation(parent: _depotBounceController, curve: Curves.easeOut));
   }
 
   @override
   void dispose() {
     _beltAnimController.dispose();
-    _depotBounceController.dispose();
     super.dispose();
   }
 
@@ -2617,8 +3149,10 @@ class _ProductionLineWidgetState extends State<ProductionLineWidget> with Ticker
 
   void _onTokenReachedEnd(int id) {
     if (!mounted) return;
-    _depotBounceController.forward(from: 0.0).then((_) { if (mounted) _depotBounceController.reverse(); });
-    setState(() { _tokenIds.remove(id); });
+    setState(() {
+      _tokenIds.remove(id);
+      _packingTrigger++;
+    });
   }
 
   void _onTextAnimationComplete(int id) {
@@ -2633,7 +3167,7 @@ class _ProductionLineWidgetState extends State<ProductionLineWidget> with Ticker
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: _uiSurface(context),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: Colors.black, width: 4.0),
         boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 0, offset: Offset(0, 6))],
@@ -2684,7 +3218,7 @@ class _ProductionLineWidgetState extends State<ProductionLineWidget> with Ticker
                   children: [
                     Container(
                       height: 64,
-                      decoration: BoxDecoration(color: const Color(0xFFE2E8F0), borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.black, width: 3.0)),
+                      decoration: BoxDecoration(color: _uiMutedSurface(context), borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.black, width: 3.0)),
                       child: Row(
                         children: [
                           SizedBox(width: btnWidth),
@@ -2707,12 +3241,17 @@ class _ProductionLineWidgetState extends State<ProductionLineWidget> with Ticker
                               ),
                             ),
                           ),
-                          ScaleTransition(
-                            scale: _depotScaleAnimation,
-                            child: Container(
-                              width: depotWidth, height: double.infinity,
-                              decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.horizontal(right: Radius.circular(12)), border: Border(left: BorderSide(color: Colors.black, width: 3.0))),
-                              child: Center(child: ProductSvgIcon(name: widget.product.name, size: 28, color: Colors.black)),
+                          Container(
+                            width: depotWidth,
+                            height: double.infinity,
+                            decoration: BoxDecoration(
+                              color: _uiSurface(context),
+                              borderRadius: const BorderRadius.horizontal(right: Radius.circular(12)),
+                              border: const Border(left: BorderSide(color: Colors.black, width: 3.0)),
+                            ),
+                            child: PackingTransferStation(
+                              productName: widget.product.name,
+                              trigger: _packingTrigger,
                             ),
                           ),
                         ],
@@ -2747,6 +3286,209 @@ class _ProductionLineWidgetState extends State<ProductionLineWidget> with Ticker
   }
 }
 
+class PackingTransferStation extends StatefulWidget {
+  final String productName;
+  final int trigger;
+
+  const PackingTransferStation({
+    super.key,
+    required this.productName,
+    required this.trigger,
+  });
+
+  @override
+  State<PackingTransferStation> createState() => _PackingTransferStationState();
+}
+
+class _PackingTransferStationState extends State<PackingTransferStation> with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  bool _playing = false;
+  bool _pendingReplay = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 480),
+    );
+  }
+
+  @override
+  void didUpdateWidget(covariant PackingTransferStation oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.trigger > oldWidget.trigger) {
+      // Collapse a burst of arrivals into at most one additional cycle. This
+      // keeps the station alive while the player is producing rapidly without
+      // leaving a long queue of boxes running after production has stopped.
+      if (_playing) {
+        _pendingReplay = true;
+      } else {
+        _playCycle();
+      }
+    }
+  }
+
+  void _playCycle() {
+    if (!mounted || _playing) return;
+    setState(() => _playing = true);
+    _controller.forward(from: 0.0).whenComplete(() {
+      if (!mounted) return;
+
+      final bool replayLatest = _pendingReplay;
+      _pendingReplay = false;
+      setState(() => _playing = false);
+
+      if (replayLatest) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) _playCycle();
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  double _phase(double value, double start, double end) {
+    return ((value - start) / (end - start)).clamp(0.0, 1.0);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_playing) {
+      return Center(
+        child: SizedBox(
+          width: 42,
+          height: 42,
+          child: CustomPaint(
+            painter: _PackingBoxPainter(closeProgress: 0.0),
+          ),
+        ),
+      );
+    }
+
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        final t = _controller.value;
+        final drop = Curves.easeIn.transform(_phase(t, 0.00, 0.30));
+        final close = Curves.easeInOut.transform(_phase(t, 0.24, 0.58));
+        final transfer = Curves.easeIn.transform(_phase(t, 0.58, 1.00));
+        final fade = 1.0 - Curves.easeIn.transform(_phase(t, 0.82, 1.00));
+
+        return Opacity(
+          opacity: fade.clamp(0.0, 1.0),
+          child: Transform.translate(
+            offset: Offset(transfer * 20.0, 0),
+            child: Stack(
+              alignment: Alignment.center,
+              clipBehavior: Clip.none,
+              children: [
+                Positioned(
+                  top: 26,
+                  child: SizedBox(
+                    width: 44,
+                    height: 36,
+                    child: CustomPaint(
+                      painter: _PackingBoxPainter(closeProgress: close),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  top: ui.lerpDouble(2.0, 27.0, drop)!,
+                  child: Opacity(
+                    opacity: (1.0 - close).clamp(0.0, 1.0),
+                    child: Transform.scale(
+                      scale: ui.lerpDouble(1.0, 0.70, drop)!,
+                      child: DepthProductIcon(
+                        name: widget.productName,
+                        size: 25,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _PackingBoxPainter extends CustomPainter {
+  final double closeProgress;
+
+  const _PackingBoxPainter({required this.closeProgress});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final outline = Paint()
+      ..color = Colors.black
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.4
+      ..strokeJoin = StrokeJoin.round;
+    final body = Paint()
+      ..color = const Color(0xFFD99A4E)
+      ..style = PaintingStyle.fill;
+    final flap = Paint()
+      ..color = const Color(0xFFF2BD6C)
+      ..style = PaintingStyle.fill;
+
+    final w = size.width;
+    final h = size.height;
+    final top = h * 0.34;
+    final bottom = h * 0.94;
+    final left = w * 0.10;
+    final right = w * 0.90;
+    final mid = w * 0.50;
+
+    final boxRect = Rect.fromLTRB(left, top, right, bottom);
+    canvas.drawRect(boxRect, body);
+    canvas.drawRect(boxRect, outline);
+    canvas.drawLine(Offset(mid, top), Offset(mid, bottom), outline);
+
+    final openLift = h * 0.23 * (1.0 - closeProgress);
+    final closedInset = h * 0.12 * closeProgress;
+
+    final leftFlap = Path()
+      ..moveTo(left, top)
+      ..lineTo(mid, top)
+      ..lineTo(mid - w * 0.08, top - openLift - closedInset)
+      ..lineTo(left - w * 0.06 * (1.0 - closeProgress), top - openLift * 0.55 - closedInset)
+      ..close();
+    final rightFlap = Path()
+      ..moveTo(mid, top)
+      ..lineTo(right, top)
+      ..lineTo(right + w * 0.06 * (1.0 - closeProgress), top - openLift * 0.55 - closedInset)
+      ..lineTo(mid + w * 0.08, top - openLift - closedInset)
+      ..close();
+
+    canvas.drawPath(leftFlap, flap);
+    canvas.drawPath(leftFlap, outline);
+    canvas.drawPath(rightFlap, flap);
+    canvas.drawPath(rightFlap, outline);
+
+    if (closeProgress > 0.70) {
+      final tapeOpacity = ((closeProgress - 0.70) / 0.30).clamp(0.0, 1.0);
+      final tape = Paint()
+        ..color = const Color(0xFFFDE68A).withValues(alpha: tapeOpacity)
+        ..style = PaintingStyle.fill;
+      canvas.drawRect(
+        Rect.fromCenter(center: Offset(mid, top - h * 0.06), width: w * 0.13, height: h * 0.14),
+        tape,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _PackingBoxPainter oldDelegate) => oldDelegate.closeProgress != closeProgress;
+}
+
 class _FloatingTextItem { final Key key; final int id; final String text; final double offsetX; _FloatingTextItem({required this.key, required this.id, required this.text, required this.offsetX}); }
 
 class ContinuousConveyorTrackPainter extends CustomPainter {
@@ -2772,33 +3514,111 @@ class ContinuousConveyorTrackPainter extends CustomPainter {
   @override bool shouldRepaint(covariant ContinuousConveyorTrackPainter oldDelegate) => oldDelegate.progress != progress;
 }
 
+
+class DepthProductIcon extends StatelessWidget {
+  final String name;
+  final double size;
+
+  const DepthProductIcon({
+    super.key,
+    required this.name,
+    required this.size,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final double depthOffset = math.max(1.8, size * 0.075);
+    return SizedBox.square(
+      dimension: size,
+      child: Stack(
+        alignment: Alignment.center,
+        clipBehavior: Clip.none,
+        children: [
+          Transform.translate(
+            offset: Offset(depthOffset, depthOffset),
+            child: Opacity(
+              opacity: 0.72,
+              child: ProductSvgIcon(
+                name: name,
+                size: size,
+                color: const Color(0xFF111827),
+              ),
+            ),
+          ),
+          ProductSvgIcon(
+            name: name,
+            size: size,
+            color: Colors.black,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class SelfDismissingToken extends StatefulWidget {
-  final int id; final String productName; final void Function(int id) onComplete;
+  final int id;
+  final String productName;
+  final void Function(int id) onComplete;
+
   const SelfDismissingToken({super.key, required this.id, required this.productName, required this.onComplete});
-  @override State<SelfDismissingToken> createState() => _SelfDismissingTokenState();
+
+  @override
+  State<SelfDismissingToken> createState() => _SelfDismissingTokenState();
 }
 
 class _SelfDismissingTokenState extends State<SelfDismissingToken> with SingleTickerProviderStateMixin {
-  late final AnimationController _controller; late final Animation<double> _slideAnimation;
-  @override void initState() {
+  late final AnimationController _controller;
+  late final Animation<double> _slideAnimation;
+  late final double _rotation;
+  late final double _verticalOffset;
+  late final double _scale;
+
+  @override
+  void initState() {
     super.initState();
+    final random = math.Random(widget.id * 7919 + widget.productName.hashCode);
+    _rotation = random.nextDouble() * math.pi * 2.0; // Full 0-360 degree rotation
+    _verticalOffset = (random.nextDouble() * 8.0) - 4.0;
+    _scale = 0.92 + (random.nextDouble() * 0.16);
+
     _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 620));
     _slideAnimation = Tween<double>(begin: -1.0, end: 1.0).animate(CurvedAnimation(parent: _controller, curve: Curves.linear));
-    _controller.addStatusListener((status) { if (status == AnimationStatus.completed) { WidgetsBinding.instance.addPostFrameCallback((_) { if (mounted) widget.onComplete(widget.id); }); } });
+    _controller.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) widget.onComplete(widget.id);
+        });
+      }
+    });
     _controller.forward();
   }
-  @override void dispose() { _controller.dispose(); super.dispose(); }
 
-  @override Widget build(BuildContext context) {
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return AnimatedBuilder(
       animation: _slideAnimation,
       builder: (context, child) {
         return Align(
           alignment: Alignment(_slideAnimation.value, 0.0),
-          child: Container(
-            width: 32, height: 32,
-            decoration: BoxDecoration(color: const Color(0xFFFEF3C7), borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.black, width: 3.0), boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 0, offset: Offset(0, 3))]),
-            child: Center(child: ProductSvgIcon(name: widget.productName, size: 20, color: Colors.black)),
+          child: Transform.translate(
+            offset: Offset(0, _verticalOffset),
+            child: Transform.rotate(
+              angle: _rotation,
+              child: Transform.scale(
+                scale: _scale,
+                child: DepthProductIcon(
+                  name: widget.productName,
+                  size: 30,
+                ),
+              ),
+            ),
           ),
         );
       },
@@ -3000,6 +3820,13 @@ class SeagullFlockComponent extends PositionComponent {
       canvas.scale(-1, 1);
     }
     for (final bird in _birds) {
+      // Do not render birds underneath the right-side action buttons. When only
+      // a wing was visible from behind those buttons it looked like an
+      // unexplained white swoosh, especially beside the prestige button.
+      final double renderedLocalX = velocity.x < 0 ? size.x - bird.offset.x : bird.offset.x;
+      final double birdWorldX = position.x + renderedLocalX;
+      if (birdWorldX > mapWidth - 300) continue;
+
       final double bob = math.sin(_time * 2.2 + bird.phase) * 2.2;
       _drawSeagull(canvas, bird.offset.x, bird.offset.y + bob, bird.scale, math.sin(_time * bird.flapSpeed + bird.phase));
     }
@@ -3063,11 +3890,6 @@ class SeagullFlockComponent extends PositionComponent {
       ..close();
     canvas.drawPath(nearWing, feather);
     canvas.drawPath(nearWing, outline);
-    canvas.drawPath(
-      Path()..moveTo(2, 1)..quadraticBezierTo(7, -4 - flap * 3, 12, -7 - flap * 4),
-      Paint()..color = Colors.white70..style = PaintingStyle.stroke..strokeWidth = .85..strokeCap = StrokeCap.round,
-    );
-
     canvas.drawCircle(const Offset(14, 2), 4.4, feather);
     canvas.drawCircle(const Offset(14, 2), 4.4, outline);
     final beak = Path()..moveTo(18, 2)..lineTo(24, 4)..lineTo(18, 6)..close();
@@ -3080,65 +3902,132 @@ class SeagullFlockComponent extends PositionComponent {
   }
 }
 
-class CrashingWavesComponent extends Component {
-  final double mapWidth; final double mapHeight; final math.Random _random = math.Random(); final List<_Wave> _waves = [];
-  CrashingWavesComponent({required this.mapWidth, required this.mapHeight}) { priority = 5; }
 
-  @override void update(double dt) {
-    if (_random.nextDouble() < 0.03) { _waves.add(_Wave(x: -100 + _random.nextDouble() * (mapWidth + 200), y: -100 + _random.nextDouble() * (mapHeight + 200), maxLife: 3.0 + _random.nextDouble() * 2.0, size: 0.8 + _random.nextDouble() * 1.5)); }
-    for (int i = _waves.length - 1; i >= 0; i--) { _waves[i].life += dt; if (_waves[i].life > _waves[i].maxLife) { _waves.removeAt(i); } }
+class PlaneFlyoverComponent extends PositionComponent {
+  final Vector2 velocity;
+  final double mapWidth;
+  double _time = 0.0;
+
+  PlaneFlyoverComponent({
+    required Vector2 startPos,
+    required this.velocity,
+    required this.mapWidth,
+  }) {
+    position = startPos;
+    size = Vector2(176, 82);
+    anchor = Anchor.center;
+    priority = 18; // Above the map, below factory markers.
   }
 
-  @override void render(Canvas canvas) {
-    Path safeWaterZone = Path.combine(PathOperation.difference, Path.combine(PathOperation.difference, Path.combine(PathOperation.difference, Path()..addRect(Rect.fromLTWH(-500, -500, mapWidth + 1000, mapHeight + 1000)), Path()..addOval(const Rect.fromLTRB(965, 1340, 1300, 1540))), Path()..addOval(const Rect.fromLTRB(-20, 2800, 120, 3100))), Path()..addOval(const Rect.fromLTRB(-20, 400, 140, 600)));
-    canvas.save(); canvas.clipPath(safeWaterZone);
-    for (var wave in _waves) {
-      double progress = wave.life / wave.maxLife; double alpha = math.sin(progress * math.pi) * 0.8; 
-      final paint = Paint()..color = Colors.white.withValues(alpha: alpha)..style = PaintingStyle.fill;
-      double currentX = wave.x + (progress * 30 * wave.size), currentY = wave.y + (progress * 20 * wave.size);
-      Path wavePath = Path()..moveTo(currentX, currentY)..quadraticBezierTo(currentX + (40 * wave.size), currentY - (15 * wave.size), currentX + (80 * wave.size), currentY + (10 * wave.size))..quadraticBezierTo(currentX + (40 * wave.size), currentY - (5 * wave.size), currentX, currentY);
-      canvas.drawPath(wavePath, paint);
-      canvas.drawPath(wavePath, Paint()..color=Colors.black.withValues(alpha: alpha)..style=PaintingStyle.stroke..strokeWidth=2);
+  @override
+  void update(double dt) {
+    _time += dt;
+    position.add(velocity * dt);
+    if (position.x < -size.x - 180 || position.x > mapWidth + size.x + 180) {
+      removeFromParent();
     }
+  }
+
+  @override
+  void render(Canvas canvas) {
+    canvas.save();
+    canvas.translate(size.x / 2, size.y / 2 + math.sin(_time * 2.4) * 1.5);
+    if (velocity.x < 0) canvas.scale(-1, 1);
+    canvas.translate(-size.x / 2, -size.y / 2);
+
+    final shadowPaint = Paint()
+      ..color = const Color(0xFF0F172A).withValues(alpha: .22)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5);
+    canvas.drawOval(const Rect.fromLTWH(27, 57, 126, 13), shadowPaint);
+
+    final outline = Paint()
+      ..color = Colors.black
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 4.0
+      ..strokeJoin = StrokeJoin.round
+      ..strokeCap = StrokeCap.round;
+    final bodyPaint = Paint()..color = const Color(0xFF2563EB);
+    final lightBlue = Paint()..color = const Color(0xFF38BDF8);
+    final darkBlue = Paint()..color = const Color(0xFF1E3A8A);
+    final gold = Paint()..color = AppColors.gold;
+
+    // Main fuselage: chunky, readable silhouette matching the game's comic assets.
+    final fuselage = Path()
+      ..moveTo(20, 37)
+      ..quadraticBezierTo(24, 29, 42, 28)
+      ..lineTo(133, 28)
+      ..quadraticBezierTo(150, 29, 165, 40)
+      ..quadraticBezierTo(151, 52, 133, 53)
+      ..lineTo(41, 53)
+      ..quadraticBezierTo(25, 52, 20, 44)
+      ..close();
+    canvas.drawPath(fuselage, bodyPaint);
+    canvas.drawPath(fuselage, outline);
+
+    // Near wing.
+    final nearWing = Path()
+      ..moveTo(77, 49)
+      ..lineTo(117, 73)
+      ..lineTo(92, 73)
+      ..lineTo(58, 50)
+      ..close();
+    canvas.drawPath(nearWing, darkBlue);
+    canvas.drawPath(nearWing, outline);
+
+    // Far wing.
+    final farWing = Path()
+      ..moveTo(75, 31)
+      ..lineTo(104, 8)
+      ..lineTo(124, 8)
+      ..lineTo(96, 32)
+      ..close();
+    canvas.drawPath(farWing, lightBlue);
+    canvas.drawPath(farWing, outline);
+
+    // Tail fin and rear stabilizer.
+    final tailFin = Path()
+      ..moveTo(33, 31)
+      ..lineTo(20, 10)
+      ..lineTo(42, 10)
+      ..lineTo(58, 31)
+      ..close();
+    canvas.drawPath(tailFin, darkBlue);
+    canvas.drawPath(tailFin, outline);
+    final tailWing = Path()
+      ..moveTo(37, 48)
+      ..lineTo(18, 63)
+      ..lineTo(49, 58)
+      ..lineTo(62, 49)
+      ..close();
+    canvas.drawPath(tailWing, lightBlue);
+    canvas.drawPath(tailWing, outline);
+
+    // Gold company stripe ties the aircraft into the tycoon UI palette.
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(const Rect.fromLTWH(45, 42, 91, 6), const Radius.circular(3)),
+      gold,
+    );
+
+    // Cartoon cockpit and windows. Cyan is used instead of white so the plane
+    // cannot be confused with the removed white map artifacts.
+    final cockpit = Path()
+      ..moveTo(137, 31)
+      ..quadraticBezierTo(151, 32, 158, 39)
+      ..lineTo(139, 39)
+      ..close();
+    canvas.drawPath(cockpit, Paint()..color = const Color(0xFF7DD3FC));
+    canvas.drawPath(cockpit, Paint()..color = Colors.black..style = PaintingStyle.stroke..strokeWidth = 2.2);
+    for (final x in const <double>[60, 76, 92, 108, 124]) {
+      canvas.drawCircle(Offset(x, 35), 3.4, Paint()..color = const Color(0xFFBAE6FD));
+      canvas.drawCircle(Offset(x, 35), 3.4, Paint()..color = Colors.black..style = PaintingStyle.stroke..strokeWidth = 1.6);
+    }
+
+    // Tiny gold beacon adds life without introducing another large animation.
+    final beaconAlpha = .55 + (math.sin(_time * 8) + 1) * .225;
+    canvas.drawCircle(Offset(86, 24), 3.0, Paint()..color = AppColors.gold.withValues(alpha: beaconAlpha));
+    canvas.drawCircle(Offset(86, 24), 3.0, Paint()..color = Colors.black..style = PaintingStyle.stroke..strokeWidth = 1.4);
+
     canvas.restore();
-  }
-}
-class _Wave { double x, y, life = 0, maxLife, size; _Wave({required this.x, required this.y, required this.maxLife, required this.size}); }
-
-class OpenSeaRipples extends Component {
-  double _time = 0; final Paint _ripplePaint = Paint()..style = PaintingStyle.stroke..strokeCap = StrokeCap.round..strokeWidth = 5.0;
-  OpenSeaRipples() { priority = -20; }
-  @override void update(double dt) { _time += dt * 0.6; }
-  @override void render(Canvas canvas) {
-    for (double y = -200; y < 3400; y += 120) {
-      for (double x = -100; x < 1200; x += 150) {
-        double cycle = (_time + ((x + math.sin(y * 3.2) * 60) * 0.01) + ((y + math.cos(x * 2.1) * 40) * 0.015)) % (math.pi * 2);
-        if (cycle < math.pi) {
-          _ripplePaint.color = Colors.white.withValues(alpha: math.sin(cycle) * 0.5);
-          double currentX = (x + math.sin(y * 3.2) * 60) - ((cycle / math.pi) * 45.0); 
-          canvas.drawPath(Path()..moveTo(currentX, y + math.cos(x * 2.1) * 40)..quadraticBezierTo(currentX + 20, (y + math.cos(x * 2.1) * 40) + 5, currentX + 40, y + math.cos(x * 2.1) * 40), _ripplePaint);
-        }
-      }
-    }
-  }
-}
-
-class PerfectPngWaves extends Component {
-  final Sprite mapSprite; final double mapWidth; final double mapHeight; double _time = 0;
-  PerfectPngWaves({required this.mapSprite, required this.mapWidth, required this.mapHeight}) { priority = -10; }
-  @override void update(double dt) { _time += dt * 0.12; }
-  @override void render(Canvas canvas) {
-    Path safeWaterZone = Path.combine(PathOperation.difference, Path.combine(PathOperation.difference, Path.combine(PathOperation.difference, Path()..addRect(Rect.fromLTWH(-500, -500, mapWidth + 1000, mapHeight + 1000)), Path()..addOval(const Rect.fromLTRB(965, 1340, 1300, 1540))), Path()..addOval(const Rect.fromLTRB(-20, 2800, 120, 3100))), Path()..addOval(const Rect.fromLTRB(-20, 400, 140, 600)));
-    for (int i = 0; i < 3; i++) {
-      double progress = ((_time * 0.5) - (i * 0.333)) % 1.0; 
-      if (progress < 0) { progress += 1.0; }
-      double reversedProgress = 1.0 - progress; double alpha = math.sin(reversedProgress * math.pi) * 0.6;
-      if (alpha <= 0) continue;
-      canvas.save(); canvas.clipPath(safeWaterZone);
-      canvas.translate((mapWidth / 2) + (reversedProgress * 70.0) * 0.75, mapHeight / 2); canvas.scale((mapWidth + ((reversedProgress * 70.0) * 2)) / mapWidth, (mapHeight + ((reversedProgress * 70.0) * 2)) / mapHeight); canvas.translate(-mapWidth / 2, -mapHeight / 2);
-      mapSprite.render(canvas, size: Vector2(mapWidth, mapHeight), overridePaint: Paint()..colorFilter = ColorFilter.mode(Color.lerp(Colors.white, themeOceanBlue, 0.25)!.withValues(alpha: alpha), BlendMode.srcIn));
-      canvas.restore();
-    }
   }
 }
 
@@ -3165,6 +4054,8 @@ class HoldingTycoonGame extends FlameGame with ScaleDetector {
   double _minimumZoom = 1.0;
   double _maximumZoom = 2.75;
   bool _zoomInitialized = false;
+  double _planeSpawnTimer = 0.0;
+  static const double _planeIntervalSeconds = 300.0; // One flyover every 5 minutes.
   HoldingTycoonGame({required this.onFactoryTap, required this.onBagTapped}) { cam = CameraComponent(world: mapWorld); }
   
   void updateState(GameState state) { 
@@ -3174,6 +4065,38 @@ class HoldingTycoonGame extends FlameGame with ScaleDetector {
         child.updateData(_currentState!.factories.firstWhere((f) => f.id == child.factoryId)); 
       } 
     } 
+  }
+
+  @override
+  void update(double dt) {
+    super.update(dt);
+    _planeSpawnTimer += dt;
+    if (_planeSpawnTimer >= _planeIntervalSeconds) {
+      _planeSpawnTimer %= _planeIntervalSeconds;
+      final hasActivePlane = mapWorld.children.whereType<PlaneFlyoverComponent>().isNotEmpty;
+      if (!hasActivePlane) _spawnPlaneFlyover();
+    }
+  }
+
+  void _spawnPlaneFlyover() {
+    final random = math.Random();
+    final fromLeft = random.nextBool();
+    final viewTop = -cam.viewfinder.position.y;
+    final viewHeight = size.y / cam.viewfinder.zoom;
+    final double visibleMinY = math.max(140.0, viewTop + viewHeight * 0.18).toDouble();
+    final double visibleMaxY = math.min(mapHeight - 140.0, viewTop + viewHeight * 0.58).toDouble();
+    final double spawnY = visibleMaxY > visibleMinY
+        ? visibleMinY + random.nextDouble() * (visibleMaxY - visibleMinY)
+        : mapHeight * 0.35;
+    final speed = 125.0 + random.nextDouble() * 25.0;
+
+    mapWorld.add(
+      PlaneFlyoverComponent(
+        startPos: Vector2(fromLeft ? -210 : mapWidth + 210, spawnY),
+        velocity: Vector2(fromLeft ? speed : -speed, -2.0 + random.nextDouble() * 4.0),
+        mapWidth: mapWidth,
+      ),
+    );
   }
 
   void spawnFlyingBag(double reward) { 
@@ -3188,16 +4111,13 @@ class HoldingTycoonGame extends FlameGame with ScaleDetector {
   
   @override Future<void> onLoad() async {
     add(mapWorld);
-    mapWorld.add(OpenSeaRipples());
     try {
       final mapSprite = await Sprite.load('map.png'); 
       mapHeight = mapWidth * (mapSprite.srcSize.y / mapSprite.srcSize.x);
-      mapWorld.add(PerfectPngWaves(mapSprite: mapSprite, mapWidth: mapWidth, mapHeight: mapHeight)); 
       mapWorld.add(SpriteComponent(sprite: mapSprite, size: Vector2(mapWidth, mapHeight))..priority = 0);
     } catch (e) { 
       debugPrint('Map asset could not be loaded; using the interactive fallback: $e');
     }
-    mapWorld.add(CrashingWavesComponent(mapWidth: mapWidth, mapHeight: mapHeight));
     final List<Vector2> plotPositions = [Vector2(540, 420), Vector2(330, 520), Vector2(700, 560), Vector2(320, 720), Vector2(720, 750), Vector2(310, 930), Vector2(680, 950), Vector2(460, 1080), Vector2(650, 1180), Vector2(360, 1240), Vector2(530, 1280), Vector2(320, 1390), Vector2(500, 1440), Vector2(420, 1550), Vector2(580, 1680)];
     for (int i = 0; i < plotPositions.length; i++) {
       mapWorld.add(FactoryPlotComponent(factoryId: (i + 1).toString(), position: plotPositions[i], onTap: onFactoryTap));

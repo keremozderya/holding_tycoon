@@ -74,6 +74,55 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return _languages.firstWhere((lang) => lang['code'] == currentCode.toLowerCase(), orElse: () => _languages.first);
   }
 
+  String _themeText(String key, String language) {
+    const labels = <String, Map<String, String>>{
+      'tr': {
+        'section': 'Görünüm',
+        'title': 'Arayüz Teması',
+        'light': 'Açık',
+        'dark': 'Koyu',
+        'description': 'Koyu tema beyaz yüzeyleri daha koyu, karikatür tarzı bir mavi tona dönüştürür.',
+      },
+      'en': {
+        'section': 'Appearance',
+        'title': 'Interface Theme',
+        'light': 'Light',
+        'dark': 'Dark',
+        'description': 'Dark theme changes white surfaces to a darker cartoon blue tone.',
+      },
+      'de': {
+        'section': 'Darstellung',
+        'title': 'Oberflächenthema',
+        'light': 'Hell',
+        'dark': 'Dunkel',
+        'description': 'Das dunkle Thema färbt weiße Flächen in einen dunkleren, cartoonartigen Blauton.',
+      },
+      'es': {
+        'section': 'Apariencia',
+        'title': 'Tema de Interfaz',
+        'light': 'Claro',
+        'dark': 'Oscuro',
+        'description': 'El tema oscuro cambia las superficies blancas a un tono azul caricaturesco más oscuro.',
+      },
+      'fr': {
+        'section': 'Apparence',
+        'title': 'Thème de l’interface',
+        'light': 'Clair',
+        'dark': 'Sombre',
+        'description': 'Le thème sombre remplace les surfaces blanches par un ton bleu cartoon plus foncé.',
+      },
+      'it': {
+        'section': 'Aspetto',
+        'title': 'Tema Interfaccia',
+        'light': 'Chiaro',
+        'dark': 'Scuro',
+        'description': 'Il tema scuro trasforma le superfici bianche in un tono blu cartoon più scuro.',
+      },
+    };
+    final lang = labels.containsKey(language.toLowerCase()) ? language.toLowerCase() : 'en';
+    return labels[lang]![key] ?? labels['en']![key] ?? key;
+  }
+
   @override
   Widget build(BuildContext context) {
     final gameState = context.watch<GameState>();
@@ -102,6 +151,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const SizedBox(height: 16),
           _buildVolumeCard(title: 'settings.sfx_volume'.tr(), value: _sfxVolume, icon: Icons.volume_up_rounded, onChanged: _saveSfxVolume),
           const SizedBox(height: 36),
+          Text(_themeText('section', gameState.language).toUpperCase(), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, letterSpacing: 1.4, fontSize: 16, shadows: [Shadow(color: Colors.black, offset: Offset(1,1))])),
+          const SizedBox(height: 12),
+          _buildThemeCard(gameState),
+          const SizedBox(height: 36),
           Text('settings.language_options'.tr().toUpperCase(), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, letterSpacing: 1.4, fontSize: 16, shadows: [Shadow(color: Colors.black, offset: Offset(1,1))])),
           const SizedBox(height: 12),
           _buildAnimatedLanguageAccordion(currentLangMap),
@@ -110,11 +163,95 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  Widget _buildThemeCard(GameState gameState) {
+    final dark = gameState.useDarkTheme;
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 220),
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceFor(dark),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.black, width: 4),
+        boxShadow: const [BoxShadow(color: Colors.black26, offset: Offset(0, 6))],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(color: AppColors.neonCyan, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.black, width: 3)),
+                child: const Icon(Icons.palette_rounded, color: Colors.white, size: 28),
+              ),
+              const SizedBox(width: 16),
+              Expanded(child: Text(_themeText('title', gameState.language).toUpperCase(), style: const TextStyle(color: AppColors.textPrimary, fontSize: 18, fontWeight: FontWeight.w900))),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(_themeText('description', gameState.language), style: const TextStyle(color: AppColors.textSecondary, fontSize: 13, fontWeight: FontWeight.bold, height: 1.35)),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(child: _buildThemeChoice(gameState: gameState, darkChoice: false)),
+              const SizedBox(width: 12),
+              Expanded(child: _buildThemeChoice(gameState: gameState, darkChoice: true)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildThemeChoice({required GameState gameState, required bool darkChoice}) {
+    final selected = gameState.useDarkTheme == darkChoice;
+    final previewColor = darkChoice ? AppColors.darkSurface : Colors.white;
+    return InkWell(
+      borderRadius: BorderRadius.circular(16),
+      onTap: () async {
+        if (selected) return;
+        HapticFeedback.selectionClick();
+        AudioService.instance.playSfx('click.mp3');
+        await context.read<GameState>().setDarkTheme(darkChoice);
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+        decoration: BoxDecoration(
+          color: selected ? AppColors.gold : AppColors.softSurfaceFor(gameState.useDarkTheme),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.black, width: 3),
+          boxShadow: selected ? const [BoxShadow(color: Colors.black26, offset: Offset(0, 3))] : null,
+        ),
+        child: Column(
+          children: [
+            Container(
+              height: 34,
+              decoration: BoxDecoration(color: previewColor, borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.black, width: 2)),
+              child: Center(
+                child: Container(width: 26, height: 8, decoration: BoxDecoration(color: AppColors.neonCyan, borderRadius: BorderRadius.circular(4))),
+              ),
+            ),
+            const SizedBox(height: 10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (selected) ...[const Icon(Icons.check_circle_rounded, size: 18, color: Colors.black), const SizedBox(width: 6)],
+                Flexible(child: Text(_themeText(darkChoice ? 'dark' : 'light', gameState.language).toUpperCase(), textAlign: TextAlign.center, style: const TextStyle(color: Colors.black, fontSize: 13, fontWeight: FontWeight.w900))),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildAnimatedLanguageAccordion(Map<String, String> currentLangMap) {
+    final dark = context.watch<GameState>().useDarkTheme;
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300), curve: Curves.easeInOut,
       decoration: BoxDecoration(
-        color: AppColors.surface, 
+        color: AppColors.surfaceFor(dark), 
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: Colors.black, width: 4),
         boxShadow: const [BoxShadow(color: Colors.black26, offset: Offset(0, 6))],
@@ -131,7 +268,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
               child: Row(
                 children: [
-                  Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(border: Border.all(color: Colors.black, width: 3), borderRadius: BorderRadius.circular(12), color: const Color(0xFFF1F5F9)), child: Text(currentLangMap['flag']!, style: const TextStyle(fontSize: 32))),
+                  Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(border: Border.all(color: Colors.black, width: 3), borderRadius: BorderRadius.circular(12), color: AppColors.softSurfaceFor(dark)), child: Text(currentLangMap['flag']!, style: const TextStyle(fontSize: 32))),
                   const SizedBox(width: 16),
                   Expanded(child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -202,10 +339,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildVolumeCard({required String title, required double value, required IconData icon, required ValueChanged<double> onChanged}) {
+    final dark = context.watch<GameState>().useDarkTheme;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
       decoration: BoxDecoration(
-        color: AppColors.surface, 
+        color: AppColors.surfaceFor(dark), 
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: Colors.black, width: 4),
         boxShadow: const [BoxShadow(color: Colors.black26, offset: Offset(0, 6))],
@@ -219,12 +357,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const SizedBox(width: 16),
               Text(title.toUpperCase(), style: const TextStyle(color: AppColors.textPrimary, fontSize: 18, fontWeight: FontWeight.w900)),
               const Spacer(),
-              Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), decoration: BoxDecoration(color: const Color(0xFFF1F5F9), borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.black, width: 2)), child: Text('%${(value * 100).round()}', style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 16, fontFamily: 'SpaceMono'))),
+              Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), decoration: BoxDecoration(color: AppColors.softSurfaceFor(dark), borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.black, width: 2)), child: Text('%${(value * 100).round()}', style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 16, fontFamily: 'SpaceMono'))),
             ],
           ),
           const SizedBox(height: 16),
           SliderTheme(
-            data: SliderTheme.of(context).copyWith(activeTrackColor: AppColors.neonCyan, inactiveTrackColor: const Color(0xFFE2E8F0), thumbColor: AppColors.gold, trackHeight: 12, thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 14, elevation: 4)),
+            data: SliderTheme.of(context).copyWith(activeTrackColor: AppColors.neonCyan, inactiveTrackColor: AppColors.mutedSurfaceFor(dark), thumbColor: AppColors.gold, trackHeight: 12, thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 14, elevation: 4)),
             child: Slider(value: value, min: 0.0, max: 1.0, onChanged: onChanged),
           ),
         ],
