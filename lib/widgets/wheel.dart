@@ -151,7 +151,7 @@ class _WheelDialogState extends State<WheelDialog> with SingleTickerProviderStat
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const SizedBox(width: 32),
-                  Expanded(child: FittedBox(fit: BoxFit.scaleDown, child: Text('MAKİNE ÇARKI', style: AppTheme.titleStyle(fontSize: 24).copyWith(color: Colors.black, shadows: [])))),
+                  Expanded(child: FittedBox(fit: BoxFit.scaleDown, child: Text('ŞANS ÇARKI', style: AppTheme.titleStyle(fontSize: 24).copyWith(color: Colors.black, shadows: [])))),
                   IconButton(
                     icon: const Icon(Icons.close_rounded, color: Colors.black, size: 32), 
                     onPressed: _isSpinning || _isAdPending ? null : () {

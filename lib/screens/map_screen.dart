@@ -18,6 +18,7 @@ import '../widgets/achievements.dart';
 import '../widgets/prestige_dialog.dart';
 import '../widgets/tasks.dart'; 
 import '../widgets/wheel.dart';
+import '../widgets/factory_drawings.dart';
 import '../services/admob_service.dart';
 import '../services/audio_service.dart'; 
 import 'main_menu_screen.dart';
@@ -583,94 +584,109 @@ class _MapScreenState extends State<MapScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                flex: 5,
-                child: Row(
-                  children: [
-                    Container(
-                      width: 52, height: 52, 
-                      decoration: BoxDecoration(color: AppColors.neonCyan, borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.black, width: 3)), 
-                      child: Center(child: Icon(holdingIcon, size: 32, color: Colors.white)),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start, 
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          FittedBox(
-                            fit: BoxFit.scaleDown,
-                            alignment: Alignment.centerLeft,
-                            child: Text(_holdingName.toUpperCase(), style: const TextStyle(color: Colors.black, fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 1.2)),
-                          ),
-                          const SizedBox(height: 2),
-                          FittedBox(
-                            fit: BoxFit.scaleDown,
-                            alignment: Alignment.centerLeft,
-                            child: AnimatedMoneyText(money: gameState.money, formatNum: _formatNum, style: const TextStyle(color: AppColors.gold, fontSize: 22, fontWeight: FontWeight.w900, fontFamily: 'SpaceMono', shadows: [])),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                flex: 4,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Flexible(
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                        decoration: BoxDecoration(color: const Color(0xFFF1F5F9), borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.black, width: 3)),
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Text(
-                            gameState.incomePerSecond > 0 ? '+\$${_formatNum(gameState.incomePerSecond)}/s' : 'Beklemede',
-                            style: TextStyle(color: gameState.currentMultiplier > 1 ? AppColors.gold : Colors.black87, fontSize: 13, fontWeight: FontWeight.w900, fontFamily: 'SpaceMono')
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final bool compact = constraints.maxWidth < 390;
+              final double rightGap = compact ? 4.0 : 8.0;
+              final double incomeHorizontalPadding = compact ? 6.0 : 10.0;
+              final double incomeFontSize = compact ? 11.5 : 13.0;
+              final double menuIconSize = compact ? 30.0 : 32.0;
+
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    flex: 5,
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 52, height: 52, 
+                          decoration: BoxDecoration(color: AppColors.neonCyan, borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.black, width: 3)), 
+                          child: Center(child: Icon(holdingIcon, size: 32, color: Colors.white)),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start, 
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              FittedBox(
+                                fit: BoxFit.scaleDown,
+                                alignment: Alignment.centerLeft,
+                                child: Text(_holdingName.toUpperCase(), style: const TextStyle(color: Colors.black, fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 1.2)),
+                              ),
+                              const SizedBox(height: 2),
+                              FittedBox(
+                                fit: BoxFit.scaleDown,
+                                alignment: Alignment.centerLeft,
+                                child: AnimatedMoneyText(money: gameState.money, formatNum: _formatNum, style: const TextStyle(color: AppColors.gold, fontSize: 22, fontWeight: FontWeight.w900, fontFamily: 'SpaceMono', shadows: [])),
+                              ),
+                            ],
                           ),
                         ),
-                      ),
+                      ],
                     ),
-                    const SizedBox(width: 8),
-                    if (gameState.hasTaxDebt) ...[
-                      PulsingTaxIcon(
-                        onTap: () { 
-                          HapticFeedback.selectionClick(); 
-                          AudioService.instance.playSfx('click.mp3');
-                          _showTaxDialog(context, gameState); 
-                        },
-                      ),
-                      const SizedBox(width: 8),
-                    ],
-                    Theme(
-                      data: Theme.of(context).copyWith(popupMenuTheme: PopupMenuThemeData(color: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: const BorderSide(color: Colors.black, width: 3)))), 
-                      child: PopupMenuButton<String>(
-                        icon: const Icon(Icons.menu_rounded, size: 32, color: Colors.black), offset: const Offset(0, 48), 
-                        onSelected: (value) { 
-                          AudioService.instance.playSfx('click.mp3');
-                          if (value == 'settings') {
-                            Navigator.of(context).push(MaterialPageRoute(builder: (context) => const SettingsScreen())); 
-                          } else if (value == 'main_menu') {
-                            Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const MainMenuScreen(isInitialLaunch: false))); 
-                          }
-                        }, 
-                        itemBuilder: (context) => [
-                          const PopupMenuItem(value: 'settings', child: Row(children: [Icon(Icons.settings_rounded, color: Colors.black87, size: 24), SizedBox(width: 12), Text('Ayarlar', style: TextStyle(color: Colors.black, fontSize: 16, fontWeight: FontWeight.w900))])), 
-                          const PopupMenuDivider(height: 2), 
-                          const PopupMenuItem(value: 'main_menu', child: Row(children: [Icon(Icons.exit_to_app_rounded, color: AppColors.loss, size: 24), SizedBox(width: 12), Text('Oturumu Kapat', style: TextStyle(color: AppColors.loss, fontSize: 16, fontWeight: FontWeight.w900))])),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    flex: 4,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Expanded(
+                          child: Container(
+                            padding: EdgeInsets.symmetric(horizontal: incomeHorizontalPadding, vertical: 8),
+                            decoration: BoxDecoration(color: const Color(0xFFF1F5F9), borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.black, width: 3)),
+                            child: Text(
+                              gameState.incomePerSecond > 0 ? '+\$${_formatNum(gameState.incomePerSecond)}/s' : 'Beklemede',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: gameState.currentMultiplier > 1 ? AppColors.gold : Colors.black87,
+                                fontSize: incomeFontSize,
+                                fontWeight: FontWeight.w900,
+                                fontFamily: 'SpaceMono',
+                              ),
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: rightGap),
+                        if (gameState.hasTaxDebt) ...[
+                          PulsingTaxIcon(
+                            onTap: () { 
+                              HapticFeedback.selectionClick(); 
+                              AudioService.instance.playSfx('click.mp3');
+                              _showTaxDialog(context, gameState); 
+                            },
+                          ),
+                          SizedBox(width: rightGap),
                         ],
-                      ),
+                        Theme(
+                          data: Theme.of(context).copyWith(popupMenuTheme: PopupMenuThemeData(color: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: const BorderSide(color: Colors.black, width: 3)))), 
+                          child: PopupMenuButton<String>(
+                            icon: Icon(Icons.menu_rounded, size: menuIconSize, color: Colors.black), offset: const Offset(0, 48), 
+                            onSelected: (value) { 
+                              AudioService.instance.playSfx('click.mp3');
+                              if (value == 'settings') {
+                                Navigator.of(context).push(MaterialPageRoute(builder: (context) => const SettingsScreen())); 
+                              } else if (value == 'main_menu') {
+                                Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const MainMenuScreen(isInitialLaunch: false))); 
+                              }
+                            }, 
+                            itemBuilder: (context) => [
+                              const PopupMenuItem(value: 'settings', child: Row(children: [Icon(Icons.settings_rounded, color: Colors.black87, size: 24), SizedBox(width: 12), Text('Ayarlar', style: TextStyle(color: Colors.black, fontSize: 16, fontWeight: FontWeight.w900))])), 
+                              const PopupMenuDivider(height: 2), 
+                              const PopupMenuItem(value: 'main_menu', child: Row(children: [Icon(Icons.exit_to_app_rounded, color: AppColors.loss, size: 24), SizedBox(width: 12), Text('Oturumu Kapat', style: TextStyle(color: AppColors.loss, fontSize: 16, fontWeight: FontWeight.w900))])),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-              ),
-            ],
+                  ),
+                ],
+              );
+            },
           ),
           if (gameState.isBoostActive || gameState.isTaxBonusActive || gameState.isEventActive) ...[
             const SizedBox(height: 16),
@@ -3141,10 +3157,14 @@ class FlyingBagComponent extends PositionComponent with TapCallbacks {
   }
 }
 
-class HoldingTycoonGame extends FlameGame with PanDetector {
+class HoldingTycoonGame extends FlameGame with ScaleDetector {
   final Function(String) onFactoryTap; final Function(double) onBagTapped; 
   late final CameraComponent cam; final World mapWorld = World(); double mapWidth = 1080.0; double mapHeight = 1920.0; final double topPadding = 250.0; final double bottomPadding = 350.0;
   GameState? _currentState;
+  double _scaleStartZoom = 1.0;
+  double _minimumZoom = 1.0;
+  double _maximumZoom = 2.75;
+  bool _zoomInitialized = false;
   HoldingTycoonGame({required this.onFactoryTap, required this.onBagTapped}) { cam = CameraComponent(world: mapWorld); }
   
   void updateState(GameState state) { 
@@ -3189,16 +3209,79 @@ class HoldingTycoonGame extends FlameGame with PanDetector {
     add(cam);
   }
 
-  @override void onGameResize(Vector2 size) { 
-    super.onGameResize(size); 
-    cam.viewfinder.zoom = size.x / mapWidth; 
+  @override
+  void onGameResize(Vector2 size) {
+    super.onGameResize(size);
+    _minimumZoom = size.x / mapWidth;
+    _maximumZoom = _minimumZoom * 2.75;
+    if (!_zoomInitialized) {
+      cam.viewfinder.zoom = _minimumZoom;
+      _zoomInitialized = true;
+    } else {
+      cam.viewfinder.zoom = cam.viewfinder.zoom
+          .clamp(_minimumZoom, _maximumZoom)
+          .toDouble();
+    }
+    _clampCameraPosition();
   }
-  
-  @override void onPanUpdate(DragUpdateInfo info) { 
-    final delta = info.delta.global; 
-    double newY = cam.viewfinder.position.y - (delta.y / cam.viewfinder.zoom); 
-    double maxScroll = mapHeight - (size.y / cam.viewfinder.zoom) + bottomPadding; 
-    cam.viewfinder.position = Vector2(0, newY.clamp(-topPadding, maxScroll > -topPadding ? maxScroll : -topPadding)); 
+
+  void _clampCameraPosition() {
+    final double zoom = cam.viewfinder.zoom;
+    final double viewWidth = size.x / zoom;
+    final double viewHeight = size.y / zoom;
+
+    final double maxX = math.max(0.0, mapWidth - viewWidth);
+    final double maxY = math.max(-topPadding, mapHeight - viewHeight + bottomPadding);
+
+    cam.viewfinder.position = Vector2(
+      cam.viewfinder.position.x.clamp(0.0, maxX).toDouble(),
+      cam.viewfinder.position.y.clamp(-topPadding, maxY).toDouble(),
+    );
+  }
+
+  @override
+  void onScaleStart(ScaleStartInfo info) {
+    _scaleStartZoom = cam.viewfinder.zoom;
+  }
+
+  @override
+  void onScaleUpdate(ScaleUpdateInfo info) {
+    final Vector2 scale = info.scale.global;
+
+    if (!scale.isIdentity()) {
+      final double oldZoom = cam.viewfinder.zoom;
+      final double oldViewWidth = size.x / oldZoom;
+      final double oldViewHeight = size.y / oldZoom;
+      final double centerX = cam.viewfinder.position.x + oldViewWidth / 2;
+      final double centerY = cam.viewfinder.position.y + oldViewHeight / 2;
+
+      final double nextZoom = (_scaleStartZoom * scale.y)
+          .clamp(_minimumZoom, _maximumZoom)
+          .toDouble();
+
+      if ((nextZoom - oldZoom).abs() > 0.0001) {
+        cam.viewfinder.zoom = nextZoom;
+        final double newViewWidth = size.x / nextZoom;
+        final double newViewHeight = size.y / nextZoom;
+        cam.viewfinder.position = Vector2(
+          centerX - newViewWidth / 2,
+          centerY - newViewHeight / 2,
+        );
+        _clampCameraPosition();
+      }
+      return;
+    }
+
+    // ScaleDetector also receives ordinary one-finger pan updates. Keeping the
+    // pan handling here avoids combining PanDetector and ScaleDetector, which
+    // Flutter/Flame explicitly disallows because scale is a superset of pan.
+    final Vector2 delta = info.delta.global;
+    final double zoom = cam.viewfinder.zoom;
+    cam.viewfinder.position = Vector2(
+      cam.viewfinder.position.x - (delta.x / zoom),
+      cam.viewfinder.position.y - (delta.y / zoom),
+    );
+    _clampCameraPosition();
   }
 }
 
@@ -3207,7 +3290,7 @@ class FactoryPlotComponent extends PositionComponent with TapCallbacks {
   final Function(String) onTap; 
   FactoryData? _data;
   
-  FactoryPlotComponent({required this.factoryId, required Vector2 position, required this.onTap}) : super(position: position, size: Vector2(170, 170), anchor: Anchor.center) {
+  FactoryPlotComponent({required this.factoryId, required Vector2 position, required this.onTap}) : super(position: position, size: Vector2(250, 250), anchor: Anchor.center) {
     priority = 30;
   }
   
@@ -3228,10 +3311,17 @@ class FactoryPlotComponent extends PositionComponent with TapCallbacks {
       final iconPainter = TextPainter(textDirection: TextDirection.ltr)..text = TextSpan(text: String.fromCharCode(Icons.lock_rounded.codePoint), style: TextStyle(fontSize: 40, fontFamily: Icons.lock_rounded.fontFamily, color: Colors.black))..layout(); 
       iconPainter.paint(canvas, Offset(size.x/2 - 20, size.y/2 - 20));
     } else {
-      canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(size.x/2 - 50, size.y/2 - 30, 100, 60), const Radius.circular(16)), Paint()..color = AppColors.neonCyan);
-      canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(size.x/2 - 50, size.y/2 - 30, 100, 60), const Radius.circular(16)), Paint()..color = Colors.black..style=PaintingStyle.stroke..strokeWidth=4);
-      final textPainter = TextPainter(text: TextSpan(text: 'Lvl ${currentData.totalLevel}', style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w900, shadows: [Shadow(color: Colors.black, blurRadius: 0, offset: Offset(2,2))])), textDirection: TextDirection.ltr)..layout();
-      textPainter.paint(canvas, Offset(size.x/2 - textPainter.width/2, size.y/2 - textPainter.height/2));
+      // The unlocked plot is rendered by the dedicated vector-art system.
+      // FactoryData.currentStage is already the game's 3-step progression
+      // (0 = beginning, 1 = middle, 2 = max), so the map visual stays in
+      // sync with the existing upgrade logic without a second threshold system.
+      FactoryDrawingRenderer.paint(
+        canvas,
+        Size(size.x, size.y),
+        factoryId: factoryId,
+        stage: currentData.currentStage,
+      );
+
     }
   }
 }
