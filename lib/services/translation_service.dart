@@ -7,21 +7,40 @@ class TranslationService {
 
   Map<String, dynamic> _localizedStrings = {};
   String _currentLanguage = 'tr';
+  int _loadGeneration = 0;
+
+  static const supportedLanguages = <String>{'tr', 'en', 'de', 'es', 'fr', 'it'};
 
   String get currentLanguage => _currentLanguage;
 
   Future<void> loadLanguage(String langCode) async {
-    _currentLanguage = langCode.toLowerCase();
+    final requested = langCode.toLowerCase();
+    final language = supportedLanguages.contains(requested) ? requested : 'tr';
+    final generation = ++_loadGeneration;
     try {
       final jsonString = await rootBundle.loadString(
-        'assets/translations/$_currentLanguage.json',
+        'assets/translations/$language.json',
       );
-      _localizedStrings = jsonDecode(jsonString) as Map<String, dynamic>;
+      final decoded = jsonDecode(jsonString);
+      if (decoded is! Map<String, dynamic>) throw const FormatException('Translation root must be an object');
+      if (generation == _loadGeneration) {
+        _localizedStrings = decoded;
+        _currentLanguage = language;
+      }
     } catch (_) {
-      final fallbackString = await rootBundle.loadString(
-        'assets/translations/tr.json',
-      );
-      _localizedStrings = jsonDecode(fallbackString) as Map<String, dynamic>;
+      try {
+        final fallbackString = await rootBundle.loadString('assets/translations/tr.json');
+        final decoded = jsonDecode(fallbackString);
+        if (generation == _loadGeneration && decoded is Map<String, dynamic>) {
+          _localizedStrings = decoded;
+          _currentLanguage = 'tr';
+        }
+      } catch (_) {
+        if (generation == _loadGeneration) {
+          _localizedStrings = <String, dynamic>{};
+          _currentLanguage = 'tr';
+        }
+      }
     }
   }
 
@@ -37,7 +56,8 @@ class TranslationService {
       }
     }
 
-    String result = current.toString();
+    if (current is! String) return key;
+    String result = current;
 
     if (params != null) {
       params.forEach((paramKey, value) {

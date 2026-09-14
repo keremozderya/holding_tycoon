@@ -1,0 +1,7 @@
+{
+  "app_title":"Holding Tycoon",
+  "settings":{"title":"Ajustes","sound_settings":"Ajustes de sonido","music_volume":"Volumen de música","sfx_volume":"Volumen de efectos","language_options":"Opciones de idioma","game_language":"Idioma del juego"},
+  "tasks":{"title":"Tareas","refresh_info":"Recoge las recompensas de las tareas completadas"},
+  "research":{"app_bar_title":"Investigación y desarrollo","industry_col":"Industria","finance_col":"Finanzas","max":"Máx.","completed":"Completado","current_level":"Nivel actual: {level}","next_level":"Siguiente nivel: {level}","next_effect":"Siguiente: {effect}","not_active":"Inactivo","max_level_reached":"Nivel máximo alcanzado","lock_warning":"Primero desbloquea la investigación requerida.","btn_req_unmet":"Requisitos no cumplidos","btn_upgrade":"Mejorar por {cost} RP"},
+  "prestige":{"badge":"Prestigio","title":"Prestigio del holding","description":"Liquida tu holding para ganar puntos de investigación permanentes.","current_turnover":"Facturación total","earnable_rp":"RP obtenibles","warning":"El dinero, las fábricas, el personal y las acciones se reinician; la investigación se conserva.","btn_action":"Prestigio (+{rp} RP)","btn_progress":"Progreso {percent}%"}
+}

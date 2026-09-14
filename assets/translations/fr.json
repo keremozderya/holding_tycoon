@@ -1,0 +1,7 @@
+{
+  "app_title":"Holding Tycoon",
+  "settings":{"title":"Paramètres","sound_settings":"Paramètres audio","music_volume":"Volume de la musique","sfx_volume":"Volume des effets","language_options":"Options de langue","game_language":"Langue du jeu"},
+  "tasks":{"title":"Missions","refresh_info":"Récupérez les récompenses des missions terminées"},
+  "research":{"app_bar_title":"Recherche et développement","industry_col":"Industrie","finance_col":"Finance","max":"Max.","completed":"Terminé","current_level":"Niveau actuel : {level}","next_level":"Niveau suivant : {level}","next_effect":"Suivant : {effect}","not_active":"Inactif","max_level_reached":"Niveau maximum atteint","lock_warning":"Débloquez d’abord les recherches requises.","btn_req_unmet":"Conditions non remplies","btn_upgrade":"Améliorer pour {cost} RP"},
+  "prestige":{"badge":"Prestige","title":"Prestige du holding","description":"Liquidez votre holding pour gagner des points de recherche permanents.","current_turnover":"Chiffre d’affaires total","earnable_rp":"RP à gagner","warning":"Argent, usines, personnel et actions sont réinitialisés ; la recherche est conservée.","btn_action":"Prestige (+{rp} RP)","btn_progress":"Progression {percent}%"}
+}

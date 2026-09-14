@@ -1,0 +1,7 @@
+{
+  "app_title":"Holding Tycoon",
+  "settings":{"title":"Impostazioni","sound_settings":"Impostazioni audio","music_volume":"Volume musica","sfx_volume":"Volume effetti","language_options":"Opzioni lingua","game_language":"Lingua del gioco"},
+  "tasks":{"title":"Missioni","refresh_info":"Riscatta le ricompense delle missioni completate"},
+  "research":{"app_bar_title":"Ricerca e sviluppo","industry_col":"Industria","finance_col":"Finanza","max":"Max","completed":"Completato","current_level":"Livello attuale: {level}","next_level":"Livello successivo: {level}","next_effect":"Successivo: {effect}","not_active":"Non attivo","max_level_reached":"Livello massimo raggiunto","lock_warning":"Sblocca prima le ricerche richieste.","btn_req_unmet":"Requisiti non soddisfatti","btn_upgrade":"Migliora per {cost} RP"},
+  "prestige":{"badge":"Prestigio","title":"Prestigio della holding","description":"Liquida la holding per ottenere punti ricerca permanenti.","current_turnover":"Fatturato totale","earnable_rp":"RP ottenibili","warning":"Denaro, fabbriche, personale e azioni vengono azzerati; la ricerca resta.","btn_action":"Prestigio (+{rp} RP)","btn_progress":"Progresso {percent}%"}
+}

@@ -1,0 +1,7 @@
+{
+  "app_title": "Holding Tycoon",
+  "settings": {"title":"Settings","sound_settings":"Sound Settings","music_volume":"Music Volume","sfx_volume":"Effects Volume","language_options":"Language Options","game_language":"Game Language"},
+  "tasks": {"title":"Tasks","refresh_info":"Collect rewards from completed tasks"},
+  "research": {"app_bar_title":"Research & Development","industry_col":"Industry","finance_col":"Finance","max":"Max","completed":"Completed","current_level":"Current level: {level}","next_level":"Next level: {level}","next_effect":"Next: {effect}","not_active":"Not active","max_level_reached":"Maximum level reached","lock_warning":"Unlock the required research first.","btn_req_unmet":"Requirements not met","btn_upgrade":"Upgrade for {cost} RP"},
+  "prestige": {"badge":"Prestige","title":"Holding Prestige","description":"Liquidate your holding to earn permanent research points.","current_turnover":"Total turnover","earnable_rp":"Earnable RP","warning":"Cash, factories, staff and shares reset; research is preserved.","btn_action":"Prestige (+{rp} RP)","btn_progress":"Progress {percent}%"}
+}

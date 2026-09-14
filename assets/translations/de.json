@@ -1,0 +1,7 @@
+{
+  "app_title":"Holding Tycoon",
+  "settings":{"title":"Einstellungen","sound_settings":"Toneinstellungen","music_volume":"Musiklautstärke","sfx_volume":"Effektlautstärke","language_options":"Sprachoptionen","game_language":"Spielsprache"},
+  "tasks":{"title":"Aufgaben","refresh_info":"Belohnungen abgeschlossener Aufgaben abholen"},
+  "research":{"app_bar_title":"Forschung & Entwicklung","industry_col":"Industrie","finance_col":"Finanzen","max":"Max.","completed":"Abgeschlossen","current_level":"Aktuelle Stufe: {level}","next_level":"Nächste Stufe: {level}","next_effect":"Nächster Effekt: {effect}","not_active":"Nicht aktiv","max_level_reached":"Maximale Stufe erreicht","lock_warning":"Schalte zuerst die erforderliche Forschung frei.","btn_req_unmet":"Anforderungen nicht erfüllt","btn_upgrade":"Für {cost} RP verbessern"},
+  "prestige":{"badge":"Prestige","title":"Holding-Prestige","description":"Löse deine Holding auf, um permanente Forschungspunkte zu erhalten.","current_turnover":"Gesamtumsatz","earnable_rp":"Verdienbare RP","warning":"Geld, Fabriken, Personal und Aktien werden zurückgesetzt; Forschung bleibt.","btn_action":"Prestige (+{rp} RP)","btn_progress":"Fortschritt {percent}%"}
+}

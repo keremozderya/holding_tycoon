@@ -108,6 +108,9 @@ class GameState extends ChangeNotifier {
   int _researchPoints = 0;
   bool _isFirstLaunch = true;
   bool _isInitialized = false;
+  bool _disposed = false;
+  bool _saveRequested = false;
+  Future<void>? _saveInProgress;
   String _language = 'tr';
   String _starterFactoryId = ''; 
   String get starterFactoryId => _starterFactoryId;
@@ -183,6 +186,9 @@ class GameState extends ChangeNotifier {
 
   int statClicks = 0; int statStocks = 0; int statUpgrades = 0; int statTaxes = 0; int statPrestige = 0; int statAdsWatched = 0; int statWheelSpins = 0; 
   double statTotalEarned = 0.0; 
+
+  int offlineSecondsCapped = 0;
+  double offlineEfficiencyApplied = 0.0;
 
   List<bool> claimedTasks = List.filled(4, false);
 
@@ -281,7 +287,7 @@ class GameState extends ChangeNotifier {
   }
 
   void claimAchievement(int index) {
-    if (!_areAchievementsUnlocked) return;
+    if (!_areAchievementsUnlocked || index < 0 || index >= achievementTargets.length) return;
     int tier = claimedAchievements[index];
     if (tier < achievementTargets[index].length) {
       double req = achievementTargets[index][tier];
@@ -300,7 +306,14 @@ class GameState extends ChangeNotifier {
   }
 
   bool claimTask(int index) {
-    if (claimedTasks[index]) return false;
+    if (index < 0 || index >= claimedTasks.length || claimedTasks[index]) return false;
+    final requirementsMet = <bool>[
+      statAdsWatched >= 3,
+      statWheelSpins >= 1,
+      statClicks >= 20,
+      statStocks >= 3,
+    ];
+    if (!requirementsMet[index]) return false;
     claimedTasks[index] = true;
     
     double mReward = 0; 
@@ -326,8 +339,6 @@ class GameState extends ChangeNotifier {
   }
 
   void _checkNotifications() {
-    bool added = false;
-    
     if (areTasksUnlocked) {
       final List<Map<String, dynamic>> tData = [
         {'title': 'Sermaye Enjeksiyonu', 'c': statAdsWatched, 't': 3},
@@ -340,7 +351,6 @@ class GameState extends ChangeNotifier {
           if (tData[i]['c'] >= tData[i]['t']) {
             notifiedTasks[i] = true;
             _notifications.add(InGameNotification('GÖREV TAMAMLANDI', tData[i]['title'], 'task', i));
-            added = true;
           }
         }
       }
@@ -355,18 +365,12 @@ class GameState extends ChangeNotifier {
             if (getAchievementProgress(i) >= achievementTargets[i][currentTier]) {
               notifiedAchievements[i] = currentTier + 1;
               _notifications.add(InGameNotification('BAŞARIM TAMAMLANDI', '${achTitles[i]} (Kademe ${currentTier + 1})', 'achievement', i));
-              added = true;
             }
           }
         }
       }
     }
 
-    if (added) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        notifyListeners();
-      });
-    }
   }
 
   DateTime? _boostEndTime; 
@@ -401,18 +405,134 @@ class GameState extends ChangeNotifier {
 
   double get currentMultiplier {
     double m = 1.0;
-    if (isBoostActive) { m *= 2.0; }
-    if (isTaxBonusActive) { m *= 1.20; } 
+    if (isBoostActive) { m *= _nodeLevel('node_078') > 0 ? 2.5 : 2.0; }
+    if (isTaxBonusActive) {
+      m *= 1.20 + (_nodeLevel('node_055') * 0.03) + (_nodeLevel('node_057') * 0.10);
+    }
     if (isEventActive) { m *= activeEvent!.multiplier; }
-    m *= (1.0 + officeStaff.firstWhere((s) => s.id == 'staff_2').currentEffectValue);
+    m *= 1.0 + _officeEffect('staff_2');
     m *= researchMultiplier; 
+    m *= 1.0 + (_nodeLevel('node_019') * 0.002) + (_nodeLevel('node_020') * 0.05);
+    final unlocked = _factories.where((factory) => factory.isUnlocked).toList();
+    if (_nodeLevel('node_042') > 0 && unlocked.length == _factories.length) m *= 1.30;
+    m *= 1.0 + (unlocked.where((f) => f.totalLevel >= 50).length * _nodeLevel('node_043') * 0.02);
+    m *= 1.0 + (unlocked.where((f) => f.totalLevel >= 100).length * _nodeLevel('node_044') * 0.03);
+    m *= 1.0 + (unlocked.where((f) => f.totalLevel >= 200).length * _nodeLevel('node_046') * 0.05);
+    if (_nodeLevel('node_050') > 0) m *= 1.50;
+    m *= 1.0 + (_nodeLevel('node_024') * 0.02) + (_nodeLevel('node_025') * 0.03) +
+        (_nodeLevel('node_026') * 0.04) + (_nodeLevel('node_027') * 0.05);
+    final visualMilestones = unlocked.fold<int>(0, (sum, factory) => sum + factory.totalLevel ~/ 50);
+    m *= 1.0 + (visualMilestones * _nodeLevel('node_049') * 0.05);
+    const turnoverRanks = <double>[1e6, 1e9, 1e12, 1e15, 1e18, 1e21, 1e24, 1e27, 1e30, 1e33];
+    final rank = turnoverRanks.where((target) => statTotalEarned >= target).length;
+    m *= 1.0 + (rank * _nodeLevel('node_095') * 0.05);
+    if (rank >= 6) m *= 1.0 + (_nodeLevel('node_096') * 0.10);
+    if (statTotalEarned >= 1e30 && _nodeLevel('node_097') > 0) m *= 1.50;
+    if (_nodeLevel('node_100') > 0) m *= 5.0;
     return m;
   }
   
   bool get isBoostActive => _boostEndTime != null && DateTime.now().isBefore(_boostEndTime!);
   bool get isEventActive => activeEvent != null && _eventEndTime != null && DateTime.now().isBefore(_eventEndTime!);
-  double get incomePerSecond => _factories.fold(0.0, (sum, f) => sum + f.basePassiveIncome) * currentMultiplier;
+  double get incomePerSecond => _factories.fold(0.0, (sum, factory) {
+    if (!factory.isUnlocked) return sum;
+    var factoryIncome = 0.0;
+    for (var i = 0; i < factory.products.length; i++) {
+      final productNode = i < 1 ? null : 'node_0${27 + i}';
+      final productBonus = productNode == null ? 1.0 : 1.0 + (_nodeLevel(productNode) * (0.05 + i * 0.05));
+      factoryIncome += factory.products[i].passiveIncome * productBonus;
+    }
+    final passiveBonus = 1.0 + (_nodeLevel('node_021') * 0.03) +
+        (_nodeLevel('node_022') * 0.03) + (_nodeLevel('node_023') * 0.10);
+    return sum + (factoryIncome * passiveBonus * _factoryResearchMultiplier(factory.id));
+  }) * currentMultiplier;
   double get baseIncomePerSecond => _factories.fold(0.0, (sum, f) => sum + f.basePassiveIncome); 
+
+  int _nodeLevel(String id) {
+    for (final node in _researchNodes) {
+      if (node.id == id) return node.currentLevel;
+    }
+    return 0;
+  }
+
+  int researchLevel(String id) => _nodeLevel(id);
+
+  double _officeEffect(String staffId) {
+    final staff = officeStaff.firstWhere((item) => item.id == staffId);
+    var power = 1.0;
+    if (staffId == 'staff_2') power += _nodeLevel('node_035') * 0.12;
+    if (staffId == 'staff_3' || staffId == 'staff_6') power += _nodeLevel('node_036') * 0.15;
+    if (staffId == 'staff_4' || staffId == 'staff_5' || staffId == 'staff_7') power += _nodeLevel('node_037') * 0.20;
+    if (_nodeLevel('node_038') > 0) power += 0.25;
+    return staff.currentEffectValue * power;
+  }
+
+  double staffCost(OfficeStaff staff) {
+    final discount = (_nodeLevel('node_033') * 0.10) + (_nodeLevel('node_034') * 0.15);
+    return staff.currentCost * (1.0 - discount).clamp(0.2, 1.0);
+  }
+
+  double manualProductionMultiplier(String factoryId, int productIndex) {
+    if (productIndex < 0 || productIndex > 4) return 0;
+    final productNode = productIndex < 1 ? null : 'node_0${27 + productIndex}';
+    final productBonus = productNode == null ? 1.0 :
+        1.0 + (_nodeLevel(productNode) * (0.05 + productIndex * 0.05));
+    return productBonus * _factoryResearchMultiplier(factoryId) * currentMultiplier;
+  }
+
+  double? productUpgradeCost(String factoryId, int productIndex) {
+    final matches = _factories.where((factory) => factory.id == factoryId);
+    if (matches.isEmpty) return null;
+    final factory = matches.first;
+    if (!factory.isUnlocked || productIndex < 0 || productIndex >= factory.products.length) return null;
+    final product = factory.products[productIndex];
+    const unlockLevels = <int>[0, 30, 60, 90, 120];
+    if (product.level >= 60 || (product.level == 0 && factory.totalLevel < unlockLevels[productIndex])) return null;
+    final logisticsDiscount = _officeEffect('staff_6');
+    var researchDiscount = (_nodeLevel('node_002') * 0.03) +
+        (_nodeLevel('node_016') * 0.005) + (_nodeLevel('node_017') * 0.04);
+    if (product.level == 0) researchDiscount += _nodeLevel('node_032') * 0.15;
+    if (factory.totalLevel >= 150) researchDiscount += _nodeLevel('node_045') * 0.02;
+    if (_nodeLevel('node_100') > 0) researchDiscount += 0.50;
+    return product.upgradeCost * (1.0 - logisticsDiscount - researchDiscount).clamp(0.1, 1.0);
+  }
+
+  double? factoryUnlockCost(String factoryId) {
+    final matches = _factories.where((factory) => factory.id == factoryId);
+    if (matches.isEmpty || matches.first.isUnlocked) return null;
+    final factory = matches.first;
+    var discount = _officeEffect('staff_3') + (_nodeLevel('node_018') * 0.06);
+    final number = int.tryParse(factoryId) ?? 0;
+    if (number <= 4) {
+      discount += _nodeLevel('node_039') * 0.15;
+    } else if (number <= 8) {
+      discount += _nodeLevel('node_040') * 0.20;
+    } else {
+      discount += _nodeLevel('node_041') * 0.25;
+    }
+    if (_nodeLevel('node_100') > 0) discount += 0.50;
+    return factory.price * (1.0 - discount).clamp(0.1, 1.0);
+  }
+
+  double _factoryResearchMultiplier(String factoryId) {
+    const nodeByFactory = <String, String>{
+      '1': 'node_007', '2': 'node_003', '3': 'node_005', '4': 'node_004', '6': 'node_006',
+      '7': 'node_009', '9': 'node_008', '11': 'node_010', '12': 'node_011',
+      '13': 'node_013', '14': 'node_012', '15': 'node_014',
+    };
+    final nodeId = nodeByFactory[factoryId];
+    if (nodeId == null) return 1.0;
+    final perLevel = <String, double>{
+      'node_009': 0.06, 'node_010': 0.06, 'node_011': 0.07,
+      'node_012': 0.07, 'node_013': 0.08, 'node_014': 0.10,
+    }[nodeId] ?? 0.05;
+    return 1.0 + (_nodeLevel(nodeId) * perLevel);
+  }
+
+  DateTime? _tryParseDate(dynamic value) {
+    if (value is! String) return null;
+    return DateTime.tryParse(value);
+  }
 
   DateTime? _lastTaxIssued; 
   DateTime? _taxDeadline; 
@@ -482,6 +602,9 @@ class GameState extends ChangeNotifier {
 
       var n100 = _researchNodes.firstWhere((n) => n.id == 'node_100', orElse: () => _researchNodes[0]);
       if (n100.currentLevel > 0) rpMultiplier *= 3.0;
+
+      final level250Factories = _factories.where((factory) => factory.totalLevel >= 250).length;
+      rpMultiplier += level250Factories * _nodeLevel('node_047') * 0.03;
     }
 
     return (baseRp * rpMultiplier).floor();
@@ -492,28 +615,43 @@ class GameState extends ChangeNotifier {
     _isInitialized = true;
 
     final prefs = await SharedPreferences.getInstance();
-    String? savedGameJson = prefs.getString('game_save_data');
-
+    final savedGameJson = prefs.getString('game_save_data');
+    Map<String, dynamic>? decodedSave;
     if (savedGameJson != null) {
-      Map<String, dynamic> data = jsonDecode(savedGameJson);
+      try {
+        final decoded = jsonDecode(savedGameJson);
+        if (decoded is Map<String, dynamic>) decodedSave = decoded;
+      } catch (error) {
+        debugPrint('Ignoring invalid save data: $error');
+        await prefs.remove('game_save_data');
+      }
+    }
+
+    if (decodedSave != null) {
+      final data = decodedSave;
       
       _starterFactoryId = data['starterFactoryId'] ?? ''; 
       _money = (data['money'] as num?)?.toDouble() ?? 0.0;
+      if (!_money.isFinite || _money < 0) _money = 0.0;
       statTotalEarned = (data['statTotalEarned'] as num?)?.toDouble() ?? _money; 
+      if (!statTotalEarned.isFinite || statTotalEarned < 0) statTotalEarned = _money;
       _researchPoints = (data['researchPoints'] as num?)?.toInt() ?? 0;
       _isFirstLaunch = data['isFirstLaunch'] ?? true;
       _language = data['language'] ?? 'tr';
       _currentTaxDebt = (data['currentTaxDebt'] as num?)?.toDouble() ?? 0.0;
       
-      statClicks = data['statClicks'] ?? 0; 
-      statStocks = data['statStocks'] ?? 0; 
-      statUpgrades = data['statUpgrades'] ?? 0; 
-      statTaxes = data['statTaxes'] ?? 0; 
-      statPrestige = data['statPrestige'] ?? 0; 
-      statAdsWatched = data['statAdsWatched'] ?? 0; 
-      statWheelSpins = data['statWheelSpins'] ?? 0;
+      statClicks = (data['statClicks'] as num?)?.toInt() ?? 0;
+      statStocks = (data['statStocks'] as num?)?.toInt() ?? 0;
+      statUpgrades = (data['statUpgrades'] as num?)?.toInt() ?? 0;
+      statTaxes = (data['statTaxes'] as num?)?.toInt() ?? 0;
+      statPrestige = (data['statPrestige'] as num?)?.toInt() ?? 0;
+      statAdsWatched = (data['statAdsWatched'] as num?)?.toInt() ?? 0;
+      statWheelSpins = (data['statWheelSpins'] as num?)?.toInt() ?? 0;
       
-      if (data['claimedTasks'] != null) claimedTasks = List<bool>.from(data['claimedTasks']);
+      if (data['claimedTasks'] is List) {
+        final saved = List<dynamic>.from(data['claimedTasks']);
+        claimedTasks = List<bool>.generate(4, (i) => i < saved.length && saved[i] == true);
+      }
       
       _areAchievementsUnlocked = data['areAchievementsUnlocked'] ?? false;
       _achBaselineClicks = data['achBaselineClicks'] ?? 0;
@@ -524,8 +662,9 @@ class GameState extends ChangeNotifier {
       _achBaselineStocks = data['achBaselineStocks'] ?? 0;
       _achBaselineMoney = (data['achBaselineMoney'] as num?)?.toDouble() ?? 0.0;
 
-      if (data['notifiedTasks'] != null) {
-        notifiedTasks = List<bool>.from(data['notifiedTasks']);
+      if (data['notifiedTasks'] is List) {
+        final saved = List<dynamic>.from(data['notifiedTasks']);
+        notifiedTasks = List<bool>.generate(4, (i) => i < saved.length && saved[i] == true);
       } else {
         notifiedTasks = List<bool>.from(claimedTasks);
       }
@@ -535,7 +674,7 @@ class GameState extends ChangeNotifier {
         claimedAchievements = List.generate(7, (i) {
           if (i < loadedAch.length) {
             if (loadedAch[i] is bool) return loadedAch[i] ? 1 : 0; 
-            if (loadedAch[i] is int) return loadedAch[i];
+            if (loadedAch[i] is num) return (loadedAch[i] as num).toInt().clamp(0, 10);
           }
           return 0;
         });
@@ -543,7 +682,7 @@ class GameState extends ChangeNotifier {
 
       if (data['notifiedAchievements'] != null) {
         List<dynamic> loadedNotif = data['notifiedAchievements'];
-        notifiedAchievements = List.generate(7, (i) => i < loadedNotif.length ? loadedNotif[i] as int : 0);
+        notifiedAchievements = List.generate(7, (i) => i < loadedNotif.length && loadedNotif[i] is num ? (loadedNotif[i] as num).toInt().clamp(0, 10) : 0);
       } else {
         notifiedAchievements = List<int>.from(claimedAchievements);
       }
@@ -553,21 +692,29 @@ class GameState extends ChangeNotifier {
         for (var saved in staffList) {
           try { 
             var staff = officeStaff.firstWhere((s) => s.id == saved['id']); 
-            staff.level = saved['level'] ?? 0; 
+            staff.level = ((saved['level'] as num?)?.toInt() ?? 0).clamp(0, staff.maxLevel);
           } catch (_) {}
         }
       }
 
-      if (data['lastTaxIssued'] != null) _lastTaxIssued = DateTime.parse(data['lastTaxIssued']); 
-      if (data['taxDeadline'] != null) _taxDeadline = DateTime.parse(data['taxDeadline']); 
-      if (data['taxBonusEndTime'] != null) _taxBonusEndTime = DateTime.parse(data['taxBonusEndTime']);
-      if (data['lastPenaltyCompoundTime'] != null) _lastPenaltyCompoundTime = DateTime.parse(data['lastPenaltyCompoundTime']);
-      if (data['lastSaveTime'] != null) _lastSaveTime = DateTime.parse(data['lastSaveTime']); 
-      if (data['boostEndTime'] != null) _boostEndTime = DateTime.parse(data['boostEndTime']); 
+      _lastTaxIssued = _tryParseDate(data['lastTaxIssued']);
+      _taxDeadline = _tryParseDate(data['taxDeadline']);
+      _taxBonusEndTime = _tryParseDate(data['taxBonusEndTime']);
+      _lastPenaltyCompoundTime = _tryParseDate(data['lastPenaltyCompoundTime']);
+      _lastSaveTime = _tryParseDate(data['lastSaveTime']);
+      _boostEndTime = _tryParseDate(data['boostEndTime']);
       if (data['eventEndTime'] != null && data['activeEvent'] != null) { 
-        _eventEndTime = DateTime.parse(data['eventEndTime']); 
+        _eventEndTime = _tryParseDate(data['eventEndTime']);
         var ev = data['activeEvent']; 
-        activeEvent = GameEvent(ev['title'], ev['desc'], ev['mult'], ev['dur'], ev['cost']); 
+        if (_eventEndTime != null && ev is Map) {
+          activeEvent = GameEvent(
+            ev['title']?.toString() ?? '',
+            ev['desc']?.toString() ?? '',
+            (ev['mult'] as num?)?.toDouble() ?? 1.0,
+            (ev['dur'] as num?)?.toInt() ?? 0,
+            (ev['cost'] as num?)?.toDouble() ?? 0.0,
+          );
+        }
       }
       _isUnderPenalty = data['isUnderPenalty'] ?? false;
 
@@ -577,15 +724,35 @@ class GameState extends ChangeNotifier {
       
       if (_lastSaveTime != null) {
         int secondsPassed = DateTime.now().difference(_lastSaveTime!).inSeconds;
+        if (secondsPassed < 0) secondsPassed = 0;
+
+        int maxOfflineHours = 3; 
+        var n86 = _researchNodes.firstWhere((n) => n.id == 'node_086', orElse: () => _researchNodes[0]);
+        if (n86.currentLevel > 0) maxOfflineHours = 6 + (n86.currentLevel * 3);
         
-        // DÜZELTME: Oyunda değilken çevrimdışı gelir limiti en fazla 12 saat (43.200 saniye) ile sınırlandırıldı.
-        if (secondsPassed > 43200) {
-          secondsPassed = 43200;
+        var n87 = _researchNodes.firstWhere((n) => n.id == 'node_087', orElse: () => _researchNodes[0]);
+        if (n87.currentLevel > 0) maxOfflineHours += (n87.currentLevel * 4);
+
+        int maxOfflineSeconds = maxOfflineHours * 3600;
+
+        if (secondsPassed > maxOfflineSeconds) {
+          secondsPassed = maxOfflineSeconds;
         }
+        
+        offlineSecondsCapped = secondsPassed;
 
         if (secondsPassed > 60 && baseIncomePerSecond > 0) {
-          double shiftBonus = 1.0 + officeStaff.firstWhere((s) => s.id == 'staff_7').currentEffectValue;
-          offlineEarningsToClaim = secondsPassed * baseIncomePerSecond * shiftBonus;
+          double offlineEfficiency = 0.20; 
+          double shiftBonus = _officeEffect('staff_7');
+          
+          double afkNodeBonus = 0.0;
+          var n85 = _researchNodes.firstWhere((n) => n.id == 'node_085', orElse: () => _researchNodes[0]);
+          if (n85.currentLevel > 0) afkNodeBonus = n85.currentLevel * 0.20;
+
+          double totalOfflineEfficiency = offlineEfficiency + shiftBonus + afkNodeBonus;
+          offlineEfficiencyApplied = totalOfflineEfficiency;
+
+          offlineEarningsToClaim = secondsPassed * baseIncomePerSecond * totalOfflineEfficiency;
         }
       }
 
@@ -598,13 +765,44 @@ class GameState extends ChangeNotifier {
       _taxDeadline = DateTime.now().add(const Duration(hours: 12)); 
     }
 
+    if (_eventEndTime != null && !DateTime.now().isBefore(_eventEndTime!)) {
+      activeEvent = null;
+      _eventEndTime = null;
+    }
+    if (_boostEndTime != null && !DateTime.now().isBefore(_boostEndTime!)) _boostEndTime = null;
+    if (_taxBonusEndTime != null && !DateTime.now().isBefore(_taxBonusEndTime!)) _taxBonusEndTime = null;
+
     await TranslationService.instance.loadLanguage(_language);
     await AudioService.instance.init();
     notifyListeners(); 
     _startGlobalTimers();
   }
 
-  Future<void> _saveGame() async {
+  Future<void> _saveGame() {
+    if (_disposed) return Future<void>.value();
+    _saveRequested = true;
+    return _saveInProgress ??= _flushSaveQueue();
+  }
+
+  bool get canPrestige => statTotalEarned >= prestigeThreshold && (!hasTaxDebt || _nodeLevel('node_098') > 0);
+
+  Future<void> _flushSaveQueue() async {
+    try {
+      while (_saveRequested && !_disposed) {
+        _saveRequested = false;
+        try {
+          await _writeSave();
+        } catch (error) {
+          debugPrint('Game save failed: $error');
+        }
+      }
+    } finally {
+      _saveInProgress = null;
+      if (_saveRequested && !_disposed) await _saveGame();
+    }
+  }
+
+  Future<void> _writeSave() async {
     final prefs = await SharedPreferences.getInstance();
     _lastSaveTime = DateTime.now();
 
@@ -650,6 +848,7 @@ class GameState extends ChangeNotifier {
     
     _initDefaultFactories();
     _initDefaultResearchNodes();
+    _loadStocksFromJson(null);
     
     for (var s in officeStaff) { s.level = 0; }
     for (var s in _stocks) { s.ownedShares = 0; s.totalSpent = 0; }
@@ -666,6 +865,9 @@ class GameState extends ChangeNotifier {
     _unhandledEvent = null;
     _unhandledBagReward = 0.0;
     offlineEarningsToClaim = 0.0;
+    offlineSecondsCapped = 0;
+    offlineEfficiencyApplied = 0.0;
+    _lastSaveTime = DateTime.now();
 
     statClicks = 0; statStocks = 0; statUpgrades = 0; statTaxes = 0; 
     statPrestige = 0; statAdsWatched = 0; statWheelSpins = 0; statTotalEarned = 0.0;
@@ -690,6 +892,7 @@ class GameState extends ChangeNotifier {
   }
 
   Future<void> applyStarterSector(String facId) async {
+    if (_starterFactoryId.isNotEmpty || !const {'1', '2', '3'}.contains(facId)) return;
     _starterFactoryId = facId;
     for (var f in _factories) {
       if (f.id == facId) {
@@ -737,10 +940,10 @@ class GameState extends ChangeNotifier {
       for (var saved in savedList) {
         try { 
           var fac = _factories.firstWhere((f) => f.id == saved['id']); 
-          fac.isUnlocked = saved['isUnlocked']; 
+          fac.isUnlocked = saved['isUnlocked'] == true;
           for (int i = 0; i < fac.products.length; i++) { 
             if (i < saved['products'].length) { 
-              fac.products[i].level = saved['products'][i]['level']; 
+              fac.products[i].level = ((saved['products'][i]['level'] as num?)?.toInt() ?? 0).clamp(0, 60);
             } 
           } 
         } catch (_) {}
@@ -755,7 +958,7 @@ class GameState extends ChangeNotifier {
       _n('node_003', 'Mobilya Seri Üretimi', 'Fabrika', 'Mobilya fabrikası üretim hattının kârını artırır.', Icons.chair_rounded, 3, 5, ['node_002'], (lvl) => 'Mobilya Fabrikası Geliri: +%${lvl * 5}'),
       _n('node_004', 'Pastörizasyon Hatları', 'Fabrika', 'Süt ürünleri fabrikası üretim hattının kârını artırır.', Icons.local_drink_rounded, 3, 5, ['node_002'], (lvl) => 'Süt Ürünleri Fabrikası Geliri: +%${lvl * 5}'),
       _n('node_005', 'Otomatik Sulama', 'Fabrika', 'Tarım fabrikası üretim hattının kârını artırır.', Icons.agriculture_rounded, 4, 5, ['node_003'], (lvl) => 'Tarım Fabrikası Geliri: +%${lvl * 5}'),
-      _n('node_006', 'Pres Çelik Kapı', 'Fabrika', 'Çelik kapı fabrikası üretim hattının kârını artırır.', Icons.door_front_door_rounded, 4, 5, ['node_003'], (lvl) => 'Çelik Kapı Fabrikası Geliri: +%${lvl * 5}'),
+      _n('node_006', 'Gıda Seri Üretimi', 'Fabrika', 'Gıda işleme tesisinin üretim hattı kârını artırır.', Icons.restaurant_rounded, 4, 5, ['node_003'], (lvl) => 'Gıda İşleme Geliri: +%${lvl * 5}'),
       _n('node_007', 'Mekanik Dokuma', 'Fabrika', 'Tekstil fabrikası üretim hattının kârını artırır.', Icons.checkroom_rounded, 4, 5, ['node_004'], (lvl) => 'Tekstil Fabrikası Geliri: +%${lvl * 5}'),
       _n('node_008', 'Karoser Robot Hattı', 'Fabrika', 'Otomobil fabrikası üretim hattının kârını artırır.', Icons.directions_car_rounded, 4, 5, ['node_004'], (lvl) => 'Otomobil Fabrikası Geliri: +%${lvl * 5}'),
       _n('node_009', 'Derin Kuyu Sondajı', 'Fabrika', 'Maden fabrikası üretim hattının kârını artırır.', Icons.landslide_rounded, 5, 5, ['node_005'], (lvl) => 'Maden Fabrikası Geliri: +%${lvl * 6}'),
@@ -773,10 +976,10 @@ class GameState extends ChangeNotifier {
       _n('node_021', 'Sürekli Akış Bandı', 'Pasif', 'Saniyelik pasif gelir oranını üretim kazancının yarısından yukarı taşır.', Icons.timer_rounded, 6, 3, ['node_019'], (lvl) => 'Saniyelik Gelir Oranı: %${50 + lvl * 3}'),
       _n('node_022', 'Vardiyasız Çalışma', 'Pasif', 'Tesislerin saniyelik pasif gelir akışını kademeli artırır.', Icons.all_inclusive_rounded, 8, 3, ['node_021'], (lvl) => 'Saniyelik Pasif Gelir İlavesi: +%${lvl * 3}'),
       _n('node_023', 'Tam Otonom Tesis', 'Pasif', 'İnsansız üretim ile saniyelik gelir çarpanını katlar.', Icons.smart_toy_rounded, 12, 3, ['node_022'], (lvl) => 'Otonom Pasif Gelir Çarpanı: +%${lvl * 10}'),
-      _n('node_024', 'Hurda Değerleme', 'Yıkım', 'Fabrika yıkıldığında geri ödenen harcama oranını artırır.', Icons.recycling_rounded, 4, 2, ['node_023'], (lvl) => 'Fabrika Yıkım İadesi: %${50 + lvl * 5}'),
-      _n('node_025', 'Sigortalı Söküm', 'Yıkım', 'Gelişmiş söküm teknikleriyle yıkım bedeli iadesini yükseltir.', Icons.shield_rounded, 6, 2, ['node_024'], (lvl) => 'Yıkım İadesi Kurtarma Oranı: %${60 + lvl * 5}'),
-      _n('node_026', 'Kentsel Dönüşüm', 'Yıkım', 'Yıkılan tesis arazisinin geri kazanım değerini artırır.', Icons.location_city_rounded, 8, 2, ['node_025'], (lvl) => 'Kentsel Dönüşüm İade Oranı: %${70 + lvl * 5}'),
-      _n('node_027', 'Sıfır Zarar Tasfiyesi', 'Yıkım', 'Yıkım iade oranını maksimum seviyeye çıkarır.', Icons.price_check_rounded, 12, 1, ['node_026'], (lvl) => 'Maksimum Yıkım İadesi: %80'),
+      _n('node_024', 'Hurda Değerleme', 'Verim', 'Üretim artıklarını değerlendirerek holding gelirini artırır.', Icons.recycling_rounded, 4, 2, ['node_023'], (lvl) => 'Holding Gelir Bonusu: +%${lvl * 2}'),
+      _n('node_025', 'Sigortalı Operasyon', 'Verim', 'Operasyon kayıplarını azaltarak net geliri yükseltir.', Icons.shield_rounded, 6, 2, ['node_024'], (lvl) => 'Holding Gelir Bonusu: +%${lvl * 3}'),
+      _n('node_026', 'Kentsel Dönüşüm', 'Verim', 'Tesis çevresindeki altyapı yatırımları üretkenliği artırır.', Icons.location_city_rounded, 8, 2, ['node_025'], (lvl) => 'Holding Gelir Bonusu: +%${lvl * 4}'),
+      _n('node_027', 'Sıfır Kayıp Protokolü', 'Verim', 'Üretim kayıplarını en aza indirerek kalıcı gelir sağlar.', Icons.price_check_rounded, 12, 1, ['node_026'], (lvl) => 'Holding Gelir Bonusu: +%5'),
       _n('node_028', '2. Ürün Ar-Ge\'si', 'Ürün', 'Lvl 30\'da açılan 2. ürünlerin üretim kazancını artırır.', Icons.auto_awesome_motion_rounded, 6, 3, ['node_027'], (lvl) => '2. Ürün Üretim Kazancı: +%${lvl * 10}'),
       _n('node_029', '3. Ürün İmalatı', 'Ürün', 'Lvl 60\'ta açılan 3. ürünlerin üretim kazancını artırır.', Icons.layers_rounded, 8, 3, ['node_028'], (lvl) => '3. Ürün Üretim Kazancı: +%${lvl * 15}'),
       _n('node_030', '4. Ürün Montajı', 'Ürün', 'Lvl 90\'da açılan 4. ürünlerin üretim kazancını artırır.', Icons.view_in_ar_rounded, 10, 3, ['node_029'], (lvl) => '4. Ürün Üretim Kazancı: +%${lvl * 20}'),
@@ -830,9 +1033,9 @@ class GameState extends ChangeNotifier {
       _n('node_078', 'Aşırı Yükleme', 'Boost', '2x boost çarpanının katsayısını kalıcı olarak artırır.', Icons.electric_bolt_rounded, 14, 1, ['node_077'], (lvl) => 'Gelir Boost Çarpanı Kalıcı 2.5x Olarak Uygulanır'),
       _n('node_079', 'Acil Durum Fonu', 'Kriz', 'Lojistik krizini parayla önleme bedelini düşürür.', Icons.emergency_rounded, 5, 3, ['node_078'], (lvl) => 'Kriz Önleme Bedeli İndirimi: -%${lvl * 20}'),
       _n('node_080', 'Kriz Sigortası', 'Kriz', 'Lojistik krizini savuşturma masraflarını kırar.', Icons.health_and_safety_rounded, 8, 2, ['node_079'], (lvl) => 'Kriz Önleme Ek İndirimi: -%${lvl * 25}'),
-      _n('node_081', 'Hızlı Kriz Çözümü', 'Kriz', 'Kabul edilen gelir yarılanması kriz süresini kısaltır.', Icons.timelapse_rounded, 10, 2, ['node_080'], (lvl) => 'Kabul Edilen Kriz Süresi: ${30 - lvl * 8} Dakika'),
-      _n('node_082', 'Dış Ticaret Ataşeliği', 'İhracat', 'İhracat anlaşması fırsatındaki gelir bonusunu artırır.', Icons.flight_takeoff_rounded, 6, 3, ['node_081'], (lvl) => 'İhracat Fırsatı Gelir Bonusu: +%${10 + lvl * 5}'),
-      _n('node_083', 'İhracat Koridoru', 'İhracat', 'İhracat anlaşması fırsatının aktif kalma süresini uzatır.', Icons.local_shipping_rounded, 8, 2, ['node_082'], (lvl) => 'İhracat Fırsatı Süresi: ${10 + lvl * 5} Dakika'),
+      _n('node_081', 'Hızlı Kriz Çözümü', 'Kriz', 'Kabul edilen krizlerin süresini kısaltır.', Icons.timelapse_rounded, 10, 2, ['node_080'], (lvl) => 'Kriz Süresi: -$lvl Dakika'),
+      _n('node_082', 'Dış Ticaret Ataşeliği', 'Fırsat', 'Olumlu piyasa olaylarının gelir çarpanını artırır.', Icons.flight_takeoff_rounded, 6, 3, ['node_081'], (lvl) => 'Olumlu Olay Geliri: +%${lvl * 5}'),
+      _n('node_083', 'İhracat Koridoru', 'Fırsat', 'Olumlu piyasa olaylarının aktif kalma süresini uzatır.', Icons.local_shipping_rounded, 8, 2, ['node_082'], (lvl) => 'Olumlu Olay Süresi: +${lvl * 5} Dakika'),
       _n('node_084', 'Global Pazar Radarı', 'Fırsat', 'Ekrana gelen fırsat ve krizlerin sıklığını artırır.', Icons.radar_rounded, 12, 2, ['node_083'], (lvl) => 'Fırsat & Kriz Belirme Sıklığı: +%${lvl * 25}'),
       _n('node_085', 'Otonom Gece Vardiyası', 'AFK', 'Oyunda değilken kazanılan saniyelik geliri artırır.', Icons.bedtime_rounded, 6, 3, ['node_084'], (lvl) => 'Çevrimdışı Saniyelik Gelir Bonusu: +%${lvl * 20}'),
       _n('node_086', 'Kasa Birikim Deposu', 'AFK', 'Çevrimdışı gelir toplama süresi sınırını uzatır.', Icons.lock_clock_rounded, 8, 2, ['node_085'], (lvl) => 'Maksimum Çevrimdışı Süre: ${6 + lvl * 3} Saat'),
@@ -859,7 +1062,7 @@ class GameState extends ChangeNotifier {
       for (var saved in savedList) {
         try {
           var node = _researchNodes.firstWhere((n) => n.id == saved['id']);
-          node.currentLevel = saved['level'] ?? 0;
+          node.currentLevel = ((saved['level'] as num?)?.toInt() ?? 0).clamp(0, node.maxLevel);
         } catch (_) {}
       }
     }
@@ -897,6 +1100,11 @@ class GameState extends ChangeNotifier {
           e.history = List<double>.from((s['history'] as List).map((x) => (x as num).toDouble())); 
           e.ownedShares = (s['ownedShares'] as num).toDouble(); 
           e.totalSpent = (s['totalSpent'] as num).toDouble(); 
+          if (!e.currentPrice.isFinite || e.currentPrice < 1) e.currentPrice = 1;
+          e.history = e.history.where((value) => value.isFinite && value >= 1).take(40).toList();
+          if (e.history.isEmpty) e.history = List<double>.filled(40, e.currentPrice);
+          if (!e.ownedShares.isFinite || e.ownedShares < 0) e.ownedShares = 0;
+          if (!e.totalSpent.isFinite || e.totalSpent < 0) e.totalSpent = 0;
         } catch (_) {}
       }
     }
@@ -913,12 +1121,21 @@ class GameState extends ChangeNotifier {
       _money += incomePerSecond;
       statTotalEarned += incomePerSecond; 
     }
+    final hourlyDividendRate = (_nodeLevel('node_068') * 0.002) + (_nodeLevel('node_069') * 0.003);
+    if (hourlyDividendRate > 0) {
+      final portfolioValue = _stocks.fold<double>(0, (sum, stock) => sum + stock.currentPrice * stock.ownedShares);
+      var dividend = portfolioValue * hourlyDividendRate / 3600;
+      if (_nodeLevel('node_099') > 0) dividend *= 2;
+      _money += dividend;
+      statTotalEarned += dividend;
+    }
     
     if (DateTime.now().second % 5 == 0) {
-      double analystBonus = officeStaff.firstWhere((s) => s.id == 'staff_4').currentEffectValue;
+      double analystBonus = _officeEffect('staff_4');
       for (var stock in _stocks) {
-        double vol = (_random.nextDouble() * 0.04) + 0.01;
-        bool isProfit = _random.nextDouble() < (0.51 + analystBonus); 
+        double vol = ((_random.nextDouble() * 0.04) + 0.01) * (1.0 + _nodeLevel('node_066') * 0.05);
+        final researchChance = (_nodeLevel('node_065') + _nodeLevel('node_067')) * 0.004;
+        bool isProfit = _random.nextDouble() < (0.51 + analystBonus + researchChance).clamp(0.0, 0.65);
         stock.currentPrice *= (1 + (isProfit ? vol : -vol));
         if (stock.currentPrice < 1.0) stock.currentPrice = 1.0; 
         stock.history.add(stock.currentPrice);
@@ -942,36 +1159,41 @@ class GameState extends ChangeNotifier {
       _eventEndTime = null; 
       _saveGame(); 
     }
-    if (baseIncomePerSecond > 0 && activeEvent == null && _unhandledEvent == null && _random.nextDouble() < 0.002) {
+    final eventChance = 0.002 * (1.0 + _nodeLevel('node_084') * 0.25);
+    if (baseIncomePerSecond > 0 && activeEvent == null && _unhandledEvent == null && _random.nextDouble() < eventChance) {
       int eventType = _random.nextInt(5);
+      final positiveBonus = 1.0 + (_nodeLevel('node_082') * 0.05);
+      final positiveDuration = _nodeLevel('node_083') * 5;
+      final crisisCostFactor = (1.0 - (_nodeLevel('node_079') * 0.20) -
+          (_nodeLevel('node_080') * 0.25)).clamp(0.1, 1.0);
       switch (eventType) {
         case 0:
-          _unhandledEvent = GameEvent('Küresel Talep Patlaması', 'Ürünlerimize yoğun ilgi var! 2 dakikalığına gelirler 2 Kat artacak!', 2.0, 2, 0);
+          _unhandledEvent = GameEvent('Küresel Talep Patlaması', 'Ürünlerimize yoğun ilgi var!', 2.0 * positiveBonus, 2 + positiveDuration, 0);
           break;
         case 1:
-          _unhandledEvent = GameEvent('Vergi İadesi Teşviki', 'Devlet teşviki onaylandı! 3 dakikalığına gelirler 2.5 Kat artacak.', 2.5, 3, 0);
+          _unhandledEvent = GameEvent('Vergi İadesi Teşviki', 'Devlet teşviki onaylandı!', 2.5 * positiveBonus, 3 + positiveDuration, 0);
           break;
         case 2:
-          _unhandledEvent = GameEvent('Sosyal Medya Virali', 'Ürünlerimiz trend oldu! 2 dakikalığına gelirler 3 Kat artacak!', 3.0, 2, 0);
+          _unhandledEvent = GameEvent('Sosyal Medya Virali', 'Ürünlerimiz trend oldu!', 3.0 * positiveBonus, 2 + positiveDuration, 0);
           break;
         case 3:
-          _unhandledEvent = GameEvent('Lojistik Krizi', 'Liman grevleri sebebiyle 3 dakikalığına gelirler %50 düşecek.', 0.5, 3, baseIncomePerSecond * 120);
+          _unhandledEvent = GameEvent('Lojistik Krizi', 'Liman grevleri gelirleri geçici olarak düşürecek.', 0.5, math.max(1, 3 - _nodeLevel('node_081')).toInt(), baseIncomePerSecond * 120 * crisisCostFactor);
           break;
         case 4:
-          _unhandledEvent = GameEvent('Hammadde Ambargosu', 'Tedarik zinciri koptu! 5 dakikalığına gelirler %60 düşecek.', 0.4, 5, baseIncomePerSecond * 180);
+          _unhandledEvent = GameEvent('Hammadde Ambargosu', 'Tedarik zinciri koptu; gelirler geçici olarak düşecek.', 0.4, math.max(1, 5 - _nodeLevel('node_081')).toInt(), baseIncomePerSecond * 180 * crisisCostFactor);
           break;
       }
     }
-    if (baseIncomePerSecond > 0 && _unhandledBagReward == 0 && _random.nextDouble() < 0.005) {
+    final bagChance = 0.005 * (1.0 + _nodeLevel('node_073') * 0.20);
+    if (baseIncomePerSecond > 0 && _unhandledBagReward == 0 && _random.nextDouble() < bagChance) {
       _unhandledBagReward = baseIncomePerSecond * 300; 
     }
   }
 
   void resolveEvent(bool payToPrevent, GameEvent ev) {
     if (payToPrevent) { 
-      if (_money >= ev.preventCost) {
-        _money -= ev.preventCost; 
-      }
+      if (_money < ev.preventCost) return;
+      _money -= ev.preventCost;
     } else { 
       activeEvent = ev; 
       _eventEndTime = DateTime.now().add(Duration(minutes: ev.durationMinutes)); 
@@ -982,7 +1204,13 @@ class GameState extends ChangeNotifier {
 
   void claimOfflineEarnings(bool watchAd) {
     if (offlineEarningsToClaim > 0) {
-      double add = watchAd ? (offlineEarningsToClaim * 2) : offlineEarningsToClaim;
+      double multiplier = 1.0;
+      if (watchAd) {
+         var n88 = _researchNodes.firstWhere((n) => n.id == 'node_088', orElse: () => _researchNodes[0]);
+         multiplier = (n88.currentLevel > 0) ? 3.0 : 2.0;
+      }
+      
+      double add = offlineEarningsToClaim * multiplier;
       _money += add; 
       statTotalEarned += add;
       offlineEarningsToClaim = 0; 
@@ -992,8 +1220,10 @@ class GameState extends ChangeNotifier {
   }
 
   void claimBagReward(bool watchAd, double reward) { 
-    double marketingBonus = 1.0 + officeStaff.firstWhere((s) => s.id == 'staff_5').currentEffectValue;
-    double finalReward = reward * marketingBonus;
+    double marketingBonus = 1.0 + _officeEffect('staff_5');
+    final researchBonus = 1.0 + (_nodeLevel('node_071') * 0.25) + (_nodeLevel('node_072') * 0.30);
+    double finalReward = reward * marketingBonus * researchBonus;
+    if (_nodeLevel('node_099') > 0) finalReward *= 2;
     double add = watchAd ? (finalReward * 3) : finalReward;
     _money += add; 
     statTotalEarned += add;
@@ -1002,14 +1232,16 @@ class GameState extends ChangeNotifier {
   }
 
   void activate2xBoost() { 
-    _boostEndTime = DateTime.now().add(const Duration(minutes: 3)); 
+    final minutes = 3 + _nodeLevel('node_076') + _nodeLevel('node_077');
+    final start = isBoostActive ? _boostEndTime! : DateTime.now();
+    _boostEndTime = start.add(Duration(minutes: minutes));
     _saveGame(); 
     notifyListeners(); 
   }
 
   void _applyTimelyTaxBonus() {
     if (!_isUnderPenalty && taxRemainingSeconds > 0) {
-      _taxBonusEndTime = DateTime.now().add(const Duration(minutes: 30));
+      _taxBonusEndTime = DateTime.now().add(Duration(minutes: 30 + (_nodeLevel('node_056') * 10)));
     }
   }
 
@@ -1038,12 +1270,15 @@ class GameState extends ChangeNotifier {
 
   void _checkTaxSystem() {
     final now = DateTime.now();
-    if (_lastTaxIssued != null && now.difference(_lastTaxIssued!).inHours >= 5 && _currentTaxDebt == 0) {
-      double taxRate = 0.10;
-      taxRate -= officeStaff.firstWhere((s) => s.id == 'staff_1').currentEffectValue;
-      if (taxRate < 0.02) taxRate = 0.02; 
+    final issueMinutes = 300 + (_nodeLevel('node_052') * 30);
+    if (_lastTaxIssued != null && now.difference(_lastTaxIssued!).inMinutes >= issueMinutes && _currentTaxDebt == 0) {
+      double taxRate = 0.10 - (_nodeLevel('node_051') * 0.002);
+      taxRate -= _officeEffect('staff_1');
+      if (_nodeLevel('node_054') > 0) taxRate = math.min(taxRate, 0.08);
+      taxRate = taxRate.clamp(0.02, 0.10);
       
-      _currentTaxDebt = (baseIncomePerSecond * 3600 * 5) * taxRate; 
+      _currentTaxDebt = (baseIncomePerSecond * issueMinutes * 60) * taxRate;
+      _currentTaxDebt *= (1.0 - _nodeLevel('node_053') * 0.03).clamp(0.5, 1.0);
       _lastTaxIssued = now; 
       _taxDeadline = now.add(const Duration(hours: 12)); 
       _isUnderPenalty = false;
@@ -1058,13 +1293,15 @@ class GameState extends ChangeNotifier {
          _saveGame(); 
       }
       
-      if (_lastPenaltyCompoundTime != null && now.difference(_lastPenaltyCompoundTime!).inMinutes >= 15) {
-        _currentTaxDebt *= 1.02; 
+      if (_lastPenaltyCompoundTime != null && now.difference(_lastPenaltyCompoundTime!).inHours >= 1) {
+        final penaltyRate = (0.001 - _nodeLevel('node_058') * 0.0002).clamp(0.0001, 0.001);
+        _currentTaxDebt *= 1.0 + penaltyRate;
         _lastPenaltyCompoundTime = now;
         _saveGame();
       }
 
-      if (now.difference(_taxDeadline!).inHours >= 1) {
+      final foreclosureHours = 72 + (_nodeLevel('node_059') * 24);
+      if (now.difference(_taxDeadline!).inHours >= foreclosureHours) {
         _executeForeclosure(); 
       }
     }
@@ -1107,9 +1344,13 @@ class GameState extends ChangeNotifier {
   bool _manualProductionNotifyScheduled = false;
 
   void completeManualProduction(String facId, int productIndex) {
-    var prod = _factories.firstWhere((f) => f.id == facId).products[productIndex];
+    final factory = _factories.firstWhere((f) => f.id == facId);
+    if (productIndex < 0 || productIndex >= factory.products.length) return;
+    var prod = factory.products[productIndex];
+    const unlockLevels = <int>[0, 30, 60, 90, 120];
+    if (!factory.isUnlocked || (prod.level == 0 && factory.totalLevel < unlockLevels[productIndex])) return;
     if (prod.level > 0) { 
-      double add = prod.manualIncome * currentMultiplier;
+      double add = prod.manualIncome * manualProductionMultiplier(facId, productIndex);
       _money += add; 
       statTotalEarned += add;
       statClicks++; 
@@ -1120,7 +1361,7 @@ class GameState extends ChangeNotifier {
         _manualProductionNotifyScheduled = true;
         WidgetsBinding.instance.addPostFrameCallback((_) {
           _manualProductionNotifyScheduled = false;
-          notifyListeners();
+          if (!_disposed) notifyListeners();
         });
       }
     }
@@ -1128,10 +1369,9 @@ class GameState extends ChangeNotifier {
 
   bool unlockFactory(String facId) {
     var fac = _factories.firstWhere((f) => f.id == facId);
-    double finalPrice = fac.price;
-    finalPrice *= (1.0 - officeStaff.firstWhere((s) => s.id == 'staff_3').currentEffectValue);
+    final finalPrice = factoryUnlockCost(facId);
 
-    if (!fac.isUnlocked && _money >= finalPrice) {
+    if (finalPrice != null && _money >= finalPrice) {
       _money -= finalPrice; 
       fac.isUnlocked = true; 
       fac.products[0].level = 1; 
@@ -1146,7 +1386,7 @@ class GameState extends ChangeNotifier {
 
   void hireStaff(String staffId) {
     var staff = officeStaff.firstWhere((s) => s.id == staffId);
-    double cost = staff.currentCost;
+    double cost = staffCost(staff);
     if (!staff.isMaxed && _money >= cost) {
       _money -= cost;
       staff.level++;
@@ -1156,11 +1396,11 @@ class GameState extends ChangeNotifier {
   }
 
   void upgradeProduct(String facId, int productIndex) {
-    var prod = _factories.firstWhere((f) => f.id == facId).products[productIndex];
-    if (prod.level >= 60) return;
-    
-    double logisticsDiscount = officeStaff.firstWhere((s) => s.id == 'staff_6').currentEffectValue;
-    double cost = prod.upgradeCost * (1.0 - logisticsDiscount);
+    final factory = _factories.firstWhere((f) => f.id == facId);
+    if (productIndex < 0 || productIndex >= factory.products.length) return;
+    var prod = factory.products[productIndex];
+    final cost = productUpgradeCost(facId, productIndex);
+    if (cost == null) return;
 
     if (_money >= cost) { 
       _money -= cost; 
@@ -1175,7 +1415,11 @@ class GameState extends ChangeNotifier {
 
   void upgradeResearch(String researchId) {
     var node = _researchNodes.firstWhere((n) => n.id == researchId);
-    if (_researchPoints >= node.cost && !node.isMaxed) {
+    final parentsUnlocked = node.parentIds.every((parentId) {
+      final parent = _researchNodes.firstWhere((n) => n.id == parentId);
+      return parent.isUnlocked;
+    });
+    if (_researchPoints >= node.cost && !node.isMaxed && parentsUnlocked) {
       _researchPoints -= node.cost;
       node.currentLevel++;
       _saveGame();
@@ -1183,8 +1427,13 @@ class GameState extends ChangeNotifier {
     }
   }
 
-  void executePrestige([int? customEarnedRP]) {
-    final int earnedRP = customEarnedRP ?? calculateEarnableRP();
+  void executePrestige() {
+    final int earnedRP = calculateEarnableRP();
+    if (earnedRP <= 0 || !canPrestige) return;
+    if (hasTaxDebt && _nodeLevel('node_098') > 0) {
+      _currentTaxDebt = 0;
+      _isUnderPenalty = false;
+    }
     _researchPoints += earnedRP; 
     statPrestige++;
     
@@ -1247,6 +1496,7 @@ class GameState extends ChangeNotifier {
   void incrementWheelSpins() { statWheelSpins++; _saveGame(); _checkNotifications(); notifyListeners(); }
   
   Future<void> updateMoney(double amount) async { 
+    if (!amount.isFinite) return;
     _money += amount; 
     if (amount > 0) statTotalEarned += amount;
     if (_money < 0) _money = 0; 
@@ -1255,11 +1505,17 @@ class GameState extends ChangeNotifier {
     notifyListeners(); 
   }
   
-  Future<void> updateResearchPoints(int amount) async { _researchPoints += amount; await _saveGame(); notifyListeners(); }
-  Future<void> setLanguage(String langCode) async { _language = langCode; await TranslationService.instance.loadLanguage(_language); await _saveGame(); notifyListeners(); }
+  Future<void> updateResearchPoints(int amount) async { _researchPoints = math.max(0, _researchPoints + amount); await _saveGame(); notifyListeners(); }
+  Future<void> setLanguage(String langCode) async {
+    await TranslationService.instance.loadLanguage(langCode);
+    _language = TranslationService.instance.currentLanguage;
+    await _saveGame();
+    notifyListeners();
+  }
   Future<void> completeFirstLaunch() async { _isFirstLaunch = false; await _saveGame(); notifyListeners(); }
   
   void buyStockWithAmount(String stockId, double inputAmount) {
+    if (!inputAmount.isFinite || inputAmount <= 0) return;
     var s = _stocks.firstWhere((st) => st.id == stockId);
     if (inputAmount > _money) inputAmount = _money;
     if (inputAmount >= s.currentPrice) {
@@ -1267,6 +1523,12 @@ class GameState extends ChangeNotifier {
       double totalCost = sharesToBuy * s.currentPrice;
       if (sharesToBuy > 0 && _money >= totalCost) {
         _money -= totalCost; 
+        var cashback = totalCost * _nodeLevel('node_063') * 0.002;
+        if (_nodeLevel('node_070') > 0 && s.history.isNotEmpty && s.currentPrice <= s.history.reduce((a, b) => math.min(a, b).toDouble()) * 1.05) {
+          cashback += totalCost * 0.05;
+        }
+        _money += cashback;
+        statTotalEarned += cashback;
         s.ownedShares += sharesToBuy; 
         s.totalSpent += totalCost; 
         statStocks++;
@@ -1280,8 +1542,16 @@ class GameState extends ChangeNotifier {
   void sellAllStock(String stockId) {
     var s = _stocks.firstWhere((st) => st.id == stockId);
     if (s.ownedShares > 0) { 
-      double grossIncome = s.ownedShares * s.currentPrice * 0.995;
+      var commissionRate = 0.005;
+      commissionRate -= _nodeLevel('node_061') * 0.0008;
+      commissionRate -= _nodeLevel('node_062') * 0.0005;
+      commissionRate = commissionRate.clamp(_nodeLevel('node_064') > 0 ? 0.001 : 0.002, 0.005);
+      double grossIncome = s.ownedShares * s.currentPrice * (1.0 - commissionRate);
       double netProfit = grossIncome - s.totalSpent;
+      if (netProfit > 0 && _nodeLevel('node_099') > 0) {
+        grossIncome += netProfit;
+        netProfit *= 2;
+      }
       
       _money += grossIncome; 
       if (netProfit > 0) {
@@ -1295,5 +1565,14 @@ class GameState extends ChangeNotifier {
       _checkNotifications();
       notifyListeners(); 
     }
+  }
+
+  @override
+  void dispose() {
+    if (_disposed) return;
+    _disposed = true;
+    _gameTimer?.cancel();
+    _gameTimer = null;
+    super.dispose();
   }
 }

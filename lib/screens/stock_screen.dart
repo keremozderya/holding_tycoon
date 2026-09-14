@@ -1,5 +1,5 @@
 // lib/screens/stock_screen.dart
-// ignore_for_file: prefer_const_declarations
+// ignore_for_file: discarded_futures, prefer_const_declarations
 
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
@@ -58,23 +58,23 @@ class StockScreen extends StatelessWidget {
     }
   }
 
-  void _showBuyDialog(BuildContext context, GameState state, Stock stock) {
+  Future<void> _showBuyDialog(BuildContext context, GameState state, Stock stock) async {
     final TextEditingController amountCtrl = TextEditingController();
 
-    showDialog(
+    await showDialog<void>(
       context: context,
       builder: (c) => AlertDialog(
         backgroundColor: AppColors.surface,
-        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero, side: BorderSide(color: AppColors.border, width: 3.0)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24), side: const BorderSide(color: Colors.black, width: 4.0)),
         title: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(8), 
-              decoration: BoxDecoration(color: Colors.black, border: Border.all(color: stock.iconColor, width: 2)), 
-              child: Icon(stock.icon, color: stock.iconColor, size: 24)
+              padding: const EdgeInsets.all(10), 
+              decoration: BoxDecoration(color: stock.iconColor.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(12), border: Border.all(color: stock.iconColor, width: 3)), 
+              child: Icon(stock.icon, color: stock.iconColor, size: 28)
             ),
             const SizedBox(width: 12),
-            Expanded(child: Text(stock.name.toUpperCase(), style: const TextStyle(color: AppColors.textPrimary, fontSize: 18, fontWeight: FontWeight.w900))),
+            Expanded(child: Text(stock.name.toUpperCase(), style: const TextStyle(color: Colors.black, fontSize: 20, fontWeight: FontWeight.w900))),
           ],
         ),
         content: SizedBox(
@@ -85,35 +85,35 @@ class StockScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(color: AppColors.background, borderRadius: BorderRadius.zero, border: Border.all(color: AppColors.border, width: 2)),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(color: const Color(0xFFF1F5F9), borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.black, width: 3)),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Birim Fiyat:', style: TextStyle(color: AppColors.textSecondary, fontSize: 13, fontWeight: FontWeight.w900)),
-                      Text('\$${_formatNum(stock.currentPrice)}', style: const TextStyle(color: AppColors.gold, fontWeight: FontWeight.w900, fontSize: 16, fontFamily: 'SpaceMono')),
+                      const Text('Birim Fiyat:', style: TextStyle(color: AppColors.textSecondary, fontSize: 15, fontWeight: FontWeight.w900)),
+                      Text('\$${_formatNum(stock.currentPrice)}', style: const TextStyle(color: AppColors.neonCyan, fontWeight: FontWeight.w900, fontSize: 18, fontFamily: 'SpaceMono')),
                     ],
                   ),
                 ),
                 const SizedBox(height: 20),
-                const Text('YATIRILACAK TUTAR:', style: TextStyle(color: AppColors.textSecondary, fontSize: 12, fontWeight: FontWeight.w900)),
-                const SizedBox(height: 8),
+                const Text('YATIRILACAK TUTAR:', style: TextStyle(color: Colors.black, fontSize: 14, fontWeight: FontWeight.w900)),
+                const SizedBox(height: 10),
                 TextField(
                   controller: amountCtrl,
                   keyboardType: const TextInputType.numberWithOptions(decimal: true),
                   inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9.,a-zA-Z]'))],
-                  style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w900, fontFamily: 'SpaceMono'),
-                  decoration: const InputDecoration(
+                  style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 18, fontFamily: 'SpaceMono'),
+                  decoration: InputDecoration(
                     filled: true,
-                    fillColor: Colors.black,
-                    prefixIcon: Icon(Icons.attach_money_rounded, color: AppColors.textMuted),
+                    fillColor: Colors.white,
+                    prefixIcon: const Icon(Icons.attach_money_rounded, color: Colors.black, size: 28),
                     hintText: 'Miktar girin...',
-                    hintStyle: TextStyle(color: AppColors.textMuted),
-                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.zero, borderSide: BorderSide(color: AppColors.border, width: 2)),
-                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.zero, borderSide: BorderSide(color: AppColors.gold, width: 2)),
+                    hintStyle: const TextStyle(color: AppColors.textMuted),
+                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: Colors.black, width: 3)),
+                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: AppColors.neonCyan, width: 3)),
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 20),
                 
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
@@ -133,7 +133,7 @@ class StockScreen extends StatelessWidget {
                     ],
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 20),
 
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -151,14 +151,14 @@ class StockScreen extends StatelessWidget {
         ),
         actions: [
           StockHeavyButton(
-            height: 45, width: 80, 
-            color: AppColors.surfaceElevated, shadowColor: const Color(0xFF14161C), 
+            height: 55, width: 100, 
+            color: Colors.white, shadowColor: Colors.grey.shade400, 
             onPressed: () { AudioService.instance.playSfx('click.mp3'); Navigator.pop(c); }, 
-            child: const Text('İPTAL', style: TextStyle(color: AppColors.textMuted, fontWeight: FontWeight.w900, fontSize: 11))
+            child: const Text('İPTAL', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 14))
           ),
           StockHeavyButton(
-            height: 45, width: 120,
-            color: AppColors.gold, shadowColor: const Color(0xFF8B6B32),
+            height: 55, width: 140,
+            color: AppColors.gold, shadowColor: Colors.orange.shade700,
             onPressed: () {
               double inputAmount = _parseInput(amountCtrl.text); 
               if (inputAmount >= stock.currentPrice) {
@@ -172,22 +172,23 @@ class StockScreen extends StatelessWidget {
                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Tutar en az 1 hisse almaya yetmelidir!', style: TextStyle(fontWeight: FontWeight.bold)), backgroundColor: AppColors.loss));
               }
             },
-            child: const Text('SATIN AL', style: TextStyle(color: AppColors.darkBrown, fontWeight: FontWeight.w900, fontSize: 12)),
+            child: const Text('SATIN AL', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 16)),
           ),
         ],
       ),
     );
+    amountCtrl.dispose();
   }
 
   Widget _buildSuffixButton(String label, TextEditingController ctrl) {
     return Padding(
-      padding: const EdgeInsets.only(right: 8.0),
+      padding: const EdgeInsets.only(right: 12.0),
       child: StockHeavyButton(
-        height: 38,
-        width: 48,
-        depth: 4.0, 
-        color: Colors.black,
-        shadowColor: AppColors.surfaceElevated,
+        height: 48,
+        width: 56,
+        depth: 6.0, 
+        color: const Color(0xFFF1F5F9),
+        shadowColor: Colors.grey.shade400,
         onPressed: () {
           HapticFeedback.selectionClick(); 
           AudioService.instance.playSfx('click.mp3');
@@ -197,7 +198,7 @@ class StockScreen extends StatelessWidget {
             ctrl.selection = TextSelection.fromPosition(TextPosition(offset: ctrl.text.length));
           }
         },
-        child: Text(label, style: const TextStyle(color: AppColors.gold, fontSize: 13, fontWeight: FontWeight.w900, fontFamily: 'SpaceMono')),
+        child: Text(label, style: const TextStyle(color: Colors.black, fontSize: 16, fontWeight: FontWeight.w900, fontFamily: 'SpaceMono')),
       ),
     );
   }
@@ -205,12 +206,12 @@ class StockScreen extends StatelessWidget {
   Widget _buildQuickButton(String label, VoidCallback onTap) {
     return Expanded(
       child: StockHeavyButton(
-        height: 42,
-        depth: 4.0, 
-        color: AppColors.background,
-        shadowColor: Colors.black,
+        height: 48,
+        depth: 6.0, 
+        color: AppColors.neonCyan,
+        shadowColor: Colors.blue.shade700,
         onPressed: onTap,
-        child: Text(label, style: const TextStyle(color: AppColors.textSecondary, fontSize: 12, fontWeight: FontWeight.w900)),
+        child: Text(label, style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w900, shadows: [Shadow(color: Colors.black26, offset: Offset(1,1))])),
       ),
     );
   }
@@ -222,12 +223,12 @@ class StockScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text('MENKUL KIYMETLER', style: AppTheme.titleStyle(fontSize: 20).copyWith(color: AppColors.textPrimary)),
-        backgroundColor: AppColors.surface,
+        title: Text('MENKUL KIYMETLER', style: AppTheme.titleStyle(fontSize: 22)),
+        backgroundColor: Colors.transparent,
         centerTitle: true,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textPrimary, size: 24), 
+          icon: const Icon(Icons.arrow_back_rounded, color: Colors.white, size: 30, shadows: [Shadow(color: Colors.black, offset: Offset(2, 2))]), 
           onPressed: () {
             AudioService.instance.playSfx('click.mp3');
             Navigator.pop(context);
@@ -237,10 +238,13 @@ class StockScreen extends StatelessWidget {
       body: Column(
         children: [
           Container(
-            padding: const EdgeInsets.all(20),
-            decoration: const BoxDecoration(
+            padding: const EdgeInsets.all(24),
+            margin: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
               color: AppColors.surface,
-              border: Border(bottom: BorderSide(color: AppColors.border, width: 3.0)),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: Colors.black, width: 4.0),
+              boxShadow: const [BoxShadow(color: Colors.black26, offset: Offset(0, 6))],
             ),
             child: Row(
               children: [
@@ -248,16 +252,16 @@ class StockScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Kullanılabilir Bakiye', style: TextStyle(color: AppColors.textSecondary, fontSize: 13, fontWeight: FontWeight.w900)),
-                      const SizedBox(height: 8),
-                      Container(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6), decoration: BoxDecoration(color: Colors.black, border: Border.all(color: AppColors.gold, width: 2)), child: Text('\$${_formatNum(gameState.money)}', style: const TextStyle(color: AppColors.gold, fontSize: 24, fontWeight: FontWeight.w900, fontFamily: 'SpaceMono'))),
+                      const Text('Kullanılabilir Bakiye', style: TextStyle(color: AppColors.textSecondary, fontSize: 14, fontWeight: FontWeight.w900)),
+                      const SizedBox(height: 10),
+                      Container(padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8), decoration: BoxDecoration(color: const Color(0xFFF1F5F9), borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.black, width: 3)), child: Text('\$${_formatNum(gameState.money)}', style: const TextStyle(color: AppColors.gold, fontSize: 28, fontWeight: FontWeight.w900, fontFamily: 'SpaceMono'))),
                     ],
                   ),
                 ),
                 Container(
                   padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(color: AppColors.background, borderRadius: BorderRadius.zero, border: Border.all(color: AppColors.border, width: 2)),
-                  child: const Icon(Icons.account_balance_wallet_rounded, color: AppColors.textSecondary, size: 36),
+                  decoration: BoxDecoration(color: AppColors.gold, borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.black, width: 3)),
+                  child: const Icon(Icons.account_balance_wallet_rounded, color: Colors.black, size: 40),
                 )
               ],
             ),
@@ -266,9 +270,9 @@ class StockScreen extends StatelessWidget {
           Expanded(
             child: ListView.separated(
               physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               itemCount: gameState.stocks.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 16),
+              separatorBuilder: (_, __) => const SizedBox(height: 20),
               itemBuilder: (context, index) {
                 final stock = gameState.stocks[index];
                 
@@ -279,63 +283,63 @@ class StockScreen extends StatelessWidget {
                 String pnlFormatted = _formatNum(stock.netPnl);
 
                 return Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(color: AppColors.surfaceElevated, borderRadius: BorderRadius.zero, border: Border.all(color: AppColors.border, width: 2)),
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24), border: Border.all(color: Colors.black, width: 4), boxShadow: const [BoxShadow(color: Colors.black26, offset: Offset(0, 6))]),
                   child: Column(
                     children: [
                       Row(
                         children: [
                           Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.zero, border: Border.all(color: stock.iconColor, width: 2)),
-                            child: Icon(stock.icon, color: stock.iconColor, size: 28),
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(color: stock.iconColor.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(16), border: Border.all(color: stock.iconColor, width: 3)),
+                            child: Icon(stock.icon, color: stock.iconColor, size: 32),
                           ),
-                          const SizedBox(width: 14),
+                          const SizedBox(width: 16),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(stock.name.toUpperCase(), style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w900, fontSize: 16)),
-                                const SizedBox(height: 6),
-                                Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), color: Colors.black, child: Text('\$${_formatNum(stock.currentPrice)}', style: const TextStyle(color: AppColors.textSecondary, fontSize: 13, fontWeight: FontWeight.w900, fontFamily: 'SpaceMono'))),
+                                Text(stock.name.toUpperCase(), style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 18)),
+                                const SizedBox(height: 8),
+                                Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4), decoration: BoxDecoration(color: const Color(0xFFF1F5F9), borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.black, width: 2)), child: Text('\$${_formatNum(stock.currentPrice)}', style: const TextStyle(color: Colors.black, fontSize: 14, fontWeight: FontWeight.w900, fontFamily: 'SpaceMono'))),
                               ],
                             ),
                           ),
                           Container(
-                            decoration: BoxDecoration(border: Border.all(color: AppColors.border, width: 2), color: Colors.black),
-                            width: 85, height: 48,
+                            decoration: BoxDecoration(border: Border.all(color: Colors.black, width: 3), borderRadius: BorderRadius.circular(12), color: const Color(0xFFF8FAFC)),
+                            width: 100, height: 60,
                             child: CustomPaint(painter: SparklinePainter(history: stock.history, lineColor: trendColor)),
                           ),
                         ],
                       ),
                       
                       if (stock.ownedShares > 0) ...[
-                        const Padding(padding: EdgeInsets.symmetric(vertical: 16), child: Divider(color: AppColors.border, height: 1, thickness: 2)),
+                        const Padding(padding: EdgeInsets.symmetric(vertical: 20), child: Divider(color: Colors.black, height: 1, thickness: 3)),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text('Sahip Olunan', style: TextStyle(color: AppColors.textMuted, fontSize: 12, fontWeight: FontWeight.w900)),
-                                const SizedBox(height: 4),
-                                Text(_formatNum(stock.ownedShares), style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w900, fontSize: 14, fontFamily: 'SpaceMono')),
+                                const Text('Sahip Olunan', style: TextStyle(color: AppColors.textSecondary, fontSize: 14, fontWeight: FontWeight.w900)),
+                                const SizedBox(height: 6),
+                                Text(_formatNum(stock.ownedShares), style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 18, fontFamily: 'SpaceMono')),
                               ],
                             ),
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
-                                const Text('Net Kâr/Zarar', style: TextStyle(color: AppColors.textMuted, fontSize: 12, fontWeight: FontWeight.w900)),
-                                const SizedBox(height: 4),
+                                const Text('Net Kâr/Zarar', style: TextStyle(color: AppColors.textSecondary, fontSize: 14, fontWeight: FontWeight.w900)),
+                                const SizedBox(height: 6),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                  color: Colors.black,
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                  decoration: BoxDecoration(color: stock.netPnl >= 0 ? AppColors.profit.withValues(alpha: 0.15) : AppColors.loss.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(8), border: Border.all(color: stock.netPnl >= 0 ? AppColors.profit : AppColors.loss, width: 2)),
                                   child: Text(
                                     '$pnlSign\$$pnlFormatted',
                                     style: TextStyle(
                                       color: stock.netPnl >= 0 ? AppColors.profit : AppColors.loss,
                                       fontWeight: FontWeight.w900, 
-                                      fontSize: 14,
+                                      fontSize: 16,
                                       fontFamily: 'SpaceMono'
                                     ),
                                   ),
@@ -346,33 +350,33 @@ class StockScreen extends StatelessWidget {
                         ),
                       ],
                       
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 24),
                       Row(
                         children: [
                           Expanded(
                             child: StockHeavyButton(
-                              height: 48,
-                              color: AppColors.background, shadowColor: Colors.black,
+                              height: 55,
+                              color: AppColors.neonCyan, shadowColor: Colors.blue.shade700,
                               onPressed: () {
                                 HapticFeedback.lightImpact();
                                 AudioService.instance.playSfx('click.mp3');
                                 _showBuyDialog(context, gameState, stock);
                               },
-                              child: const Text('ALIM YAP', style: TextStyle(color: AppColors.gold, fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 1.0)),
+                              child: const Text('ALIM YAP', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 15, letterSpacing: 1.0, shadows: [Shadow(color: Colors.black26, offset: Offset(1,1))])),
                             ),
                           ),
                           if (stock.ownedShares > 0) ...[
-                            const SizedBox(width: 14),
+                            const SizedBox(width: 16),
                             Expanded(
                               child: StockHeavyButton(
-                                height: 48,
-                                color: AppColors.border, shadowColor: const Color(0xFF14161C),
+                                height: 55,
+                                color: AppColors.loss, shadowColor: Colors.red.shade900,
                                 onPressed: () { 
                                   HapticFeedback.mediumImpact(); 
                                   AudioService.instance.playSfx('cash.mp3');
                                   gameState.sellAllStock(stock.id); 
                                 },
-                                child: const Text('TÜMÜNÜ SAT', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 1.0)),
+                                child: const Text('TÜMÜNÜ SAT', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 15, letterSpacing: 1.0, shadows: [Shadow(color: Colors.black26, offset: Offset(1,1))])),
                               ),
                             ),
                           ]
@@ -408,7 +412,7 @@ class SparklinePainter extends CustomPainter {
 
     final path = Path();
     
-    final double padding = 4.0;
+    final double padding = 6.0;
     final double drawWidth = size.width - (padding * 2);
     final double drawHeight = size.height - (padding * 2);
     
@@ -429,8 +433,9 @@ class SparklinePainter extends CustomPainter {
     final paint = Paint()
       ..color = lineColor
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.5 
-      ..strokeJoin = StrokeJoin.miter;
+      ..strokeWidth = 3.5 // Thicker line for cartoon look
+      ..strokeJoin = StrokeJoin.round
+      ..strokeCap = StrokeCap.round;
 
     canvas.drawPath(path, paint);
   }
@@ -456,7 +461,7 @@ class StockHeavyButton extends StatefulWidget {
     required this.shadowColor, 
     this.height = 50, 
     this.width,
-    this.depth = 6.0,
+    this.depth = 8.0,
   });
   
   @override 
@@ -487,8 +492,9 @@ class _StockHeavyButtonState extends State<StockHeavyButton> {
             bottom: 0, left: 0, right: 0, top: widget.depth, 
             child: Container(
               decoration: BoxDecoration(
-                color: isDisabled ? AppColors.border.withValues(alpha: 0.5) : widget.shadowColor, 
-                border: Border.all(color: Colors.black87, width: 2.5)
+                color: isDisabled ? Colors.grey : widget.shadowColor, 
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.black, width: 3)
               )
             )
           ),
@@ -499,8 +505,9 @@ class _StockHeavyButtonState extends State<StockHeavyButton> {
             top: _isPressed || isDisabled ? widget.depth : 0, 
             child: Container(
               decoration: BoxDecoration(
-                color: isDisabled ? AppColors.surfaceElevated : widget.color, 
-                border: Border.all(color: Colors.black87, width: 2.5)
+                color: isDisabled ? Colors.grey.shade300 : widget.color, 
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.black, width: 3)
               ), 
               child: Center(child: widget.child)
             )
