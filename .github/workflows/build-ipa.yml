@@ -27,7 +27,7 @@ jobs:
           flutter build ipa --release --no-codesign
 
       - name: IPA Dosyasını GitHub'a Yükle (Artifacts)
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: holding-tycoon-ipa
           path: build/ios/ipa/*.ipa
