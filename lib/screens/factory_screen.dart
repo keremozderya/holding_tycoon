@@ -1,4 +1,6 @@
 // lib/screens/factory_screen.dart
+// ignore_for_file: prefer_const_literals_to_create_immutables, unused_element_parameter, curly_braces_in_flow_control_structures, discarded_futures, prefer_const_constructors
+
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 

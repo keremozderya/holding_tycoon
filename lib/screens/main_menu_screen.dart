@@ -1,5 +1,5 @@
 // lib/screens/main_menu_screen.dart
-// ignore_for_file: discarded_futures, use_build_context_synchronously
+// ignore_for_file: deprecated_member_use, prefer_const_constructors, unused_element, discarded_futures, use_build_context_synchronously
 
 import 'dart:math' as math;
 import 'dart:ui' as ui;

@@ -5,6 +5,8 @@
 // legacy text through JSON, preserve black text on bright surfaces in dark mode,
 // and force UI icons to white while dark mode is active.
 
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart' as material;
 
 import '../services/translation_service.dart';

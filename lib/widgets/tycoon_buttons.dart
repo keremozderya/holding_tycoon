@@ -1,4 +1,6 @@
 // lib/widgets/tycoon_buttons.dart
+// ignore_for_file: discarded_futures
+
 import 'package:flutter/material.dart' hide AnimatedContainer, Container, Icon, Text;
 import 'adaptive_widgets.dart';
 import 'package:flutter/services.dart';

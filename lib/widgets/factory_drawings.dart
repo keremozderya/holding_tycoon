@@ -503,7 +503,7 @@ class FactoryDrawingRenderer {
     canvas.drawRect(const Rect.fromLTWH(94, 198, 52, 13), outline);
     canvas.drawRect(const Rect.fromLTWH(94, 198, 52, 13), fill(AppColors.gold));
 
-    String gateText = "TARIM ALANI".tl(); // TODO: tr.json key -> 'agriculture_area'
+    String gateText = "TARIM ALANI".tl();
     
     final gateTextPainter = TextPainter(
       text: TextSpan(
