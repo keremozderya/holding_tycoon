@@ -2,12 +2,14 @@
 // ignore_for_file: discarded_futures
 
 import 'dart:math' as math;
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide AnimatedContainer, Container, Icon, Text;
+import 'adaptive_widgets.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../providers/game_state.dart';
 import '../services/admob_service.dart';
 import '../services/audio_service.dart';
+import '../services/translation_service.dart';
 import '../theme/app_theme.dart';
 
 class WheelDialog extends StatefulWidget {
@@ -222,7 +224,12 @@ class _WheelDialogState extends State<WheelDialog> with SingleTickerProviderStat
                         children: [
                           Icon(_isSpinning ? Icons.hourglass_top_rounded : Icons.play_arrow_rounded, size: 28, color: _isSpinning ? AppColors.textMuted : Colors.black),
                           const SizedBox(width: 10),
-                          FittedBox(fit: BoxFit.scaleDown, child: Text(_isSpinning ? 'BEKLENİYOR...' : 'REKLAMLA ÇEVİR', style: TextStyle(color: _isSpinning ? AppColors.textMuted : Colors.black, fontWeight: FontWeight.w900, fontSize: 16, letterSpacing: 1.0))),
+                          Flexible(
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(_isSpinning ? 'BEKLENİYOR...' : 'REKLAMLA ÇEVİR', style: TextStyle(color: _isSpinning ? AppColors.textMuted : Colors.black, fontWeight: FontWeight.w900, fontSize: 16, letterSpacing: 1.0)),
+                            ),
+                          ),
                         ]
                       )
                     ),
@@ -260,7 +267,26 @@ class WheelPainter extends CustomPainter {
 
       final textSpan = TextSpan(
         children: [
-          TextSpan(text: '${slices[i]['line1']}\n', style: const TextStyle(color: Colors.black, fontSize: 15, fontWeight: FontWeight.w900, fontFamily: 'SpaceMono')),
+          TextSpan(
+            text: '${slices[i]['line1']}\n',
+            style: const TextStyle(
+              color: Colors.black,
+              fontSize: 15,
+              fontWeight: FontWeight.w900,
+              fontFamily: 'SpaceMono',
+            ),
+          ),
+          TextSpan(
+            text: TranslationService.instance.translateLiteral(
+              slices[i]['line2'] as String,
+            ),
+            style: const TextStyle(
+              color: Colors.black,
+              fontSize: 9,
+              fontWeight: FontWeight.w900,
+              fontFamily: 'SpaceMono',
+            ),
+          ),
         ],
       );
 

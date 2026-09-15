@@ -3,7 +3,8 @@
 
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide AnimatedContainer, Container, Icon, Text;
+import '../widgets/adaptive_widgets.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -74,52 +75,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return _languages.firstWhere((lang) => lang['code'] == currentCode.toLowerCase(), orElse: () => _languages.first);
   }
 
-  String _themeText(String key, String language) {
-    const labels = <String, Map<String, String>>{
-      'tr': {
-        'section': 'Görünüm',
-        'title': 'Arayüz Teması',
-        'light': 'Açık',
-        'dark': 'Koyu',
-      },
-      'en': {
-        'section': 'Appearance',
-        'title': 'Interface Theme',
-        'light': 'Light',
-        'dark': 'Dark',
-        'description': 'Dark theme changes white surfaces to a darker cartoon blue tone.',
-      },
-      'de': {
-        'section': 'Darstellung',
-        'title': 'Oberflächenthema',
-        'light': 'Hell',
-        'dark': 'Dunkel',
-        'description': 'Das dunkle Thema färbt weiße Flächen in einen dunkleren, cartoonartigen Blauton.',
-      },
-      'es': {
-        'section': 'Apariencia',
-        'title': 'Tema de Interfaz',
-        'light': 'Claro',
-        'dark': 'Oscuro',
-        'description': 'El tema oscuro cambia las superficies blancas a un tono azul caricaturesco más oscuro.',
-      },
-      'fr': {
-        'section': 'Apparence',
-        'title': 'Thème de l’interface',
-        'light': 'Clair',
-        'dark': 'Sombre',
-        'description': 'Le thème sombre remplace les surfaces blanches par un ton bleu cartoon plus foncé.',
-      },
-      'it': {
-        'section': 'Aspetto',
-        'title': 'Tema Interfaccia',
-        'light': 'Chiaro',
-        'dark': 'Scuro',
-        'description': 'Il tema scuro trasforma le superfici bianche in un tono blu cartoon più scuro.',
-      },
-    };
-    final lang = labels.containsKey(language.toLowerCase()) ? language.toLowerCase() : 'en';
-    return labels[lang]![key] ?? labels['en']![key] ?? key;
+  Widget _fitSingleLine(
+    String value, {
+    required TextStyle style,
+    TextAlign textAlign = TextAlign.left,
+    AlignmentGeometry alignment = Alignment.centerLeft,
+  }) {
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      alignment: alignment,
+      child: Text(
+        value,
+        maxLines: 1,
+        softWrap: false,
+        overflow: TextOverflow.visible,
+        textAlign: textAlign,
+        style: style,
+      ),
+    );
   }
 
   @override
@@ -128,9 +101,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final currentLangMap = _getCurrentLangMap(gameState.language);
 
     return Scaffold(
-      backgroundColor: AppColors.background, 
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor, 
       appBar: AppBar(
-        title: Text('settings.title'.tr(), style: AppTheme.titleStyle(fontSize: 22)),
+        title: SizedBox(
+          width: MediaQuery.of(context).size.width * 0.58,
+          child: _fitSingleLine(
+            'settings.title'.tr(),
+            alignment: Alignment.center,
+            textAlign: TextAlign.center,
+            style: AppTheme.titleStyle(fontSize: 22),
+          ),
+        ),
         backgroundColor: Colors.transparent,
         centerTitle: true, elevation: 0,
         leading: IconButton(
@@ -144,17 +125,53 @@ class _SettingsScreenState extends State<SettingsScreen> {
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
         children: [
-          Text('settings.sound_settings'.tr().toUpperCase(), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, letterSpacing: 1.4, fontSize: 16, shadows: [Shadow(color: Colors.black, offset: Offset(1,1))])),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: _fitSingleLine(
+              'settings.sound_settings'.tr().toUpperCase(),
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 1.4,
+                fontSize: 16,
+                shadows: [Shadow(color: Colors.black, offset: Offset(1, 1))],
+              ),
+            ),
+          ),
           const SizedBox(height: 12),
           _buildVolumeCard(title: 'settings.music_volume'.tr(), value: _musicVolume, icon: Icons.music_note_rounded, onChanged: _saveMusicVolume),
           const SizedBox(height: 16),
           _buildVolumeCard(title: 'settings.sfx_volume'.tr(), value: _sfxVolume, icon: Icons.volume_up_rounded, onChanged: _saveSfxVolume),
           const SizedBox(height: 36),
-          Text(_themeText('section', gameState.language).toUpperCase(), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, letterSpacing: 1.4, fontSize: 16, shadows: [Shadow(color: Colors.black, offset: Offset(1,1))])),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: _fitSingleLine(
+              'settings.appearance'.tr().toUpperCase(),
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 1.4,
+                fontSize: 16,
+                shadows: [Shadow(color: Colors.black, offset: Offset(1, 1))],
+              ),
+            ),
+          ),
           const SizedBox(height: 12),
           _buildThemeCard(gameState),
           const SizedBox(height: 36),
-          Text('settings.language_options'.tr().toUpperCase(), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, letterSpacing: 1.4, fontSize: 16, shadows: [Shadow(color: Colors.black, offset: Offset(1,1))])),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: _fitSingleLine(
+              'settings.language_options'.tr().toUpperCase(),
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 1.4,
+                fontSize: 16,
+                shadows: [Shadow(color: Colors.black, offset: Offset(1, 1))],
+              ),
+            ),
+          ),
           const SizedBox(height: 12),
           _buildAnimatedLanguageAccordion(currentLangMap),
         ],
@@ -168,7 +185,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       duration: const Duration(milliseconds: 220),
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: dark ? const Color(0xFF252238) : Colors.white,
+        color: AppColors.surfaceFor(dark),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: Colors.black, width: 4),
         boxShadow: const [BoxShadow(color: Colors.black26, offset: Offset(0, 6))],
@@ -184,11 +201,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 child: const Icon(Icons.palette_rounded, color: Colors.white, size: 28),
               ),
               const SizedBox(width: 16),
-              Expanded(child: Text(_themeText('title', gameState.language).toUpperCase(), style: const TextStyle(color: AppColors.textPrimary, fontSize: 18, fontWeight: FontWeight.w900))),
+              Expanded(
+                child: _fitSingleLine(
+                  'settings.interface_theme'.tr().toUpperCase(),
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 12),
-          Text(_themeText('description', gameState.language), style: const TextStyle(color: AppColors.textSecondary, fontSize: 13, fontWeight: FontWeight.bold, height: 1.35)),
+          Text('settings.theme_description'.tr(), style: const TextStyle(color: AppColors.textSecondary, fontSize: 13, fontWeight: FontWeight.bold, height: 1.35)),
           const SizedBox(height: 16),
           Row(
             children: [
@@ -236,7 +262,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 if (selected) ...[const Icon(Icons.check_circle_rounded, size: 18, color: Colors.black), const SizedBox(width: 6)],
-                Flexible(child: Text(_themeText(darkChoice ? 'dark' : 'light', gameState.language).toUpperCase(), textAlign: TextAlign.center, style: const TextStyle(color: Colors.black, fontSize: 13, fontWeight: FontWeight.w900))),
+                Flexible(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      (darkChoice ? 'settings.dark' : 'settings.light').tr().toUpperCase(),
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: Colors.black, fontSize: 13, fontWeight: FontWeight.w900),
+                    ),
+                  ),
+                ),
               ],
             ),
           ],
@@ -272,12 +307,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   Expanded(child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('settings.game_language'.tr().toUpperCase(), style: const TextStyle(color: AppColors.textSecondary, fontSize: 13, fontWeight: FontWeight.w900)),
+                      _fitSingleLine(
+                        'settings.game_language'.tr().toUpperCase(),
+                        style: const TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
                       const SizedBox(height: 4),
-                      Text(currentLangMap['name']!.toUpperCase(), style: const TextStyle(color: AppColors.textPrimary, fontSize: 20, fontWeight: FontWeight.w900, letterSpacing: 1.0)),
+                      _fitSingleLine(
+                        currentLangMap['name']!.toUpperCase(),
+                        style: const TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: 20,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 1.0,
+                        ),
+                      ),
                     ],
                   )),
-                  const Spacer(),
+                  const SizedBox(width: 12),
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(color: AppColors.gold, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.black, width: 3)),
@@ -319,8 +369,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   children: [
                                     Text(lang['flag']!, style: const TextStyle(fontSize: 28)),
                                     const SizedBox(width: 16),
-                                    Text(lang['name']!.toUpperCase(), style: TextStyle(color: isSelected ? AppColors.neonCyan : AppColors.textPrimary, fontSize: 18, fontWeight: FontWeight.w900)),
-                                    const Spacer(),
+                                    Expanded(
+                                      child: _fitSingleLine(
+                                        lang['name']!.toUpperCase(),
+                                        style: TextStyle(
+                                          color: isSelected
+                                              ? AppColors.neonCyan
+                                              : AppColors.textPrimary,
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.w900,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
                                     if (isSelected) const Icon(Icons.check_circle_rounded, color: AppColors.neonCyan, size: 28)
                                   ],
                                 ),
@@ -354,9 +415,34 @@ class _SettingsScreenState extends State<SettingsScreen> {
             children: [
               Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: AppColors.gold, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.black, width: 3)), child: Icon(icon, color: Colors.black, size: 28)),
               const SizedBox(width: 16),
-              Text(title.toUpperCase(), style: const TextStyle(color: AppColors.textPrimary, fontSize: 18, fontWeight: FontWeight.w900)),
-              const Spacer(),
-              Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), decoration: BoxDecoration(color: AppColors.softSurfaceFor(dark), borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.black, width: 2)), child: Text('%${(value * 100).round()}', style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 16, fontFamily: 'SpaceMono'))),
+              Expanded(
+                child: _fitSingleLine(
+                  title.toUpperCase(),
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.softSurfaceFor(dark),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.black, width: 2),
+                ),
+                child: Text(
+                  '%${(value * 100).round()}',
+                  style: const TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.w900,
+                    fontSize: 16,
+                    fontFamily: 'SpaceMono',
+                  ),
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 16),

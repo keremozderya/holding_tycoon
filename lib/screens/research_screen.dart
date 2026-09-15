@@ -2,7 +2,8 @@
 // ignore_for_file: discarded_futures, prefer_const_constructors, unnecessary_import, no_leading_underscores_for_local_identifiers
 
 import 'dart:ui';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide AnimatedContainer, Container, Icon, Text;
+import '../widgets/adaptive_widgets.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../providers/game_state.dart';
@@ -42,7 +43,14 @@ class _ResearchScreenState extends State<ResearchScreen> {
     final gameState = context.watch<GameState>();
     final _nodes = gameState.researchNodes; 
     
-    if (_nodes.isEmpty) return const Scaffold(backgroundColor: AppColors.background, body: Center(child: CircularProgressIndicator(color: Colors.black)));
+    if (_nodes.isEmpty) {
+      return Scaffold(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        body: const Center(
+          child: CircularProgressIndicator(color: Colors.black),
+        ),
+      );
+    }
 
     final rootNode = _nodes[0];
     final leftNodes = _nodes.sublist(1, 50);
@@ -237,7 +245,7 @@ class _ResearchScreenState extends State<ResearchScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        node.category.toUpperCase(),
+                        node.localizedCategory.toUpperCase(),
                         style: TextStyle(color: accessible ? Colors.black87 : Colors.black54, fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 0.5),
                       ),
                       const SizedBox(height: 4),
@@ -253,7 +261,7 @@ class _ResearchScreenState extends State<ResearchScreen> {
             ),
             const SizedBox(height: 12),
             Text(
-              node.title,
+              node.localizedTitle,
               maxLines: 2, overflow: TextOverflow.ellipsis,
               style: TextStyle(color: accessible ? Colors.black : Colors.black54, fontSize: 15, fontWeight: FontWeight.w900, height: 1.15),
             ),
@@ -356,9 +364,9 @@ class _ResearchScreenState extends State<ResearchScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(node.title, style: AppTheme.titleStyle(fontSize: 24).copyWith(color: Colors.black, shadows: [])),
+                        Text(node.localizedTitle, style: AppTheme.titleStyle(fontSize: 24).copyWith(color: Colors.black, shadows: [])),
                         const SizedBox(height: 6),
-                        Text(node.category.toUpperCase(), style: const TextStyle(color: AppColors.textSecondary, fontSize: 14, fontWeight: FontWeight.w900, letterSpacing: 1.0)),
+                        Text(node.localizedCategory.toUpperCase(), style: const TextStyle(color: AppColors.textSecondary, fontSize: 14, fontWeight: FontWeight.w900, letterSpacing: 1.0)),
                       ],
                     ),
                   ),
@@ -372,7 +380,26 @@ class _ResearchScreenState extends State<ResearchScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEFF6FF),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.black, width: 3),
+                ),
+                child: Text(
+                  node.localizedDescription,
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 14,
+                    height: 1.4,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
@@ -418,9 +445,12 @@ class _ResearchScreenState extends State<ResearchScreen> {
                   Navigator.pop(context); 
                   context.read<GameState>().upgradeResearch(node.id); 
                 } : null,
-                child: Text(
-                  node.isMaxed ? 'research.max_level_reached'.tr() : (!accessible ? 'research.btn_req_unmet'.tr() : 'research.btn_upgrade'.tr(params: {'cost': node.cost.toString()})),
-                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16, letterSpacing: 1.0, color: canAfford || node.isMaxed ? Colors.black : Colors.black38),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    node.isMaxed ? 'research.max_level_reached'.tr() : (!accessible ? 'research.btn_req_unmet'.tr() : 'research.btn_upgrade'.tr(params: {'cost': node.cost.toString()})),
+                    style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16, letterSpacing: 1.0, color: canAfford || node.isMaxed ? Colors.black : Colors.black38),
+                  ),
                 ),
               ),
             ],

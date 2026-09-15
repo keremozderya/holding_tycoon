@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/translation_service.dart';
 import '../services/audio_service.dart';
+import '../config/game_balance.dart';
 
 // --- MODELLER ---
 
@@ -63,9 +64,12 @@ class FactoryProduct {
   String name; int level; double baseIncome; double baseCost;
   FactoryProduct({required this.name, this.level = 0, required this.baseIncome, required this.baseCost});
   
-  double get manualIncome => level == 0 ? 0.0 : baseIncome * math.pow(1.12, level - 1);
-  double get passiveIncome => manualIncome * 0.20; 
-  double get upgradeCost => baseCost * math.pow(1.32, level);
+  double get manualIncome => level == 0
+      ? 0.0
+      : baseIncome * math.pow(GameBalance.productIncomeGrowth, level - 1);
+  double get passiveIncome => manualIncome * GameBalance.passiveIncomeRatio;
+  double get upgradeCost =>
+      baseCost * math.pow(GameBalance.productUpgradeCostGrowth, level);
   
   Map<String, dynamic> toJson() => {'name': name, 'level': level};
 }
@@ -94,11 +98,29 @@ class Stock {
 class ResearchNode {
   final String id; final String title; final String category; final String description; final IconData icon; final int baseCost; final int maxLevel; int currentLevel; final List<String> parentIds; final String Function(int level) effectBuilder;
   ResearchNode({required this.id, required this.title, required this.category, required this.description, required this.icon, required this.baseCost, required this.maxLevel, this.currentLevel = 0, required this.parentIds, required this.effectBuilder});
-  bool get isUnlocked => currentLevel > 0; 
-  bool get isMaxed => currentLevel >= maxLevel; 
-  int get cost => isMaxed ? baseCost * maxLevel : baseCost * (currentLevel + 1);
-  String get currentEffectText => currentLevel == 0 ? 'research.not_active'.tr() : effectBuilder(currentLevel);
-  String get nextEffectText => isMaxed ? 'research.max_level_reached'.tr() : effectBuilder(currentLevel + 1);
+  bool get isUnlocked => currentLevel > 0;
+  bool get isMaxed => currentLevel >= maxLevel;
+  int get cost => GameBalance.researchCost(
+        baseCost: baseCost,
+        currentLevel: currentLevel,
+        maxLevel: maxLevel,
+      );
+
+  // Research text is resolved by node id instead of relying on generic literal
+  // matching. This makes every R&D node deterministic when the language changes.
+  String get localizedTitle =>
+      'research.nodes.$id.title'.tr(fallback: title);
+  String get localizedCategory =>
+      'research.nodes.$id.category'.tr(fallback: category);
+  String get localizedDescription =>
+      'research.nodes.$id.description'.tr(fallback: description);
+
+  String get currentEffectText => currentLevel == 0
+      ? 'research.not_active'.tr()
+      : effectBuilder(currentLevel).tl();
+  String get nextEffectText => isMaxed
+      ? 'research.max_level_reached'.tr()
+      : effectBuilder(currentLevel + 1).tl();
 }
 
 ResearchNode _n(String id, String title, String category, String description, IconData icon, int baseCost, int maxLevel, List<String> parentIds, String Function(int lvl) effectBuilder, {int currentLevel = 0}) {
@@ -198,7 +220,68 @@ class GameState extends ChangeNotifier {
   int offlineSecondsCapped = 0;
   double offlineEfficiencyApplied = 0.0;
 
-  List<bool> claimedTasks = List.filled(4, false);
+  List<bool> claimedTasks = List<bool>.filled(4, false);
+
+  String _dailyTaskDay = '';
+  int _dailyBaselineClicks = 0;
+  int _dailyBaselineUpgrades = 0;
+  int _dailyBaselineStocks = 0;
+  int _dailyBaselineWheelSpins = 0;
+  bool _dailyTaskCompletionBonusClaimed = false;
+
+  int get dailyTaskCompletionBonusRp =>
+      GameBalance.dailyTaskCompletionBonusRp;
+
+  bool get isDailyTaskCompletionBonusClaimed =>
+      _dailyTaskCompletionBonusClaimed;
+
+  bool get allDailyTasksClaimed =>
+      claimedTasks.isNotEmpty && claimedTasks.every((claimed) => claimed);
+
+  String _dayKey(DateTime value) =>
+      '${value.year.toString().padLeft(4, '0')}-'
+      '${value.month.toString().padLeft(2, '0')}-'
+      '${value.day.toString().padLeft(2, '0')}';
+
+  void _ensureDailyTasksCurrent({bool persist = true}) {
+    final today = _dayKey(DateTime.now());
+    if (_dailyTaskDay == today) return;
+
+    _dailyTaskDay = today;
+    _dailyBaselineClicks = statClicks;
+    _dailyBaselineUpgrades = statUpgrades;
+    _dailyBaselineStocks = statStocks;
+    _dailyBaselineWheelSpins = statWheelSpins;
+    claimedTasks = List<bool>.filled(4, false);
+    notifiedTasks = List<bool>.filled(4, false);
+    _dailyTaskCompletionBonusClaimed = false;
+
+    if (persist && _isInitialized) {
+      _saveGame();
+      notifyListeners();
+    }
+  }
+
+  int getTaskTarget(int index) => GameBalance.taskTarget(index);
+
+  int getTaskRpReward(int index) => GameBalance.taskRpReward(index);
+
+  int getTaskProgress(int index) {
+    _ensureDailyTasksCurrent(persist: false);
+
+    switch (index) {
+      case 0:
+        return math.max(0, statClicks - _dailyBaselineClicks);
+      case 1:
+        return math.max(0, statUpgrades - _dailyBaselineUpgrades);
+      case 2:
+        return math.max(0, statStocks - _dailyBaselineStocks);
+      case 3:
+        return math.max(0, statWheelSpins - _dailyBaselineWheelSpins);
+      default:
+        return 0;
+    }
+  }
 
   bool _areAchievementsUnlocked = false;
   bool get areAchievementsUnlocked => _areAchievementsUnlocked;
@@ -218,18 +301,14 @@ class GameState extends ChangeNotifier {
   List<bool> notifiedTasks = List.filled(4, false);
   List<int> notifiedAchievements = List.filled(7, 0);
 
-  static const List<List<double>> achievementTargets = [
-    [250, 1000, 5000, 20000, 50000, 150000, 400000, 1000000, 2500000, 5000000], 
-    [5e8, 2e11, 1e14, 5e16, 2e19, 1e22, 5e24, 2e27, 1e30, 5e33], 
-    [1, 2, 4, 6, 8, 10, 11, 12, 13, 14], 
-    [1, 5, 15, 35, 80, 200, 500, 1200, 3000, 10000], 
-    [100, 300, 750, 1500, 2500, 3500, 4500, 5500, 6500, 7500], 
-    [25, 100, 500, 2000, 7500, 25000, 75000, 200000, 500000, 1000000], 
-    [1e8, 5e10, 2e13, 1e16, 5e18, 2e21, 1e24, 5e26, 2e29, 1e32], 
-  ];
+  static const List<List<double>> achievementTargets =
+      GameBalance.achievementTargets;
 
-  double getAchievementMoneyReward(int tier) => 1500.0 * math.pow(2.2, tier); 
-  int getAchievementRpReward(int tier) => (tier >= 2) ? (tier - 1) : 1; 
+  double getAchievementMoneyReward(int tier) =>
+      GameBalance.achievementMoneyReward(tier, baseIncomePerSecond);
+
+  int getAchievementRpReward(int tier) =>
+      GameBalance.achievementRpReward(tier);
 
   double getAchievementProgress(int index) {
     if (!_areAchievementsUnlocked) return 0.0;
@@ -249,11 +328,14 @@ class GameState extends ChangeNotifier {
   bool get areTasksUnlocked => true;
 
   int get unclaimedTasksCount {
+    _ensureDailyTasksCurrent(persist: false);
+
     int count = 0;
-    if (!claimedTasks[0] && statAdsWatched >= 3) count++;
-    if (!claimedTasks[1] && statWheelSpins >= 1) count++;
-    if (!claimedTasks[2] && statClicks >= 20) count++;
-    if (!claimedTasks[3] && statStocks >= 3) count++;
+    for (int i = 0; i < claimedTasks.length; i++) {
+      if (!claimedTasks[i] && getTaskProgress(i) >= getTaskTarget(i)) {
+        count++;
+      }
+    }
     return count;
   }
 
@@ -269,13 +351,8 @@ class GameState extends ChangeNotifier {
     return count;
   }
 
-  double getTaskMoneyReward(int index) {
-    const List<double> starterRewards = [800.0, 500.0, 400.0, 600.0];
-    const List<double> scaleSeconds = [75.0, 50.0, 40.0, 60.0];
-    int i = index.clamp(0, 3);
-    double scaled = baseIncomePerSecond * scaleSeconds[i];
-    return math.max(starterRewards[i], scaled);
-  }
+  double getTaskMoneyReward(int index) =>
+      GameBalance.taskMoneyReward(index, baseIncomePerSecond);
 
   void _checkAchievementsUnlock() {
     if (!_areAchievementsUnlocked && _factories.any((f) => f.isUnlocked && f.totalLevel >= 30)) {
@@ -314,29 +391,32 @@ class GameState extends ChangeNotifier {
   }
 
   bool claimTask(int index) {
-    if (index < 0 || index >= claimedTasks.length || claimedTasks[index]) return false;
-    final requirementsMet = <bool>[
-      statAdsWatched >= 3,
-      statWheelSpins >= 1,
-      statClicks >= 20,
-      statStocks >= 3,
-    ];
-    if (!requirementsMet[index]) return false;
-    claimedTasks[index] = true;
-    
-    double mReward = 0; 
-    int rpReward = 0;
-    
-    if (index == 0) mReward = getTaskMoneyReward(0);
-    else if (index == 1) rpReward = 5;
-    else if (index == 2) mReward = getTaskMoneyReward(2);
-    else if (index == 3) rpReward = 2;
+    _ensureDailyTasksCurrent(persist: false);
 
-    if (mReward > 0) { _money += mReward; statTotalEarned += mReward; }
-    if (rpReward > 0) { _researchPoints += rpReward; }
-    
+    if (index < 0 ||
+        index >= claimedTasks.length ||
+        claimedTasks[index] ||
+        getTaskProgress(index) < getTaskTarget(index)) {
+      return false;
+    }
+
+    claimedTasks[index] = true;
+    notifiedTasks[index] = true;
+
+    final moneyReward = getTaskMoneyReward(index);
+    final rpReward = getTaskRpReward(index);
+
+    _money += moneyReward;
+    statTotalEarned += moneyReward;
+    _researchPoints += rpReward;
+
+    if (allDailyTasksClaimed && !_dailyTaskCompletionBonusClaimed) {
+      _dailyTaskCompletionBonusClaimed = true;
+      _researchPoints += GameBalance.dailyTaskCompletionBonusRp;
+    }
+
     _saveGame();
-    _checkNotifications(); 
+    _checkNotifications();
     notifyListeners();
     return true;
   }
@@ -348,18 +428,20 @@ class GameState extends ChangeNotifier {
 
   void _checkNotifications() {
     if (areTasksUnlocked) {
-      final List<Map<String, dynamic>> tData = [
-        {'title': 'Sermaye Enjeksiyonu', 'c': statAdsWatched, 't': 3},
-        {'title': 'Makine Çarkı', 'c': statWheelSpins, 't': 1},
-        {'title': 'Aktif Mesai', 'c': statClicks, 't': 20},
-        {'title': 'Piyasayı Yokla', 'c': statStocks, 't': 3},
-      ];
+      _ensureDailyTasksCurrent(persist: false);
       for (int i = 0; i < 4; i++) {
-        if (!notifiedTasks[i] && !claimedTasks[i]) {
-          if (tData[i]['c'] >= tData[i]['t']) {
-            notifiedTasks[i] = true;
-            _notifications.add(InGameNotification('GÖREV TAMAMLANDI', tData[i]['title'], 'task', i));
-          }
+        if (!notifiedTasks[i] &&
+            !claimedTasks[i] &&
+            getTaskProgress(i) >= getTaskTarget(i)) {
+          notifiedTasks[i] = true;
+          _notifications.add(
+            InGameNotification(
+              'GÖREV TAMAMLANDI',
+              'tasks.items.$i.title'.tr(),
+              'task',
+              i,
+            ),
+          );
         }
       }
     }
@@ -432,7 +514,7 @@ class GameState extends ChangeNotifier {
         (_nodeLevel('node_026') * 0.04) + (_nodeLevel('node_027') * 0.05);
     final visualMilestones = unlocked.fold<int>(0, (sum, factory) => sum + factory.totalLevel ~/ 50);
     m *= 1.0 + (visualMilestones * _nodeLevel('node_049') * 0.05);
-    const turnoverRanks = <double>[1e6, 1e9, 1e12, 1e15, 1e18, 1e21, 1e24, 1e27, 1e30, 1e33];
+    const turnoverRanks = <double>[1e6, 1e9, 1e12, 1e15, 1e18, 1e21, 1e24, 1e27, 1e29, 1e30];
     final rank = turnoverRanks.where((target) => statTotalEarned >= target).length;
     m *= 1.0 + (rank * _nodeLevel('node_095') * 0.05);
     if (rank >= 6) m *= 1.0 + (_nodeLevel('node_096') * 0.10);
@@ -524,17 +606,40 @@ class GameState extends ChangeNotifier {
   }
 
   double _factoryResearchMultiplier(String factoryId) {
+    // The three starter industries share one research path. The player's first
+    // factory choice no longer forces an unrelated furniture/textile/agriculture
+    // node before their own sector benefits.
+    if (factoryId == '1' || factoryId == '2' || factoryId == '3') {
+      return 1.0 +
+          (_nodeLevel('node_003') * 0.05) +
+          (_nodeLevel('node_005') * 0.04) +
+          (_nodeLevel('node_007') * 0.06);
+    }
+
     const nodeByFactory = <String, String>{
-      '1': 'node_007', '2': 'node_003', '3': 'node_005', '4': 'node_004', '6': 'node_006',
-      '7': 'node_009', '9': 'node_008', '11': 'node_010', '12': 'node_011',
-      '13': 'node_013', '14': 'node_012', '15': 'node_014',
+      '4': 'node_004',
+      '6': 'node_006',
+      '7': 'node_009',
+      '9': 'node_008',
+      '11': 'node_010',
+      '12': 'node_011',
+      '13': 'node_013',
+      '14': 'node_012',
+      '15': 'node_014',
     };
+
     final nodeId = nodeByFactory[factoryId];
     if (nodeId == null) return 1.0;
+
     final perLevel = <String, double>{
-      'node_009': 0.06, 'node_010': 0.06, 'node_011': 0.07,
-      'node_012': 0.07, 'node_013': 0.08, 'node_014': 0.10,
+      'node_009': 0.06,
+      'node_010': 0.06,
+      'node_011': 0.07,
+      'node_012': 0.07,
+      'node_013': 0.08,
+      'node_014': 0.10,
     }[nodeId] ?? 0.05;
+
     return 1.0 + (_nodeLevel(nodeId) * perLevel);
   }
 
@@ -663,6 +768,18 @@ class GameState extends ChangeNotifier {
         final saved = List<dynamic>.from(data['claimedTasks']);
         claimedTasks = List<bool>.generate(4, (i) => i < saved.length && saved[i] == true);
       }
+      _dailyTaskDay = data['dailyTaskDay'] as String? ?? '';
+      _dailyBaselineClicks =
+          (data['dailyBaselineClicks'] as num?)?.toInt() ?? statClicks;
+      _dailyBaselineUpgrades =
+          (data['dailyBaselineUpgrades'] as num?)?.toInt() ?? statUpgrades;
+      _dailyBaselineStocks =
+          (data['dailyBaselineStocks'] as num?)?.toInt() ?? statStocks;
+      _dailyBaselineWheelSpins =
+          (data['dailyBaselineWheelSpins'] as num?)?.toInt() ?? statWheelSpins;
+      _dailyTaskCompletionBonusClaimed =
+          data['dailyTaskCompletionBonusClaimed'] == true;
+      _ensureDailyTasksCurrent(persist: false);
       
       _areAchievementsUnlocked = data['areAchievementsUnlocked'] ?? false;
       _achBaselineClicks = data['achBaselineClicks'] ?? 0;
@@ -679,6 +796,11 @@ class GameState extends ChangeNotifier {
       } else {
         notifiedTasks = List<bool>.from(claimedTasks);
       }
+
+      // Perform the date migration only after both claimed and notified task
+      // state have been restored. Otherwise an old day's notification flags
+      // could overwrite the fresh daily reset.
+      _ensureDailyTasksCurrent(persist: false);
 
       if (data['claimedAchievements'] != null) {
         List<dynamic> loadedAch = data['claimedAchievements'];
@@ -822,8 +944,14 @@ class GameState extends ChangeNotifier {
       'starterFactoryId': _starterFactoryId,
       'money': _money, 'researchPoints': _researchPoints, 'isFirstLaunch': _isFirstLaunch, 'language': _language,
       'statClicks': statClicks, 'statStocks': statStocks, 'statUpgrades': statUpgrades, 'statTaxes': statTaxes, 'statPrestige': statPrestige, 'statAdsWatched': statAdsWatched, 'statWheelSpins': statWheelSpins, 'statTotalEarned': statTotalEarned,
-      'claimedTasks': claimedTasks, 
+      'claimedTasks': claimedTasks,
       'notifiedTasks': notifiedTasks,
+      'dailyTaskDay': _dailyTaskDay,
+      'dailyBaselineClicks': _dailyBaselineClicks,
+      'dailyBaselineUpgrades': _dailyBaselineUpgrades,
+      'dailyBaselineStocks': _dailyBaselineStocks,
+      'dailyBaselineWheelSpins': _dailyBaselineWheelSpins,
+      'dailyTaskCompletionBonusClaimed': _dailyTaskCompletionBonusClaimed,
       'areAchievementsUnlocked': _areAchievementsUnlocked,
       'achBaselineClicks': _achBaselineClicks,
       'achBaselineEarned': _achBaselineEarned,
@@ -886,8 +1014,14 @@ class GameState extends ChangeNotifier {
     statClicks = 0; statStocks = 0; statUpgrades = 0; statTaxes = 0; 
     statPrestige = 0; statAdsWatched = 0; statWheelSpins = 0; statTotalEarned = 0.0;
     
-    claimedTasks = List.filled(4, false);
-    notifiedTasks = List.filled(4, false);
+    claimedTasks = List<bool>.filled(4, false);
+    notifiedTasks = List<bool>.filled(4, false);
+    _dailyTaskDay = _dayKey(DateTime.now());
+    _dailyBaselineClicks = 0;
+    _dailyBaselineUpgrades = 0;
+    _dailyBaselineStocks = 0;
+    _dailyBaselineWheelSpins = 0;
+    _dailyTaskCompletionBonusClaimed = false;
 
     _areAchievementsUnlocked = false;
     _achBaselineClicks = 0;
@@ -924,26 +1058,26 @@ class GameState extends ChangeNotifier {
       _buildFac('1', 'Tekstil Atölyesi', _starterFactoryId == '1' ? 0.0 : 300000.0, _starterFactoryId == '1', ['T-shirt', 'Pantolon', 'Ayakkabı', 'Çanta', 'Takım Elbise'], 2.0),
       _buildFac('2', 'Mobilya Fabrikası', _starterFactoryId == '2' ? 0.0 : 300000.0, _starterFactoryId == '2', ['Sandalye', 'Masa', 'Koltuk', 'Yatak', 'Dolap'], 2.0),
       _buildFac('3', 'Tarım Tesisleri', _starterFactoryId == '3' ? 0.0 : 300000.0, _starterFactoryId == '3', ['Buğday', 'Mısır', 'Pamuk', 'Safran', 'Hibrit Tohum'], 2.0),
-      _buildFac('4', 'Süt Ürünleri', 4e6, false, ['Süt', 'Yoğurt', 'Tereyağ', 'Arı Sütü', 'Pule Peyniri'], 120.0), 
+      _buildFac('4', 'Süt Ürünleri', 4e6, false, ['Süt', 'Yoğurt', 'Tereyağı', 'Arı Sütü', 'Pule Peyniri'], 120.0), 
       _buildFac('5', 'Mezbaha', 65e6, false, ['Sosis', 'Tavuk', 'Kebap', 'Timsah Derisi', 'Wagyu Eti'], 1600.0),
       _buildFac('6', 'Gıda İşleme', 1.5e9, false, ['Un', 'Şeker', 'Konserve', 'Havyar', 'Gurme Çikolata'], 28000.0), 
       _buildFac('7', 'Maden Çıkarma', 45e9, false, ['Kömür', 'Demir', 'Gümüş', 'Altın', 'Elmas'], 600000.0), 
       _buildFac('8', 'Kimya Tesisleri', 1.8e12, false, ['Gübre', 'Plastik', 'Boya', 'Lüks Parfüm', 'Karbonfiber'], 15e6), 
-      _buildFac('9', 'Otomobil Fabrikası', 80e12, false, ['Lastik', 'Motorsiklet', 'Otomobil', 'Vip Limuzin', 'Süper Spor Araç'], 450e6), 
-      _buildFac('10', 'İlaç Fabrikası', 4e15, false, ['Vitamin Hapı', 'Ağrı Kesici', 'Antibiyotik', 'Covi-19 Aşısı', 'Kanser İlacı'], 12e9), 
+      _buildFac('9', 'Otomobil Fabrikası', 80e12, false, ['Lastik', 'Motosiklet', 'Otomobil', 'VIP Limuzin', 'Süper Spor Araç'], 450e6), 
+      _buildFac('10', 'İlaç Fabrikası', 4e15, false, ['Vitamin Hapı', 'Ağrı Kesici', 'Antibiyotik', 'COVID-19 Aşısı', 'Kanser İlacı'], 12e9), 
       _buildFac('11', 'Elektronik Eşya', 200e15, false, ['Hesap Makinesi', 'Telefon', 'Televizyon', 'İnsansız Hava Aracı', 'Kuantum PC'], 380e9), 
       _buildFac('12', 'Yapay Zeka Ar-Ge', 12e18, false, ['Sohbet Botu', 'Satranç Botu', 'Görsel Oluşturma Botu', 'Kodlama Botu', 'Humanoid Robot'], 12e12), 
-      _buildFac('13', 'Enerji Santrali', 800e18, false, ['Güneş Paneli', 'Rüzgar Tribünü', 'Nükleer Santral', 'Parçacık Hızlandırıcı', 'Füzyon Çekirdeği'], 400e12), 
+      _buildFac('13', 'Enerji Santrali', 800e18, false, ['Güneş Paneli', 'Rüzgar Türbini', 'Nükleer Santral', 'Parçacık Hızlandırıcı', 'Füzyon Çekirdeği'], 400e12), 
       _buildFac('14', 'Biyoteknoloji', 60e21, false, ['Kök Hücre', '3D Biyo-Yazıcı', 'Biyonik Organ', 'Biyoçip', 'Klon Canlı'], 15e15), 
-      _buildFac('15', 'Uzay Sanayii', 500e27, false, ['Roket Motoru', 'Uydu', 'Uzay Mekiği', 'Ay İniş Aracı', 'Yıldız Gemisi'], 750e15),
+      _buildFac('15', 'Uzay Sanayii', 3e24, false, ['Roket Motoru', 'Uydu', 'Uzay Mekiği', 'Ay İniş Aracı', 'Yıldız Gemisi'], 750e15),
     ];
   }
 
   FactoryData _buildFac(String id, String n, double pr, bool unl, List<String> pNames, double bInc) {
     List<FactoryProduct> prods = [];
     for(int i = 0; i < pNames.length; i++) {
-       double inc = bInc * math.pow(2.5, i); 
-       prods.add(FactoryProduct(name: pNames[i], baseIncome: inc, baseCost: inc * 12.0, level: (unl && i == 0) ? 1 : 0)); 
+       double inc = bInc * math.pow(GameBalance.productTierIncomeMultiplier, i); 
+       prods.add(FactoryProduct(name: pNames[i], baseIncome: inc, baseCost: inc * GameBalance.productBaseCostMultiplier, level: (unl && i == 0) ? 1 : 0)); 
     }
     return FactoryData(id: id, name: n, price: pr, isUnlocked: unl, products: prods);
   }
@@ -969,11 +1103,11 @@ class GameState extends ChangeNotifier {
     _researchNodes = [
       _n('node_001', 'Holding Beratı', 'Temel', 'Tüm fabrikaların taban üretim gelirini kalıcı olarak artırır.', Icons.account_balance_rounded, 1, 1, [], (lvl) => 'Tüm Fabrika Taban Geliri: +%${lvl * 3}', currentLevel: 1),
       _n('node_002', 'Ağır Sanayi Doktrini', 'Sanayi', 'Fabrika geliştirme maliyetlerini kalıcı olarak düşürür.', Icons.factory_rounded, 2, 5, ['node_001'], (lvl) => 'Fabrika Geliştirme Maliyeti: -%${lvl * 3}'),
-      _n('node_003', 'Mobilya Seri Üretimi', 'Fabrika', 'Mobilya fabrikası üretim hattının kârını artırır.', Icons.chair_rounded, 3, 5, ['node_002'], (lvl) => 'Mobilya Fabrikası Geliri: +%${lvl * 5}'),
+      _n('node_003', 'Giriş Seviyesi Sanayi Platformu', 'Fabrika', 'Tekstil, mobilya ve tarım tesislerinin ortak üretim standardını geliştirir.', Icons.hub_rounded, 3, 5, ['node_002'], (lvl) => 'Giriş Seviyesi Fabrika Geliri: +%${lvl * 5}'),
       _n('node_004', 'Pastörizasyon Hatları', 'Fabrika', 'Süt ürünleri fabrikası üretim hattının kârını artırır.', Icons.local_drink_rounded, 3, 5, ['node_002'], (lvl) => 'Süt Ürünleri Fabrikası Geliri: +%${lvl * 5}'),
-      _n('node_005', 'Otomatik Sulama', 'Fabrika', 'Tarım fabrikası üretim hattının kârını artırır.', Icons.agriculture_rounded, 4, 5, ['node_003'], (lvl) => 'Tarım Fabrikası Geliri: +%${lvl * 5}'),
+      _n('node_005', 'Esnek Üretim Hücreleri', 'Fabrika', 'Üç giriş seviyesi fabrikanın esnek üretim kapasitesini artırır.', Icons.precision_manufacturing_rounded, 4, 5, ['node_003'], (lvl) => 'Esnek Üretim Geliri: +%${lvl * 4}'),
       _n('node_006', 'Gıda Seri Üretimi', 'Fabrika', 'Gıda işleme tesisinin üretim hattı kârını artırır.', Icons.restaurant_rounded, 4, 5, ['node_003'], (lvl) => 'Gıda İşleme Geliri: +%${lvl * 5}'),
-      _n('node_007', 'Mekanik Dokuma', 'Fabrika', 'Tekstil fabrikası üretim hattının kârını artırır.', Icons.checkroom_rounded, 4, 5, ['node_004'], (lvl) => 'Tekstil Fabrikası Geliri: +%${lvl * 5}'),
+      _n('node_007', 'Başlangıç Sektörü Ustalığı', 'Fabrika', 'Seçtiğiniz başlangıç sektöründen bağımsız olarak üç temel fabrikanın kârlılığını artırır.', Icons.auto_graph_rounded, 5, 5, ['node_005'], (lvl) => 'Başlangıç Fabrikaları Geliri: +%${lvl * 6}'),
       _n('node_008', 'Karoser Robot Hattı', 'Fabrika', 'Otomobil fabrikası üretim hattının kârını artırır.', Icons.directions_car_rounded, 4, 5, ['node_004'], (lvl) => 'Otomobil Fabrikası Geliri: +%${lvl * 5}'),
       _n('node_009', 'Derin Kuyu Sondajı', 'Fabrika', 'Maden fabrikası üretim hattının kârını artırır.', Icons.landslide_rounded, 5, 5, ['node_005'], (lvl) => 'Maden Fabrikası Geliri: +%${lvl * 6}'),
       _n('node_010', 'Yarı İletken Baskı', 'Fabrika', 'Elektronik fabrikası üretim hattının kârını artırır.', Icons.memory_rounded, 5, 5, ['node_006'], (lvl) => 'Elektronik Fabrikası Geliri: +%${lvl * 6}'),
@@ -1063,10 +1197,10 @@ class GameState extends ChangeNotifier {
       _n('node_094', 'Endüstriyel Miras', 'Prestij', 'Prestij sonrası ilk fabrikayı seviyesi ve 2. ürünü açık başlatır.', Icons.corporate_fare_rounded, 18, 1, ['node_093'], (lvl) => 'İlk Fabrika Doğrudan Seviye 30 Başlar'),
       _n('node_095', 'Girişimci Unvanı', 'Unvan', 'Kazanılan her ciro rütbesi için kalıcı ciro primi sağlar.', Icons.military_tech_outlined, 12, 2, ['node_094'], (lvl) => 'Her Ciro Rütbesi İçin Gelir Bonusu: +%${lvl * 5}'),
       _n('node_096', 'Galaktik Tycoon', 'Unvan', 'Lvl 6 Galaktik Tycoon ve üzeri rütbelere dev gelir çarpanı verir.', Icons.military_tech_sharp, 18, 2, ['node_095'], (lvl) => 'Lvl 6+ Rütbelere Özel Gelir Çarpanı: +%${lvl * 10}'),
-      _n('node_097', '10^33 İvmelendiricisi', 'Unvan', '10^33 unvanına yaklaşırken gelir çarpanlarını katlar.', Icons.all_inclusive_rounded, 25, 1, ['node_096'], (lvl) => '10^33 Hedefine Yaklaşırken Ciro Katsayıları 1.5x Katlanır'),
+      _n('node_097', '10^30 İvmelendiricisi', 'Unvan', '10^30 nihai ciro hedefine yaklaşırken gelir çarpanlarını katlar.', Icons.all_inclusive_rounded, 25, 1, ['node_096'], (lvl) => '10^30 Hedefine Yaklaşırken Ciro Katsayıları 1.5x Katlanır'),
       _n('node_098', 'Otomatik Tasfiye Protokolü', 'Prestij', 'Prestij yaparken vergi borcu engelini tek tuşla otomatik çözer.', Icons.assignment_turned_in_rounded, 20, 1, ['node_097'], (lvl) => 'Vergi Borcu Varsa Otomatik Affettirilir'),
       _n('node_099', 'Sermaye Sütun Zirvesi', 'Apex Kol 2', 'Kol 2 Apex: Borsa, kâr ve nakit akışını kalıcı olarak ikiye katlar.', Icons.account_balance_rounded, 40, 1, ['node_098'], (lvl) => 'Borsa ve Nakit Akışı Kalıcı 2.0x'),
-      _n('node_100', 'Dünyaların Sahibi', 'Apex', '10^33 Ciroya Giden Zirve: Tüm sistemleri maksimum verimle taçlandırır.', Icons.diamond_rounded, 100, 1, ['node_050', 'node_099'], (lvl) => '10^33 Zirvesi: Maliyetler -%50, Saniyelik Gelir 5x ve Prestij RP Kazanımı 3x!'),
+      _n('node_100', 'Dünyaların Sahibi', 'Apex', '10^30 ciro zirvesi: Tüm sistemleri maksimum verimle taçlandırır.', Icons.diamond_rounded, 100, 1, ['node_050', 'node_099'], (lvl) => '10^30 Zirvesi: Maliyetler -%50, Saniyelik Gelir 5x ve Prestij RP Kazanımı 3x!'),
     ];
   }
 
@@ -1131,6 +1265,7 @@ class GameState extends ChangeNotifier {
   }
 
   void _processSecond() {
+    _ensureDailyTasksCurrent();
     if (incomePerSecond > 0) {
       _money += incomePerSecond;
       statTotalEarned += incomePerSecond; 

@@ -4,7 +4,8 @@
 import 'dart:async' as async;
 import 'dart:math' as math;
 import 'dart:ui' as ui;
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide AnimatedContainer, Container, Icon, Text;
+import '../widgets/adaptive_widgets.dart';
 import 'package:flutter/services.dart'; 
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
@@ -22,6 +23,7 @@ import '../widgets/factory_drawings.dart';
 import 'factory_screen.dart' show FactoryInsideModal;
 import '../services/admob_service.dart';
 import '../services/audio_service.dart'; 
+import '../services/translation_service.dart';
 import 'main_menu_screen.dart';
 import 'research_screen.dart';
 import 'stock_screen.dart';
@@ -94,7 +96,7 @@ class _MapScreenState extends State<MapScreen> {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(color: AppColors.neonCyan, borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.black, width: 3)),
-                    child: SizedBox(width: 40, height: 40, child: CustomPaint(painter: HeavyIconPainter(type: 'factory', color: Colors.white))), 
+                    child: SizedBox(width: 40, height: 40, child: CustomPaint(painter: HeavyIconPainter(type: 'factory', color: adaptiveIconColor(context, Colors.white) ?? Colors.white))), 
                   ),
                   const SizedBox(height: 20),
                   FittedBox(fit: BoxFit.scaleDown, child: Text('SEKTÖR SEÇİMİ', textAlign: TextAlign.center, style: AppTheme.titleStyle(fontSize: 24).copyWith(color: Colors.black, shadows: []))),
@@ -128,7 +130,7 @@ class _MapScreenState extends State<MapScreen> {
                       await context.read<GameState>().applyStarterSector(selectedId);
                       if (context.mounted) Navigator.pop(context);
                     },
-                    child: const Text('SEKTÖRE GİRİŞ YAP', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 16, letterSpacing: 1.0)),
+                    child: const FittedBox(fit: BoxFit.scaleDown, child: Text('SEKTÖRE GİRİŞ YAP', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 16, letterSpacing: 1.0))),
                   ),
                 ],
               ),
@@ -156,7 +158,7 @@ class _MapScreenState extends State<MapScreen> {
           ),
           child: Column(
             children: [
-              SizedBox(width: 32, height: 32, child: CustomPaint(painter: HeavyIconPainter(type: iconType, color: isSel ? Colors.black : AppColors.textMuted))),
+              SizedBox(width: 32, height: 32, child: CustomPaint(painter: HeavyIconPainter(type: iconType, color: isSel ? Colors.black : (context.watch<GameState>().useDarkTheme ? Colors.white : AppColors.textMuted)))),
               const SizedBox(height: 12),
               FittedBox(fit: BoxFit.scaleDown, child: Text(name, style: TextStyle(color: isSel ? Colors.black : AppColors.textMuted, fontSize: 13, fontWeight: FontWeight.w900))),
             ],
@@ -210,7 +212,7 @@ class _MapScreenState extends State<MapScreen> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: AppColors.profit, borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.black, width: 3)), child: SizedBox(width: 48, height: 48, child: CustomPaint(painter: HeavyIconPainter(type: 'chart', color: Colors.white)))), 
+            Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: AppColors.profit, borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.black, width: 3)), child: SizedBox(width: 48, height: 48, child: CustomPaint(painter: HeavyIconPainter(type: 'chart', color: adaptiveIconColor(context, Colors.white) ?? Colors.white)))), 
             const SizedBox(height: 20),
             const Text('Siz yokken üretim bantları çalışmaya devam etti ancak verim düştü!', textAlign: TextAlign.center, style: TextStyle(color: AppColors.textSecondary, fontSize: 14, fontWeight: FontWeight.bold)), 
             const SizedBox(height: 16),
@@ -349,9 +351,13 @@ class _MapScreenState extends State<MapScreen> {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: _uiMutedSurface(context), borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.black, width: 3)), child: SizedBox(width: 48, height: 48, child: CustomPaint(painter: HeavyIconPainter(type: 'land', color: Colors.black)))), 
+              Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: _uiMutedSurface(context), borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.black, width: 3)), child: SizedBox(width: 48, height: 48, child: CustomPaint(painter: HeavyIconPainter(type: 'land', color: context.watch<GameState>().useDarkTheme ? Colors.white : Colors.black)))), 
               const SizedBox(height: 20),
-              Text('${fac.name} inşası için arsa bedeli:', textAlign: TextAlign.center, style: const TextStyle(color: AppColors.textSecondary, fontSize: 15, fontWeight: FontWeight.bold)), 
+              Text(
+                '${TranslationService.instance.factoryName(fac.id, fallback: fac.name)} inşası için arsa bedeli:',
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: AppColors.textSecondary, fontSize: 15, fontWeight: FontWeight.bold),
+              ), 
               const SizedBox(height: 16),
               Container(padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12), decoration: BoxDecoration(color: const Color(0xFFFEF3C7), border: Border.all(color: Colors.black, width: 3), borderRadius: BorderRadius.circular(16)), child: FittedBox(fit: BoxFit.scaleDown, child: Text(finalPrice == 0 ? 'BEDELSİZ' : '\$${_formatNum(finalPrice)}', style: const TextStyle(color: AppColors.gold, fontSize: 24, fontWeight: FontWeight.w900, fontFamily: 'SpaceMono')))),
             ],
@@ -364,7 +370,7 @@ class _MapScreenState extends State<MapScreen> {
                 AudioService.instance.playSfx('click.mp3');
                 Navigator.pop(context);
               }, 
-              child: const Text('İPTAL', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 14))
+              child: const FittedBox(fit: BoxFit.scaleDown, child: Text('İPTAL', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 14)))
             ),
             HeavyTycoonButton(
               height: 55, color: AppColors.gold, shadowColor: Colors.orange.shade700, padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -381,7 +387,7 @@ class _MapScreenState extends State<MapScreen> {
                   Navigator.pop(context); 
                 }
               },
-              child: const Text('ONAYLA', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 14)),
+              child: const FittedBox(fit: BoxFit.scaleDown, child: Text('ONAYLA', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 14))),
             ),
           ],
         );
@@ -406,7 +412,7 @@ class _MapScreenState extends State<MapScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32), side: const BorderSide(color: Colors.black, width: 4)),
         title: Row(
           children: [
-            Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: AppColors.loss, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.black, width: 2)), child: SizedBox(width: 32, height: 32, child: CustomPaint(painter: HeavyIconPainter(type: 'receipt', color: Colors.white)))),
+            Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: AppColors.loss, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.black, width: 2)), child: SizedBox(width: 32, height: 32, child: CustomPaint(painter: HeavyIconPainter(type: 'receipt', color: adaptiveIconColor(context, Colors.white) ?? Colors.white)))),
             const SizedBox(width: 12),
             const Expanded(child: FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerLeft, child: Text('VERGİ TAHAKKUKU', style: TextStyle(color: Colors.black, fontSize: 18, fontWeight: FontWeight.w900)))),
           ],
@@ -500,7 +506,12 @@ class _MapScreenState extends State<MapScreen> {
               children: [
                 Icon(Icons.play_circle_fill_rounded, size: 20, color: Colors.black),
                 SizedBox(width: 8),
-                FittedBox(fit: BoxFit.scaleDown, child: Text('REKLAMLA ÖDE', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 13))),
+                Flexible(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text('REKLAMLA ÖDE', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 13)),
+                  ),
+                ),
               ]
             ),
           ),
@@ -754,7 +765,7 @@ class _MapScreenState extends State<MapScreen> {
                                 ),
                                 child: PopupMenuButton<String>(
                                   padding: EdgeInsets.zero,
-                                  tooltip: 'Menü',
+                                  tooltip: 'Menü'.tl(),
                                   icon: Icon(Icons.menu_rounded, size: narrow ? 29 : 32, color: Colors.black),
                                   offset: Offset(0, menuSize),
                                   onSelected: (value) {
@@ -984,7 +995,7 @@ class _MapScreenState extends State<MapScreen> {
           children: [
             SizedBox(
               width: 32, height: 32,
-              child: CustomPaint(painter: HeavyIconPainter(type: iconType, color: Colors.black)),
+              child: CustomPaint(painter: HeavyIconPainter(type: iconType, color: context.watch<GameState>().useDarkTheme ? Colors.white : Colors.black)),
             ),
             const SizedBox(height: 8),
             Text(title.toUpperCase(), style: const TextStyle(color: Colors.black, fontSize: 13, fontWeight: FontWeight.w900, letterSpacing: 1.0)),
@@ -1145,9 +1156,13 @@ class _TopNotificationItemState extends State<TopNotificationItem> with SingleTi
                     ),
                   ),
                   Container(
+                    constraints: const BoxConstraints(maxWidth: 96),
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     decoration: BoxDecoration(color: const Color(0xFFDCFCE7), borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.black, width: 2)),
-                    child: const Text('ÖDÜLÜ AL', style: TextStyle(color: AppColors.profit, fontSize: 12, fontWeight: FontWeight.w900)),
+                    child: const FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text('ÖDÜLÜ AL', style: TextStyle(color: AppColors.profit, fontSize: 12, fontWeight: FontWeight.w900)),
+                    ),
                   )
                 ],
               ),
@@ -1265,7 +1280,7 @@ class _EventTimerDialogState extends State<EventTimerDialog> with SingleTickerPr
             child: SizedBox(
               width: 28,
               height: 28,
-              child: CustomPaint(painter: HeavyIconPainter(type: 'warning', color: Colors.white)),
+              child: CustomPaint(painter: HeavyIconPainter(type: 'warning', color: adaptiveIconColor(context, Colors.white) ?? Colors.white)),
             ),
           ),
           const SizedBox(width: 12),
@@ -1565,7 +1580,7 @@ class _EventResultDialogState extends State<EventResultDialog> {
                 AudioService.instance.playSfx('click.mp3');
                 Navigator.pop(context);
               },
-              child: Text(recoveredFromTimeout ? 'TAMAM — UYGULANDI' : 'TAMAM', style: TextStyle(color: recoveredFromTimeout ? Colors.white : Colors.black, fontSize: 14, fontWeight: FontWeight.w900)),
+              child: FittedBox(fit: BoxFit.scaleDown, child: Text(recoveredFromTimeout ? 'TAMAM — UYGULANDI' : 'TAMAM', style: TextStyle(color: recoveredFromTimeout ? Colors.white : Colors.black, fontSize: 14, fontWeight: FontWeight.w900))),
             ),
           ],
         );
@@ -1615,7 +1630,7 @@ class _PulsingTaxIconState extends State<PulsingTaxIcon> with SingleTickerProvid
           decoration: BoxDecoration(color: AppColors.loss, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.black, width: 2)),
           child: SizedBox(
             width: 24, height: 24,
-            child: CustomPaint(painter: HeavyIconPainter(type: 'warning', color: Colors.white)),
+            child: CustomPaint(painter: HeavyIconPainter(type: 'warning', color: adaptiveIconColor(context, Colors.white) ?? Colors.white)),
           ),
         ),
       ),
@@ -1679,7 +1694,7 @@ class _AnimatedSideButtonState extends State<AnimatedSideButton> {
                 child: Center(
                   child: SizedBox(
                     width: 28, height: 28,
-                    child: CustomPaint(painter: HeavyIconPainter(type: widget.iconType, color: Colors.black)),
+                    child: CustomPaint(painter: HeavyIconPainter(type: widget.iconType, color: context.watch<GameState>().useDarkTheme ? Colors.white : Colors.black)),
                   ),
                 ),
               ),
@@ -1734,7 +1749,7 @@ class HeavyIconPainter extends CustomPainter {
     switch (type) {
       case 'boost':
         final textPainter = TextPainter(
-          text: TextSpan(text: '2X', style: TextStyle(color: color, fontSize: 15, fontWeight: FontWeight.w900, fontFamily: 'SpaceMono')),
+          text: TextSpan(text: '2X'.tl(), style: TextStyle(color: color, fontSize: 15, fontWeight: FontWeight.w900, fontFamily: 'SpaceMono')),
           textDirection: TextDirection.ltr,
         )..layout();
         textPainter.paint(canvas, Offset(12 - textPainter.width / 2, 12 - textPainter.height / 2));
@@ -2306,7 +2321,10 @@ class HoldingTycoonGame extends FlameGame with ScaleDetector {
     _currentState = state; 
     for (var child in mapWorld.children) { 
       if (child is FactoryPlotComponent && _currentState != null) { 
-        child.updateData(_currentState!.factories.firstWhere((f) => f.id == child.factoryId)); 
+        child.updateData(
+          _currentState!.factories.firstWhere((f) => f.id == child.factoryId),
+          darkMode: _currentState!.useDarkTheme,
+        ); 
       } 
     } 
   }
@@ -2453,12 +2471,16 @@ class FactoryPlotComponent extends PositionComponent with TapCallbacks {
   final String factoryId; 
   final Function(String) onTap; 
   FactoryData? _data;
+  bool _darkMode = false;
   
   FactoryPlotComponent({required this.factoryId, required Vector2 position, required this.onTap}) : super(position: position, size: Vector2(250, 250), anchor: Anchor.center) {
     priority = 30;
   }
   
-  void updateData(FactoryData data) { _data = data; } 
+  void updateData(FactoryData data, {bool darkMode = false}) {
+    _data = data;
+    _darkMode = darkMode;
+  } 
   
   @override void onTapUp(TapUpEvent event) { onTap(factoryId); }
   
@@ -2470,9 +2492,18 @@ class FactoryPlotComponent extends PositionComponent with TapCallbacks {
     }
     
     if (!currentData.isUnlocked) {
-      canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(10, 10, size.x-20, size.y-20), const Radius.circular(20)), Paint()..color = Colors.white.withValues(alpha: 0.85)..style=PaintingStyle.fill);
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(
+          Rect.fromLTWH(10, 10, size.x - 20, size.y - 20),
+          const Radius.circular(20),
+        ),
+        Paint()
+          ..color = (_darkMode ? AppColors.darkSurface : Colors.white)
+              .withValues(alpha: 0.90)
+          ..style = PaintingStyle.fill,
+      );
       canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(10, 10, size.x-20, size.y-20), const Radius.circular(20)), Paint()..color = Colors.black..style=PaintingStyle.stroke..strokeWidth=5);
-      final iconPainter = TextPainter(textDirection: TextDirection.ltr)..text = TextSpan(text: String.fromCharCode(Icons.lock_rounded.codePoint), style: TextStyle(fontSize: 40, fontFamily: Icons.lock_rounded.fontFamily, color: Colors.black))..layout(); 
+      final iconPainter = TextPainter(textDirection: TextDirection.ltr)..text = TextSpan(text: String.fromCharCode(Icons.lock_rounded.codePoint), style: TextStyle(fontSize: 40, fontFamily: Icons.lock_rounded.fontFamily, color: _darkMode ? Colors.white : Colors.black))..layout(); 
       iconPainter.paint(canvas, Offset(size.x/2 - 20, size.y/2 - 20));
     } else {
       // The unlocked plot is rendered by the dedicated vector-art system.

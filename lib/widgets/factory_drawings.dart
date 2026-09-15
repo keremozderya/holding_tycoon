@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../services/translation_service.dart';
 
 class FactoryDrawingRenderer {
   static void paint(Canvas canvas, Size size, {required String factoryId, required int stage}) {
@@ -379,7 +380,7 @@ class FactoryDrawingRenderer {
       canvas.drawRect(signRect, fill(AppColors.gold));
       canvas.drawRect(signRect, outline..strokeWidth = 1.0);
 
-      String holdingName = "HOLDİNG"; // buraya holdingin adı otomatik gelecek
+      String holdingName = "HOLDİNG".tl(); // buraya holdingin adı otomatik gelecek
       double fontSize = 14.0;
       TextPainter textPainter;
       
@@ -502,7 +503,7 @@ class FactoryDrawingRenderer {
     canvas.drawRect(const Rect.fromLTWH(94, 198, 52, 13), outline);
     canvas.drawRect(const Rect.fromLTWH(94, 198, 52, 13), fill(AppColors.gold));
 
-    String gateText = "TARIM ALANI"; // TODO: tr.json key -> 'agriculture_area'
+    String gateText = "TARIM ALANI".tl(); // TODO: tr.json key -> 'agriculture_area'
     
     final gateTextPainter = TextPainter(
       text: TextSpan(
@@ -537,7 +538,7 @@ class FactoryDrawingRenderer {
     
     final textPainter = TextPainter(
       text: TextSpan(
-        text: 'SEKTÖR $id\nÇİZİM BEKLİYOR', 
+        text: 'SEKTÖR $id\nÇİZİM BEKLİYOR'.tl(), 
         style: AppTheme.titleStyle(fontSize: 16).copyWith(color: Colors.black, shadows: [])
       ), 
       textDirection: TextDirection.ltr, 

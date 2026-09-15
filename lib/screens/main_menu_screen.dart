@@ -4,7 +4,8 @@
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide AnimatedContainer, Container, Icon, Text;
+import '../widgets/adaptive_widgets.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -107,9 +108,12 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
               AudioService.instance.playSfx('click.mp3');
               Navigator.pop(c);
             },
-            child: const Text(
-              'İPTAL',
-              style: TextStyle(color: AppColors.textMuted, fontWeight: FontWeight.w900, fontSize: 16),
+            child: const FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                'İPTAL',
+                style: TextStyle(color: AppColors.textMuted, fontWeight: FontWeight.w900, fontSize: 16),
+              ),
             ),
           ),
           MenuHeavyButton(
@@ -132,9 +136,12 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                 _showHoldingSetupDialog();
               }
             },
-            child: const Text(
-              'SİL VE BAŞLA',
-              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 14),
+            child: const FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                'SİL VE BAŞLA',
+                style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 14),
+              ),
             ),
           ),
         ],
@@ -216,8 +223,8 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                             maxLength: 24,
                             inputFormatters: [FilteringTextInputFormatter.deny(RegExp(r'[\n\r]'))],
                             style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 18, fontFamily: 'SpaceMono'),
-                            decoration: const InputDecoration(
-                              labelText: 'Holding Adı',
+                            decoration: InputDecoration(
+                              labelText: 'Holding Adı'.tl(),
                               labelStyle: TextStyle(color: AppColors.textMuted, fontSize: 14, fontWeight: FontWeight.bold),
                               border: InputBorder.none,
                               counterText: '',
@@ -286,7 +293,7 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                               }
                             }
                           },
-                          child: const Text('HOLDİNGİ KUR', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 16, letterSpacing: 1.0)),
+                          child: const FittedBox(fit: BoxFit.scaleDown, child: Text('HOLDİNGİ KUR', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 16, letterSpacing: 1.0))),
                         ),
                       ],
                     ),
@@ -458,9 +465,12 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                                     AudioService.instance.playSfx('click.mp3');
                                     _showHoldingSetupDialog();
                                   },
-                                  child: const Text(
-                                    'HOLDİNG KUR',
-                                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 18, letterSpacing: 1.5),
+                                  child: const FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Text(
+                                      'HOLDİNG KUR',
+                                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 18, letterSpacing: 1.5),
+                                    ),
                                   ),
                                 ),
                               ] else ...[
@@ -474,9 +484,12 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                                     AudioService.instance.playSfx('click.mp3');
                                     _goToMap();
                                   },
-                                  child: const Text(
-                                    'HOLDİNGİ YÖNET',
-                                    style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 18, letterSpacing: 1.5),
+                                  child: const FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Text(
+                                      'HOLDİNGİ YÖNET',
+                                      style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 18, letterSpacing: 1.5),
+                                    ),
                                   ),
                                 ),
                                 const SizedBox(height: 20),
@@ -491,9 +504,14 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                                     children: [
                                       Icon(Icons.add_business_rounded, size: 24, color: AppColors.neonCyan),
                                       SizedBox(width: 10),
-                                      Text(
-                                        'YENİ HOLDİNG KUR',
-                                        style: TextStyle(fontWeight: FontWeight.w900, fontSize: 14, letterSpacing: 1.0, color: Colors.black),
+                                      Flexible(
+                                        child: FittedBox(
+                                          fit: BoxFit.scaleDown,
+                                          child: Text(
+                                            'YENİ HOLDİNG KUR',
+                                            style: TextStyle(fontWeight: FontWeight.w900, fontSize: 14, letterSpacing: 1.0, color: Colors.black),
+                                          ),
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -515,9 +533,14 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                                   children: [
                                     Icon(Icons.settings_suggest_rounded, size: 24, color: AppColors.textSecondary),
                                     SizedBox(width: 10),
-                                    Text(
-                                      'OYUN AYARLARI',
-                                      style: TextStyle(fontWeight: FontWeight.w900, fontSize: 14, letterSpacing: 1.0, color: AppColors.textSecondary),
+                                    Flexible(
+                                      child: FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        child: Text(
+                                          'OYUN AYARLARI',
+                                          style: TextStyle(fontWeight: FontWeight.w900, fontSize: 14, letterSpacing: 1.0, color: AppColors.textSecondary),
+                                        ),
+                                      ),
                                     ),
                                   ],
                                 ),

@@ -1,16 +1,89 @@
 {
   "app_title": "Holding Tycoon",
+  "common": {
+    "claim": "AL",
+    "claimed": "ALINDI",
+    "waiting": "BEKLİYOR",
+    "locked": "KİLİTLİ",
+    "completed": "TAMAMLANDI",
+    "maximum": "MAKSİMUM",
+    "understood": "ANLAŞILDI",
+    "cancel": "İPTAL",
+    "close": "KAPAT"
+  },
   "settings": {
     "title": "Ayarlar",
     "sound_settings": "Ses Ayarları",
     "music_volume": "Müzik Sesi",
     "sfx_volume": "Efekt Sesi",
     "language_options": "Dil Seçenekleri",
-    "game_language": "Oyun Dili"
+    "game_language": "Oyun Dili",
+    "appearance": "Görünüm",
+    "interface_theme": "Arayüz Teması",
+    "theme_description": "Açık veya koyu cartoon arayüzünü seç.",
+    "light": "Açık Tema",
+    "dark": "Koyu Tema"
   },
   "tasks": {
     "title": "Görevler",
-    "refresh_info": "Tamamlanan görevlerin ödüllerini topla"
+    "refresh_info": "Tamamlanan görevlerin ödüllerini topla",
+    "daily_info": "Her gün yenilenir • 30 dakikalık oturuma göre dengelendi",
+    "claimed_message": "Görev tamamlandı!",
+    "progress": "{current} / {target}",
+    "all_clear_bonus": "4 günlük görevi tamamla: +{rp} RP bonus",
+    "items": {
+      "0": {
+        "title": "Aktif Mesai • 75 manuel üretim"
+      },
+      "1": {
+        "title": "Üretim Yatırımı • 10 geliştirme"
+      },
+      "2": {
+        "title": "Piyasa Takibi • 3 borsa işlemi"
+      },
+      "3": {
+        "title": "Makine Çarkı • 1 çevirme"
+      }
+    }
+  },
+  "achievements": {
+    "title": "Başarımlar",
+    "reward_claimed": "Kademe ödülü alındı!",
+    "locked_title": "BAŞARIMLAR KİLİTLİ",
+    "locked_description": "Holding başarımlarını açmak için herhangi bir fabrikanı toplam seviye 30'a ulaştır.",
+    "total_progress": "TOPLAM İLERLEME: {current} / {total}",
+    "tier": "KADEME {current}/{total}",
+    "all_tiers_complete": "Tüm kademeler tamamlandı.",
+    "items": {
+      "0": {
+        "title": "Üretim Ustası",
+        "description": "Üretim hattında toplam {target} kez manuel üretim yap."
+      },
+      "1": {
+        "title": "Ciro İmparatorluğu",
+        "description": "Toplam $ {target} ciro elde et."
+      },
+      "2": {
+        "title": "Holding Genişlemesi",
+        "description": "{target} yeni sanayi tesisini faaliyete geçir."
+      },
+      "3": {
+        "title": "Prestij Stratejisti",
+        "description": "{target} kez holding prestiji yap."
+      },
+      "4": {
+        "title": "Sanayi Ölçeği",
+        "description": "Tesis bantlarında toplam {target} ilave seviyeye ulaş."
+      },
+      "5": {
+        "title": "Piyasa Oyuncusu",
+        "description": "Borsada toplam {target} işlem yap."
+      },
+      "6": {
+        "title": "Likidite Zirvesi",
+        "description": "Kasada $ {target} nakde ulaş."
+      }
+    }
   },
   "research": {
     "app_bar_title": "Araştırma ve Geliştirme",
@@ -25,7 +98,509 @@
     "max_level_reached": "Maksimum seviyeye ulaşıldı",
     "lock_warning": "Önce gerekli araştırmaları açmalısınız.",
     "btn_req_unmet": "Gereksinimler karşılanmadı",
-    "btn_upgrade": "{cost} RP ile geliştir"
+    "btn_upgrade": "{cost} RP ile geliştir",
+    "nodes": {
+      "node_001": {
+        "title": "Holding Beratı",
+        "category": "Temel",
+        "description": "Tüm fabrikaların taban üretim gelirini kalıcı olarak artırır."
+      },
+      "node_002": {
+        "title": "Ağır Sanayi Doktrini",
+        "category": "Sanayi",
+        "description": "Fabrika geliştirme maliyetlerini kalıcı olarak düşürür."
+      },
+      "node_003": {
+        "title": "Giriş Seviyesi Sanayi Platformu",
+        "category": "Fabrika",
+        "description": "Tekstil, mobilya ve tarım tesislerinin ortak üretim standardını geliştirir."
+      },
+      "node_004": {
+        "title": "Pastörizasyon Hatları",
+        "category": "Fabrika",
+        "description": "Süt ürünleri fabrikası üretim hattının kârını artırır."
+      },
+      "node_005": {
+        "title": "Esnek Üretim Hücreleri",
+        "category": "Fabrika",
+        "description": "Üç giriş seviyesi fabrikanın esnek üretim kapasitesini artırır."
+      },
+      "node_006": {
+        "title": "Gıda Seri Üretimi",
+        "category": "Fabrika",
+        "description": "Gıda işleme tesisinin üretim hattı kârını artırır."
+      },
+      "node_007": {
+        "title": "Başlangıç Sektörü Ustalığı",
+        "category": "Fabrika",
+        "description": "Seçtiğiniz başlangıç sektöründen bağımsız olarak üç temel fabrikanın kârlılığını artırır."
+      },
+      "node_008": {
+        "title": "Karoser Robot Hattı",
+        "category": "Fabrika",
+        "description": "Otomobil fabrikası üretim hattının kârını artırır."
+      },
+      "node_009": {
+        "title": "Derin Kuyu Sondajı",
+        "category": "Fabrika",
+        "description": "Maden fabrikası üretim hattının kârını artırır."
+      },
+      "node_010": {
+        "title": "Yarı İletken Baskı",
+        "category": "Fabrika",
+        "description": "Elektronik fabrikası üretim hattının kârını artırır."
+      },
+      "node_011": {
+        "title": "Nöral Ağ Optimizasyonu",
+        "category": "Fabrika",
+        "description": "Yapay zeka geliştirme fabrikasının kârını artırır."
+      },
+      "node_012": {
+        "title": "Genetik Rekombinasyon",
+        "category": "Fabrika",
+        "description": "Biyoteknoloji fabrikası üretim hattının kârını artırır."
+      },
+      "node_013": {
+        "title": "Tokamak Manyetik Alanı",
+        "category": "Fabrika",
+        "description": "Füzyon enerji fabrikası üretim hattının kârını artırır."
+      },
+      "node_014": {
+        "title": "Yörünge İtki Sistemleri",
+        "category": "Fabrika",
+        "description": "Uzay sanayii fabrikası üretim hattının kârını artırır."
+      },
+      "node_015": {
+        "title": "Sanayi Kartel Sinerjisi",
+        "category": "Sanayi",
+        "description": "Tüm 15 fabrikanın taban gelirine toplu çarpan sağlar."
+      },
+      "node_016": {
+        "title": "İndirimli Tedarik",
+        "category": "Maliyet",
+        "description": "Fabrika geliştirme maliyet çarpanını tabandan aşağı çeker."
+      },
+      "node_017": {
+        "title": "Toplu Malzeme Siparişi",
+        "category": "Maliyet",
+        "description": "Toplu alım anlaşmaları ile tesis geliştirme maliyetini kırar."
+      },
+      "node_018": {
+        "title": "Küresel Tedarik Zinciri",
+        "category": "Maliyet",
+        "description": "Uluslararası navlun anlaşmaları ile kurulum masraflarını düşürür."
+      },
+      "node_019": {
+        "title": "Üretim Standartlaşması",
+        "category": "Kazanç",
+        "description": "Üretme kazancı çarpanını taban değerin üzerine çıkarır."
+      },
+      "node_020": {
+        "title": "Yalın Kaizen Felsefesi",
+        "category": "Kazanç",
+        "description": "Sürekli iyileştirme prensibi ile ürün katsayılarını yükseltir."
+      },
+      "node_021": {
+        "title": "Sürekli Akış Bandı",
+        "category": "Pasif",
+        "description": "Saniyelik pasif gelir oranını üretim kazancının yarısından yukarı taşır."
+      },
+      "node_022": {
+        "title": "Vardiyasız Çalışma",
+        "category": "Pasif",
+        "description": "Tesislerin saniyelik pasif gelir akışını kademeli artırır."
+      },
+      "node_023": {
+        "title": "Tam Otonom Tesis",
+        "category": "Pasif",
+        "description": "İnsansız üretim ile saniyelik gelir çarpanını katlar."
+      },
+      "node_024": {
+        "title": "Hurda Değerleme",
+        "category": "Verim",
+        "description": "Üretim artıklarını değerlendirerek holding gelirini artırır."
+      },
+      "node_025": {
+        "title": "Sigortalı Operasyon",
+        "category": "Verim",
+        "description": "Operasyon kayıplarını azaltarak net geliri yükseltir."
+      },
+      "node_026": {
+        "title": "Kentsel Dönüşüm",
+        "category": "Verim",
+        "description": "Tesis çevresindeki altyapı yatırımları üretkenliği artırır."
+      },
+      "node_027": {
+        "title": "Sıfır Kayıp Protokolü",
+        "category": "Verim",
+        "description": "Üretim kayıplarını en aza indirerek kalıcı gelir sağlar."
+      },
+      "node_028": {
+        "title": "2. Ürün Ar-Ge'si",
+        "category": "Ürün",
+        "description": "Lvl 30'da açılan 2. ürünlerin üretim kazancını artırır."
+      },
+      "node_029": {
+        "title": "3. Ürün İmalatı",
+        "category": "Ürün",
+        "description": "Lvl 60'ta açılan 3. ürünlerin üretim kazancını artırır."
+      },
+      "node_030": {
+        "title": "4. Ürün Montajı",
+        "category": "Ürün",
+        "description": "Lvl 90'da açılan 4. ürünlerin üretim kazancını artırır."
+      },
+      "node_031": {
+        "title": "5. Amiral Gemisi",
+        "category": "Ürün",
+        "description": "Lvl 120'de açılan 5. ürünlerin üretim kazancını artırır."
+      },
+      "node_032": {
+        "title": "Kalıp Standardizasyonu",
+        "category": "Ürün",
+        "description": "Yeni açılan ürünlerin ilk seviye geliştirme masrafını düşürür."
+      },
+      "node_033": {
+        "title": "İK İşe Alım Ağı",
+        "category": "Yönetim",
+        "description": "Fabrikalara yönetici atama ve sözleşme bedelini azaltır."
+      },
+      "node_034": {
+        "title": "Headhunter Sözleşmesi",
+        "category": "Yönetim",
+        "description": "Üst düzey yönetici transfer masraflarını düşürür."
+      },
+      "node_035": {
+        "title": "Usta Başı Disiplini",
+        "category": "Yönetim",
+        "description": "1. yöneticinin fabrikaya sağladığı üretim gelirini artırır."
+      },
+      "node_036": {
+        "title": "Tesis Müdürü",
+        "category": "Yönetim",
+        "description": "2. yöneticinin fabrikadaki maliyet indirim etkisini artırır."
+      },
+      "node_037": {
+        "title": "Genel Koordinatör",
+        "category": "Yönetim",
+        "description": "3. yöneticinin üretim hızlandırma çarpanını artırır."
+      },
+      "node_038": {
+        "title": "Plaza Mimari Dönüşümü",
+        "category": "Yönetim",
+        "description": "Yazıhaneden plazaya geçişte yöneticileri güçlendirir."
+      },
+      "node_039": {
+        "title": "İmar Ruhsatı (1-4)",
+        "category": "Arsa",
+        "description": "1-4 numaralı sanayi arsalarının satın alma bedelini düşürür."
+      },
+      "node_040": {
+        "title": "Sanayi Teşviki (5-8)",
+        "category": "Arsa",
+        "description": "5-8 numaralı sanayi arsalarının satın alma bedelini düşürür."
+      },
+      "node_041": {
+        "title": "Serbest Bölge (9-15)",
+        "category": "Arsa",
+        "description": "9-15 numaralı ileri sanayi arsalarının satın alma bedelini düşürür."
+      },
+      "node_042": {
+        "title": "15 Parsel Tam Kapasite",
+        "category": "Arsa",
+        "description": "Tüm 15 parsel faaliyete geçtiğinde büyük holding kârı verir."
+      },
+      "node_043": {
+        "title": "Seviye 50 Eşiği",
+        "category": "Seviye",
+        "description": "Lvl 50'ye ulaşan her fabrika tüm holdinge ek getiri sağlar."
+      },
+      "node_044": {
+        "title": "Seviye 100 Eşiği",
+        "category": "Seviye",
+        "description": "Lvl 100'e ulaşan her fabrika tüm holdinge ek getiri sağlar."
+      },
+      "node_045": {
+        "title": "Seviye 150 Eşiği",
+        "category": "Seviye",
+        "description": "Lvl 150'ye ulaşan fabrikaların geliştirme maliyetini kırar."
+      },
+      "node_046": {
+        "title": "Seviye 200 Eşiği",
+        "category": "Seviye",
+        "description": "Lvl 200'e ulaşan her fabrika için büyük üretim primi verir."
+      },
+      "node_047": {
+        "title": "Seviye 250 Eşiği",
+        "category": "Seviye",
+        "description": "Lvl 250 fabrikalar prestij tasfiyesinde ilave RP üretir."
+      },
+      "node_048": {
+        "title": "Seviye 300 Maksimum",
+        "category": "Seviye",
+        "description": "Fabrika 300. seviyeye ulaştığında saf kâr çarpanı kilitlenir."
+      },
+      "node_049": {
+        "title": "Çırak-Usta Tasarımı",
+        "category": "Seviye",
+        "description": "Her 50 seviye görsel değişiminde geçici üretim takviyesi verir."
+      },
+      "node_050": {
+        "title": "Sanayi Sütun Zirvesi",
+        "category": "Apex Kol 1",
+        "description": "Kol 1 Apex: Tüm fabrikaların taban üretim katsayısını kalıcı katlar."
+      },
+      "node_051": {
+        "title": "Finansal Mühendislik",
+        "category": "Finans",
+        "description": "5 saatte bir tahakkuk eden temel vergi borcu oranını düşürür."
+      },
+      "node_052": {
+        "title": "Gider Muhasebesi",
+        "category": "Vergi",
+        "description": "Verginin tahakkuk etme periyodunu uzatarak nakit akışını rahatlatır."
+      },
+      "node_053": {
+        "title": "Kurumlar Vergisi Muafiyeti",
+        "category": "Vergi",
+        "description": "Hesaplanan toplam vergi borcundan doğrudan kesinti yapar."
+      },
+      "node_054": {
+        "title": "Holding Vergi Tavanı",
+        "category": "Vergi",
+        "description": "Vergi borcu oranını en dip seviyeye kilitler."
+      },
+      "node_055": {
+        "title": "Sadık Mükellef Primi",
+        "category": "Vergi",
+        "description": "12 saat içinde ödenen verginin sağladığı gelir bonusunu artırır."
+      },
+      "node_056": {
+        "title": "Mali Teşvik Protokolü",
+        "category": "Vergi",
+        "description": "Erken vergi ödeme bonusunun aktif kalma süresini uzatır."
+      },
+      "node_057": {
+        "title": "Altın Mükellef Rozeti",
+        "category": "Vergi",
+        "description": "Vergisini aksatmayan holdinge ilave gelir çarpanı sağlar."
+      },
+      "node_058": {
+        "title": "Uzlaşma Masası",
+        "category": "Vergi",
+        "description": "12 saat ödenmeyen vergide saat başı işleyen faiz oranını kırar."
+      },
+      "node_059": {
+        "title": "Haciz Erteleme Kararı",
+        "category": "Vergi",
+        "description": "En değerli fabrikanın haciz ile satılma süresini uzatır."
+      },
+      "node_060": {
+        "title": "Vergi Barışı Lobiciliği",
+        "category": "Vergi",
+        "description": "Çark çevrildiğinde vergi affı çıkma olasılığını yükseltir."
+      },
+      "node_061": {
+        "title": "Broker Lisansı",
+        "category": "Borsa",
+        "description": "Borsada hisse satarken kesilen işlem komisyonunu düşürür."
+      },
+      "node_062": {
+        "title": "Doğrudan Piyasa Erişimi",
+        "category": "Borsa",
+        "description": "Aracı komisyonlarını daha da aşağı çeker."
+      },
+      "node_063": {
+        "title": "Kurumsal İletim Masası",
+        "category": "Borsa",
+        "description": "Hisse senedi alımlarında doğrudan komisyon iadesi üretir."
+      },
+      "node_064": {
+        "title": "Sıfır Komisyon Ayrıcalığı",
+        "category": "Borsa",
+        "description": "Borsa komisyon oranını taban seviyeye sabitler."
+      },
+      "node_065": {
+        "title": "Piyasa Derinliği",
+        "category": "Borsa",
+        "description": "7 şirketin 5 saniyede bir işleyen %51 kâr eğilimini artırır."
+      },
+      "node_066": {
+        "title": "Algoritmik Fiyatlama",
+        "category": "Borsa",
+        "description": "Hisselerin kâr artış hızını ve getiri tavanını büyütür."
+      },
+      "node_067": {
+        "title": "Piyasa Yapıcı Tekeli",
+        "category": "Borsa",
+        "description": "Borsa şirketlerinin kâr olasılığını zirveye taşır."
+      },
+      "node_068": {
+        "title": "Portföy Temettü Havuzu",
+        "category": "Borsa",
+        "description": "Elde tutulan hisselerden saat başı pasif nakit üretir."
+      },
+      "node_069": {
+        "title": "İmtiyazlı Borsa Payı",
+        "category": "Borsa",
+        "description": "Saatlik hisse temettü oranını kademeli yükseltir."
+      },
+      "node_070": {
+        "title": "SVG Terminal Analitiği",
+        "category": "Borsa",
+        "description": "SVG grafiğinde dipten alımlarda sermaye primi sağlar."
+      },
+      "node_071": {
+        "title": "Yatırımcı Çantası",
+        "category": "Fırsat",
+        "description": "Ekranda beliren para çantasındaki nakit miktarını artırır."
+      },
+      "node_072": {
+        "title": "Girişim Sermayesi",
+        "category": "Fırsat",
+        "description": "Para çantasındaki ödül miktarını ek çarpanla büyütür."
+      },
+      "node_073": {
+        "title": "Melek Yatırımcı Ziyareti",
+        "category": "Fırsat",
+        "description": "Para çantasının ekranda daha sık çıkmasını sağlar."
+      },
+      "node_074": {
+        "title": "Altın Şans Çarkı",
+        "category": "Çark",
+        "description": "Çarktaki nakit ödüllerin taban büyüklüğünü artırır."
+      },
+      "node_075": {
+        "title": "Büyük İkramiye Odası",
+        "category": "Çark",
+        "description": "Çarkta 3x çanta ve 2x boost gelme olasılığını yükseltir."
+      },
+      "node_076": {
+        "title": "Enerji Takviyesi",
+        "category": "Boost",
+        "description": "3 dakikalık 2x gelir boost süresini uzatır."
+      },
+      "node_077": {
+        "title": "Vardiya Seferberliği",
+        "category": "Boost",
+        "description": "2x gelir boost süresine ilave dakikalar ekler."
+      },
+      "node_078": {
+        "title": "Aşırı Yükleme",
+        "category": "Boost",
+        "description": "2x boost çarpanının katsayısını kalıcı olarak artırır."
+      },
+      "node_079": {
+        "title": "Acil Durum Fonu",
+        "category": "Kriz",
+        "description": "Lojistik krizini parayla önleme bedelini düşürür."
+      },
+      "node_080": {
+        "title": "Kriz Sigortası",
+        "category": "Kriz",
+        "description": "Lojistik krizini savuşturma masraflarını kırar."
+      },
+      "node_081": {
+        "title": "Hızlı Kriz Çözümü",
+        "category": "Kriz",
+        "description": "Kabul edilen krizlerin süresini kısaltır."
+      },
+      "node_082": {
+        "title": "Dış Ticaret Ataşeliği",
+        "category": "Fırsat",
+        "description": "Olumlu piyasa olaylarının gelir çarpanını artırır."
+      },
+      "node_083": {
+        "title": "İhracat Koridoru",
+        "category": "Fırsat",
+        "description": "Olumlu piyasa olaylarının aktif kalma süresini uzatır."
+      },
+      "node_084": {
+        "title": "Global Pazar Radarı",
+        "category": "Fırsat",
+        "description": "Ekrana gelen fırsat ve krizlerin sıklığını artırır."
+      },
+      "node_085": {
+        "title": "Otonom Gece Vardiyası",
+        "category": "AFK",
+        "description": "Oyunda değilken kazanılan saniyelik geliri artırır."
+      },
+      "node_086": {
+        "title": "Kasa Birikim Deposu",
+        "category": "AFK",
+        "description": "Çevrimdışı gelir toplama süresi sınırını uzatır."
+      },
+      "node_087": {
+        "title": "Sürekli Holding Faaliyeti",
+        "category": "AFK",
+        "description": "Çevrimdışı süre sınırına ilave saatler ekler."
+      },
+      "node_088": {
+        "title": "Sponsorlu Üçlü Kazanç",
+        "category": "AFK",
+        "description": "Dönüşte reklamla alınan 2x çevrimdışı bonusunu 3x yapar."
+      },
+      "node_089": {
+        "title": "Prestij Ar-Ge İvmesi",
+        "category": "Prestij",
+        "description": "100 Qi prestijinde ciroya oranla kazanılan RP miktarını artırır."
+      },
+      "node_090": {
+        "title": "Patent Konsorsiyumu",
+        "category": "Prestij",
+        "description": "Prestij tasfiyesinde kazanılan RP'ye ek çarpan sağlar."
+      },
+      "node_091": {
+        "title": "Düşünce Kuruluşu",
+        "category": "Prestij",
+        "description": "Prestij tasfiyesinden gelen RP çarpanını ikiye katlar."
+      },
+      "node_092": {
+        "title": "Melek Sermaye Mirası",
+        "category": "Prestij",
+        "description": "Prestij yapıp sıfırlandıktan sonra hazır nakit hibesi verir."
+      },
+      "node_093": {
+        "title": "Hazır Arsa Hibesi",
+        "category": "Prestij",
+        "description": "Prestij sonrası sanayi arsalarının bedelsiz açık başlamasını sağlar."
+      },
+      "node_094": {
+        "title": "Endüstriyel Miras",
+        "category": "Prestij",
+        "description": "Prestij sonrası ilk fabrikayı seviyesi ve 2. ürünü açık başlatır."
+      },
+      "node_095": {
+        "title": "Girişimci Unvanı",
+        "category": "Unvan",
+        "description": "Kazanılan her ciro rütbesi için kalıcı ciro primi sağlar."
+      },
+      "node_096": {
+        "title": "Galaktik Tycoon",
+        "category": "Unvan",
+        "description": "Lvl 6 Galaktik Tycoon ve üzeri rütbelere dev gelir çarpanı verir."
+      },
+      "node_097": {
+        "title": "10^30 İvmelendiricisi",
+        "category": "Unvan",
+        "description": "10^30 nihai ciro hedefine yaklaşırken gelir çarpanlarını katlar."
+      },
+      "node_098": {
+        "title": "Otomatik Tasfiye Protokolü",
+        "category": "Prestij",
+        "description": "Prestij yaparken vergi borcu engelini tek tuşla otomatik çözer."
+      },
+      "node_099": {
+        "title": "Sermaye Sütun Zirvesi",
+        "category": "Apex Kol 2",
+        "description": "Kol 2 Apex: Borsa, kâr ve nakit akışını kalıcı olarak ikiye katlar."
+      },
+      "node_100": {
+        "title": "Dünyaların Sahibi",
+        "category": "Apex",
+        "description": "10^30 ciro zirvesi: Tüm sistemleri maksimum verimle taçlandırır."
+      }
+    }
   },
   "prestige": {
     "badge": "Prestij",
@@ -36,5 +611,794 @@
     "warning": "Nakit, fabrikalar, personel ve hisseler sıfırlanır; araştırmalar korunur.",
     "btn_action": "Prestij yap (+{rp} RP)",
     "btn_progress": "İlerleme %{percent}"
+  },
+  "main_menu": {
+    "tagline": "Küresel Bir İmparatorluk Kur!",
+    "loading": "HOLDİNG HAZIRLANIYOR...",
+    "loading_sub": "Şirketlerin seni bekliyor",
+    "create": "HOLDİNG KUR",
+    "manage": "HOLDİNGİ YÖNET",
+    "new": "YENİ HOLDİNG KUR",
+    "settings": "OYUN AYARLARI",
+    "setup_title": "HOLDİNG KURULUMU",
+    "setup_desc": "Kendi holdinginin adını belirle, logosunu seç ve ticari imparatorluğunu kurmaya başla.",
+    "holding_name": "Holding Adı",
+    "holding_logo": "HOLDİNG LOGOSU",
+    "confirm_create": "HOLDİNGİ KUR",
+    "delete_title": "HOLDİNGİ TASFİYE ET",
+    "delete_warning": "Yeni bir oyun başlatmak mevcut holdinginizi, tüm şirketlerinizi, fabrikalarınızı ve kasanızı kalıcı olarak silecektir. Emin misiniz?",
+    "delete_confirm": "SİL VE BAŞLA"
+  },
+  "literals": {
+    "1-4 numaralı sanayi arsalarının satın alma bedelini düşürür.": "1-4 numaralı sanayi arsalarının satın alma bedelini düşürür.",
+    "1. yöneticinin fabrikaya sağladığı üretim gelirini artırır.": "1. yöneticinin fabrikaya sağladığı üretim gelirini artırır.",
+    "100 Qi prestijinde ciroya oranla kazanılan RP miktarını artırır.": "100 Qi prestijinde ciroya oranla kazanılan RP miktarını artırır.",
+    "10^30 ciro zirvesi: Tüm sistemleri maksimum verimle taçlandırır.": "10^30 ciro zirvesi: Tüm sistemleri maksimum verimle taçlandırır.",
+    "10^30 İvmelendiricisi": "10^30 İvmelendiricisi",
+    "10^30 nihai ciro hedefine yaklaşırken gelir çarpanlarını katlar.": "10^30 nihai ciro hedefine yaklaşırken gelir çarpanlarını katlar.",
+    "12 saat içinde ödenen verginin sağladığı gelir bonusunu artırır.": "12 saat içinde ödenen verginin sağladığı gelir bonusunu artırır.",
+    "12 saat ödenmeyen vergide saat başı işleyen faiz oranını kırar.": "12 saat ödenmeyen vergide saat başı işleyen faiz oranını kırar.",
+    "15 Parsel Tam Kapasite": "15 Parsel Tam Kapasite",
+    "2. yöneticinin fabrikadaki maliyet indirim etkisini artırır.": "2. yöneticinin fabrikadaki maliyet indirim etkisini artırır.",
+    "2. Ürün Ar-Ge'si": "2. Ürün Ar-Ge'si",
+    "2X": "2X",
+    "2x boost çarpanının katsayısını kalıcı olarak artırır.": "2x boost çarpanının katsayısını kalıcı olarak artırır.",
+    "2x gelir boost süresine ilave dakikalar ekler.": "2x gelir boost süresine ilave dakikalar ekler.",
+    "3 dakikalık 2x gelir boost süresini uzatır.": "3 dakikalık 2x gelir boost süresini uzatır.",
+    "3. yöneticinin üretim hızlandırma çarpanını artırır.": "3. yöneticinin üretim hızlandırma çarpanını artırır.",
+    "3. Ürün İmalatı": "3. Ürün İmalatı",
+    "3D Biyo-Yazıcı": "3D Biyo-Yazıcı",
+    "3X KATLA": "3X KATLA",
+    "4. Ürün Montajı": "4. Ürün Montajı",
+    "5 saatte bir tahakkuk eden temel vergi borcu oranını düşürür.": "5 saatte bir tahakkuk eden temel vergi borcu oranını düşürür.",
+    "5-8 numaralı sanayi arsalarının satın alma bedelini düşürür.": "5-8 numaralı sanayi arsalarının satın alma bedelini düşürür.",
+    "5. Amiral Gemisi": "5. Amiral Gemisi",
+    "7 şirketin 5 saniyede bir işleyen %51 kâr eğilimini artırır.": "7 şirketin 5 saniyede bir işleyen %51 kâr eğilimini artırır.",
+    "9-15 numaralı ileri sanayi arsalarının satın alma bedelini düşürür.": "9-15 numaralı ileri sanayi arsalarının satın alma bedelini düşürür.",
+    "Acil Durum Fonu": "Acil Durum Fonu",
+    "AFK": "AFK",
+    "Algoritmik Fiyatlama": "Algoritmik Fiyatlama",
+    "ALIM YAP": "ALIM YAP",
+    "Altın": "Altın",
+    "Altın Mükellef Rozeti": "Altın Mükellef Rozeti",
+    "Altın Şans Çarkı": "Altın Şans Çarkı",
+    "Anadolu Ağır Sanayi": "Anadolu Ağır Sanayi",
+    "Antibiyotik": "Antibiyotik",
+    "Apex": "Apex",
+    "Apex Biyoteknoloji": "Apex Biyoteknoloji",
+    "Apex Kol 1": "Apex Kol 1",
+    "Apex Kol 2": "Apex Kol 2",
+    "Ar-Ge": "Ar-Ge",
+    "Aracı komisyonlarını daha da aşağı çeker.": "Aracı komisyonlarını daha da aşağı çeker.",
+    "Arsa": "Arsa",
+    "ARSA SATIN ALIMI": "ARSA SATIN ALIMI",
+    "Arı Sütü": "Arı Sütü",
+    "Astro-Biyoloji": "Astro-Biyoloji",
+    "Atlas Lojistik": "Atlas Lojistik",
+    "Aura Yarı İletken": "Aura Yarı İletken",
+    "Ay İniş Aracı": "Ay İniş Aracı",
+    "Ayakkabı": "Ayakkabı",
+    "Ayarlar": "Ayarlar",
+    "Ağrı Kesici": "Ağrı Kesici",
+    "Ağır Sanayi Doktrini": "Ağır Sanayi Doktrini",
+    "Aşırı Yükleme": "Aşırı Yükleme",
+    "BAŞARIM TAMAMLANDI": "BAŞARIM TAMAMLANDI",
+    "Başlangıç Sektörü Ustalığı": "Başlangıç Sektörü Ustalığı",
+    "BEDELSİZ": "BEDELSİZ",
+    "Beklemede": "Beklemede",
+    "BEKLENİYOR...": "BEKLENİYOR...",
+    "Birim Fiyat:": "Birim Fiyat:",
+    "Biyonik Organ": "Biyonik Organ",
+    "Biyoteknoloji": "Biyoteknoloji",
+    "Biyoteknoloji fabrikası üretim hattının kârını artırır.": "Biyoteknoloji fabrikası üretim hattının kârını artırır.",
+    "Biyoçip": "Biyoçip",
+    "Boost": "Boost",
+    "Borsa": "Borsa",
+    "Borsa Analistleri": "Borsa Analistleri",
+    "Borsa komisyon oranını taban seviyeye sabitler.": "Borsa komisyon oranını taban seviyeye sabitler.",
+    "Borsa şirketlerinin kâr olasılığını zirveye taşır.": "Borsa şirketlerinin kâr olasılığını zirveye taşır.",
+    "Borsada hisse satarken kesilen işlem komisyonunu düşürür.": "Borsada hisse satarken kesilen işlem komisyonunu düşürür.",
+    "Boya": "Boya",
+    "Broker Lisansı": "Broker Lisansı",
+    "Buğday": "Buğday",
+    "Büyük İkramiye Odası": "Büyük İkramiye Odası",
+    "Covi-19 Aşısı": "COVID-19 Aşısı",
+    "COVID-19 Aşısı": "COVID-19 Aşısı",
+    "Demir": "Demir",
+    "Departmanları genişletmek ve personeli terfi ettirmek için odalara dokun!": "Departmanları genişletmek ve personeli terfi ettirmek için odalara dokun!",
+    "Derin Kuyu Sondajı": "Derin Kuyu Sondajı",
+    "Devlet teşviki onaylandı!": "Devlet teşviki onaylandı!",
+    "Dolap": "Dolap",
+    "Doğrudan Piyasa Erişimi": "Doğrudan Piyasa Erişimi",
+    "Dönüşte reklamla alınan 2x çevrimdışı bonusunu 3x yapar.": "Dönüşte reklamla alınan 2x çevrimdışı bonusunu 3x yapar.",
+    "Dünyaların Sahibi": "Dünyaların Sahibi",
+    "Düşünce Kuruluşu": "Düşünce Kuruluşu",
+    "Dış Ticaret Ataşeliği": "Dış Ticaret Ataşeliği",
+    "Ekrana gelen fırsat ve krizlerin sıklığını artırır.": "Ekrana gelen fırsat ve krizlerin sıklığını artırır.",
+    "Ekranda beliren para çantasındaki nakit miktarını artırır.": "Ekranda beliren para çantasındaki nakit miktarını artırır.",
+    "Elde tutulan hisselerden saat başı pasif nakit üretir.": "Elde tutulan hisselerden saat başı pasif nakit üretir.",
+    "Elektronik Eşya": "Elektronik Eşya",
+    "Elektronik fabrikası üretim hattının kârını artırır.": "Elektronik fabrikası üretim hattının kârını artırır.",
+    "Elmas": "Elmas",
+    "En değerli fabrikanın haciz ile satılma süresini uzatır.": "En değerli fabrikanın haciz ile satılma süresini uzatır.",
+    "Endüstriyel Miras": "Endüstriyel Miras",
+    "Enerji Santrali": "Enerji Santrali",
+    "Enerji Takviyesi": "Enerji Takviyesi",
+    "Erken vergi ödeme bonusunun aktif kalma süresini uzatır.": "Erken vergi ödeme bonusunun aktif kalma süresini uzatır.",
+    "Esnek Üretim Hücreleri": "Esnek Üretim Hücreleri",
+    "Etki Yok": "Etki Yok",
+    "Evrensel Enerji": "Evrensel Enerji",
+    "Fabrika": "Fabrika",
+    "Fabrika 300. seviyeye ulaştığında saf kâr çarpanı kilitlenir.": "Fabrika 300. seviyeye ulaştığında saf kâr çarpanı kilitlenir.",
+    "Fabrika geliştirme maliyet çarpanını tabandan aşağı çeker.": "Fabrika geliştirme maliyet çarpanını tabandan aşağı çeker.",
+    "Fabrika geliştirme maliyetlerini kalıcı olarak düşürür.": "Fabrika geliştirme maliyetlerini kalıcı olarak düşürür.",
+    "Fabrikalara yönetici atama ve sözleşme bedelini azaltır.": "Fabrikalara yönetici atama ve sözleşme bedelini azaltır.",
+    "Finans": "Finans",
+    "Finansal Mühendislik": "Finansal Mühendislik",
+    "FIRSAT GERİ KAZANILDI": "FIRSAT GERİ KAZANILDI",
+    "FIRSAT KABUL EDİLDİ": "FIRSAT KABUL EDİLDİ",
+    "FIRSAT REDDEDİLDİ": "FIRSAT REDDEDİLDİ",
+    "FIRSAT REKLAMLA KABUL EDİLDİ": "FIRSAT REKLAMLA KABUL EDİLDİ",
+    "FİNANSMAN": "FİNANSMAN",
+    "Füzyon enerji fabrikası üretim hattının kârını artırır.": "Füzyon enerji fabrikası üretim hattının kârını artırır.",
+    "Füzyon Çekirdeği": "Füzyon Çekirdeği",
+    "Fırsat": "Fırsat",
+    "Galaktik Lojistik": "Galaktik Lojistik",
+    "Galaktik Madencilik": "Galaktik Madencilik",
+    "Galaktik Tycoon": "Galaktik Tycoon",
+    "GECE MESAİSİ": "GECE MESAİSİ",
+    "GELİŞTİR": "GELİŞTİR",
+    "Genel Koordinatör": "Genel Koordinatör",
+    "Genetik Rekombinasyon": "Genetik Rekombinasyon",
+    "Gider Muhasebesi": "Gider Muhasebesi",
+    "Giga İnşaat": "Giga İnşaat",
+    "Giriş Seviyesi Sanayi Platformu": "Giriş Seviyesi Sanayi Platformu",
+    "Girişim Sermayesi": "Girişim Sermayesi",
+    "Girişimci Unvanı": "Girişimci Unvanı",
+    "Global Pazar Radarı": "Global Pazar Radarı",
+    "Gurme Çikolata": "Gurme Çikolata",
+    "GÖREV TAMAMLANDI": "GÖREV TAMAMLANDI",
+    "Görsel Oluşturma Botu": "Görsel Oluşturma Botu",
+    "Gübre": "Gübre",
+    "Gümüş": "Gümüş",
+    "Güneş Paneli": "Güneş Paneli",
+    "Gıda işleme tesisinin üretim hattı kârını artırır.": "Gıda işleme tesisinin üretim hattı kârını artırır.",
+    "Gıda İşleme": "Gıda İşleme",
+    "Gıda Seri Üretimi": "Gıda Seri Üretimi",
+    "Haciz Erteleme Kararı": "Haciz Erteleme Kararı",
+    "Hammadde Ambargosu": "Hammadde Ambargosu",
+    "Havyar": "Havyar",
+    "Hazır Arsa Hibesi": "Hazır Arsa Hibesi",
+    "Headhunter Sözleşmesi": "Headhunter Sözleşmesi",
+    "Her 50 seviye görsel değişiminde geçici üretim takviyesi verir.": "Her 50 seviye görsel değişiminde geçici üretim takviyesi verir.",
+    "Her analist borsada kâr etme olasılığını %0.1 artırır.": "Her analist borsada kâr etme olasılığını %0.1 artırır.",
+    "Her direktör fabrika üretim bantlarının seviye geliştirme masrafını %0.4 düşürür.": "Her direktör fabrika üretim bantlarının seviye geliştirme masrafını %0.4 düşürür.",
+    "Her müdür fabrikaların saniyelik gelirini kalıcı %2 artırır.": "Her müdür fabrikaların saniyelik gelirini kalıcı %2 artırır.",
+    "Her saha şefi siz oyunda yokken biriken çevrimdışı gece mesaisi gelirini %10 artırır.": "Her saha şefi siz oyunda yokken biriken çevrimdışı gece mesaisi gelirini %10 artırır.",
+    "Her uzman sahada bulunan para çantalarındaki nakit ödül miktarını %10 artırır.": "Her uzman sahada bulunan para çantalarındaki nakit ödül miktarını %10 artırır.",
+    "Her uzman yeni arsa alımlarında maliyeti %0.5 düşürür.": "Her uzman yeni arsa alımlarında maliyeti %0.5 düşürür.",
+    "Hesap Makinesi": "Hesap Makinesi",
+    "Hesaplanan toplam vergi borcundan doğrudan kesinti yapar.": "Hesaplanan toplam vergi borcundan doğrudan kesinti yapar.",
+    "Hibrit Tohum": "Hibrit Tohum",
+    "Hisse Avcısı": "Hisse Avcısı",
+    "Hisse senedi alımlarında doğrudan komisyon iadesi üretir.": "Hisse senedi alımlarında doğrudan komisyon iadesi üretir.",
+    "Hisselerin kâr artış hızını ve getiri tavanını büyütür.": "Hisselerin kâr artış hızını ve getiri tavanını büyütür.",
+    "Holding": "Holding",
+    "Holding Adı": "Holding Adı",
+    "Holding Beratı": "Holding Beratı",
+    "Holding Genişlemesi": "Holding Genişlemesi",
+    "Holding Vergi Tavanı": "Holding Vergi Tavanı",
+    "Holdinginizin faaliyetlerine başlayacağı ilk sanayi kolunu seçin. Seçtiğiniz ilk tesis size bedelsiz olarak tahsis edilecektir.": "Holdinginizin faaliyetlerine başlayacağı ilk sanayi kolunu seçin. Seçtiğiniz ilk tesis size bedelsiz olarak tahsis edilecektir.",
+    "HOLDİNG": "HOLDİNG",
+    "HOLDİNG HAZIRLANIYOR...": "HOLDİNG HAZIRLANIYOR...",
+    "HOLDİNG KUR": "HOLDİNG KUR",
+    "HOLDİNG KURULUMU": "HOLDİNG KURULUMU",
+    "HOLDİNG LOGOSU": "HOLDİNG LOGOSU",
+    "HOLDİNG MERKEZİ": "HOLDİNG MERKEZİ",
+    "HOLDİNGİ KUR": "HOLDİNGİ KUR",
+    "HOLDİNGİ TASFİYE ET": "HOLDİNGİ TASFİYE ET",
+    "HOLDİNGİ YÖNET": "HOLDİNGİ YÖNET",
+    "Humanoid Robot": "Humanoid Robot",
+    "Hurda Değerleme": "Hurda Değerleme",
+    "Hızlı Kriz Çözümü": "Hızlı Kriz Çözümü",
+    "İhracat Koridoru": "İhracat Koridoru",
+    "İK İşe Alım Ağı": "İK İşe Alım Ağı",
+    "İKRAMİYE": "İKRAMİYE",
+    "İlaç Fabrikası": "İlaç Fabrikası",
+    "İmar Ruhsatı (1-4)": "İmar Ruhsatı (1-4)",
+    "İmtiyazlı Borsa Payı": "İmtiyazlı Borsa Payı",
+    "İndirimli Tedarik": "İndirimli Tedarik",
+    "İnsan Kaynakları": "İnsan Kaynakları",
+    "İnsansız Hava Aracı": "İnsansız Hava Aracı",
+    "İnsansız üretim ile saniyelik gelir çarpanını katlar.": "İnsansız üretim ile saniyelik gelir çarpanını katlar.",
+    "İPTAL": "İPTAL",
+    "Kabul edilen krizlerin süresini kısaltır.": "Kabul edilen krizlerin süresini kısaltır.",
+    "KABUL ET": "KABUL ET",
+    "Kalıp Standardizasyonu": "Kalıp Standardizasyonu",
+    "Kanser İlacı": "Kanser İlacı",
+    "Karbonfiber": "Karbonfiber",
+    "Karoser Robot Hattı": "Karoser Robot Hattı",
+    "Kasa Bekçisi": "Kasa Bekçisi",
+    "Kasa Birikim Deposu": "Kasa Birikim Deposu",
+    "KATLAN": "KATLAN",
+    "Kayıtlı Mesai:": "Kayıtlı Mesai:",
+    "Kazanç": "Kazanç",
+    "Kazanılan her ciro rütbesi için kalıcı ciro primi sağlar.": "Kazanılan her ciro rütbesi için kalıcı ciro primi sağlar.",
+    "Kebap": "Kebap",
+    "Kendi holdinginin adını belirle, logosunu seç ve ticari imparatorluğunu kurmaya başla.": "Kendi holdinginin adını belirle, logosunu seç ve ticari imparatorluğunu kurmaya başla.",
+    "Kentsel Dönüşüm": "Kentsel Dönüşüm",
+    "Kimya Tesisleri": "Kimya Tesisleri",
+    "Klon Canlı": "Klon Canlı",
+    "Kodlama Botu": "Kodlama Botu",
+    "Kol 1 Apex: Tüm fabrikaların taban üretim katsayısını kalıcı katlar.": "Kol 1 Apex: Tüm fabrikaların taban üretim katsayısını kalıcı katlar.",
+    "Kol 2 Apex: Borsa, kâr ve nakit akışını kalıcı olarak ikiye katlar.": "Kol 2 Apex: Borsa, kâr ve nakit akışını kalıcı olarak ikiye katlar.",
+    "Koltuk": "Koltuk",
+    "Konserve": "Konserve",
+    "Kriz": "Kriz",
+    "Kriz Sigortası": "Kriz Sigortası",
+    "KRİZ KABUL EDİLDİ": "KRİZ KABUL EDİLDİ",
+    "KRİZ REKLAMLA ÖNLENDİ": "KRİZ REKLAMLA ÖNLENDİ",
+    "KRİZ ÖNLENDİ": "KRİZ ÖNLENDİ",
+    "Kuantum Finans": "Kuantum Finans",
+    "Kuantum PC": "Kuantum PC",
+    "Kullanılabilir Bakiye": "Kullanılabilir Bakiye",
+    "Kurumlar Vergisi Muafiyeti": "Kurumlar Vergisi Muafiyeti",
+    "Kurumsal İletim Masası": "Kurumsal İletim Masası",
+    "Kök Hücre": "Kök Hücre",
+    "Kömür": "Kömür",
+    "Köse Holding": "Köse Holding",
+    "Küresel Bir İmparatorluk Kur!": "Küresel Bir İmparatorluk Kur!",
+    "Küresel Talep Patlaması": "Küresel Talep Patlaması",
+    "Küresel Tedarik Zinciri": "Küresel Tedarik Zinciri",
+    "Lastik": "Lastik",
+    "Liman grevleri gelirleri geçici olarak düşürecek.": "Liman grevleri gelirleri geçici olarak düşürecek.",
+    "Lojistik & Tedarik": "Lojistik & Tedarik",
+    "Lojistik Krizi": "Lojistik Krizi",
+    "Lojistik krizini parayla önleme bedelini düşürür.": "Lojistik krizini parayla önleme bedelini düşürür.",
+    "Lojistik krizini savuşturma masraflarını kırar.": "Lojistik krizini savuşturma masraflarını kırar.",
+    "Lunar Havacılık": "Lunar Havacılık",
+    "Lvl 100'e ulaşan her fabrika tüm holdinge ek getiri sağlar.": "Lvl 100'e ulaşan her fabrika tüm holdinge ek getiri sağlar.",
+    "Lvl 120'de açılan 5. ürünlerin üretim kazancını artırır.": "Lvl 120'de açılan 5. ürünlerin üretim kazancını artırır.",
+    "Lvl 150'ye ulaşan fabrikaların geliştirme maliyetini kırar.": "Lvl 150'ye ulaşan fabrikaların geliştirme maliyetini kırar.",
+    "Lvl 200'e ulaşan her fabrika için büyük üretim primi verir.": "Lvl 200'e ulaşan her fabrika için büyük üretim primi verir.",
+    "Lvl 250 fabrikalar prestij tasfiyesinde ilave RP üretir.": "Lvl 250 fabrikalar prestij tasfiyesinde ilave RP üretir.",
+    "Lvl 30'da açılan 2. ürünlerin üretim kazancını artırır.": "Lvl 30'da açılan 2. ürünlerin üretim kazancını artırır.",
+    "Lvl 50'ye ulaşan her fabrika tüm holdinge ek getiri sağlar.": "Lvl 50'ye ulaşan her fabrika tüm holdinge ek getiri sağlar.",
+    "Lvl 6 Galaktik Tycoon ve üzeri rütbelere dev gelir çarpanı verir.": "Lvl 6 Galaktik Tycoon ve üzeri rütbelere dev gelir çarpanı verir.",
+    "Lvl 60'ta açılan 3. ürünlerin üretim kazancını artırır.": "Lvl 60'ta açılan 3. ürünlerin üretim kazancını artırır.",
+    "Lvl 90'da açılan 4. ürünlerin üretim kazancını artırır.": "Lvl 90'da açılan 4. ürünlerin üretim kazancını artırır.",
+    "Lüks Parfüm": "Lüks Parfüm",
+    "Maden fabrikası üretim hattının kârını artırır.": "Maden fabrikası üretim hattının kârını artırır.",
+    "Maden Çıkarma": "Maden Çıkarma",
+    "MAKS": "MAKS",
+    "Maksimum Seviye": "Maksimum Seviye",
+    "MAKSİMUM KAPASİTE": "MAKSİMUM KAPASİTE",
+    "Mali Teşvik Protokolü": "Mali Teşvik Protokolü",
+    "Maliyet": "Maliyet",
+    "Masa": "Masa",
+    "MAX": "MAX",
+    "Melek Sermaye Mirası": "Melek Sermaye Mirası",
+    "Melek Yatırımcı Ziyareti": "Melek Yatırımcı Ziyareti",
+    "MENKUL KIYMETLER": "MENKUL KIYMETLER",
+    "Menü": "Menü",
+    "Mevcut Etki:": "Mevcut Etki:",
+    "Mezbaha": "Mezbaha",
+    "Miktar girin...": "Miktar girin...",
+    "Mobilya": "Mobilya",
+    "Mobilya Fabrikası": "Mobilya Fabrikası",
+    "Motorsiklet": "Motosiklet",
+    "Motosiklet": "Motosiklet",
+    "Muhasebe": "Muhasebe",
+    "Muhasebe Departmanı": "Muhasebe Departmanı",
+    "Mısır": "Mısır",
+    "NAKİT": "NAKİT",
+    "NAKİT ÖDE": "NAKİT ÖDE",
+    "Nano-Medikal": "Nano-Medikal",
+    "Neo-Tarım A.Ş.": "Neo-Tarım A.Ş.",
+    "Net Kâr/Zarar": "Net Kâr/Zarar",
+    "Nova Enerji": "Nova Enerji",
+    "Nöral Ağ Optimizasyonu": "Nöral Ağ Optimizasyonu",
+    "Nükleer Santral": "Nükleer Santral",
+    "Okyanus Madencilik": "Okyanus Madencilik",
+    "Olumlu piyasa olaylarının aktif kalma süresini uzatır.": "Olumlu piyasa olaylarının aktif kalma süresini uzatır.",
+    "Olumlu piyasa olaylarının gelir çarpanını artırır.": "Olumlu piyasa olaylarının gelir çarpanını artırır.",
+    "ONAYLA": "ONAYLA",
+    "Operasyon kayıplarını azaltarak net geliri yükseltir.": "Operasyon kayıplarını azaltarak net geliri yükseltir.",
+    "Otomatik Tasfiye Protokolü": "Otomatik Tasfiye Protokolü",
+    "Otomobil": "Otomobil",
+    "Otomobil Fabrikası": "Otomobil Fabrikası",
+    "Otomobil fabrikası üretim hattının kârını artırır.": "Otomobil fabrikası üretim hattının kârını artırır.",
+    "Otonom Gece Vardiyası": "Otonom Gece Vardiyası",
+    "Otonom Verimlilik:": "Otonom Verimlilik:",
+    "Oturumu Kapat": "Oturumu Kapat",
+    "OYUN AYARLARI": "OYUN AYARLARI",
+    "Oyunda değilken kazanılan saniyelik geliri artırır.": "Oyunda değilken kazanılan saniyelik geliri artırır.",
+    "Pamuk": "Pamuk",
+    "Pantolon": "Pantolon",
+    "Para çantasındaki ödül miktarını ek çarpanla büyütür.": "Para çantasındaki ödül miktarını ek çarpanla büyütür.",
+    "Para çantasının ekranda daha sık çıkmasını sağlar.": "Para çantasının ekranda daha sık çıkmasını sağlar.",
+    "Parçacık Hızlandırıcı": "Parçacık Hızlandırıcı",
+    "Pasif": "Pasif",
+    "Pastörizasyon Hatları": "Pastörizasyon Hatları",
+    "Patent Konsorsiyumu": "Patent Konsorsiyumu",
+    "Pazarlama": "Pazarlama",
+    "Pazarlama Departmanı": "Pazarlama Departmanı",
+    "Piyasa Derinliği": "Piyasa Derinliği",
+    "Piyasa Yapıcı Tekeli": "Piyasa Yapıcı Tekeli",
+    "Plastik": "Plastik",
+    "Plaza Mimari Dönüşümü": "Plaza Mimari Dönüşümü",
+    "Portföy Temettü Havuzu": "Portföy Temettü Havuzu",
+    "Prestij": "Prestij",
+    "Prestij Ar-Ge İvmesi": "Prestij Ar-Ge İvmesi",
+    "Prestij Lordu": "Prestij Lordu",
+    "Prestij sonrası ilk fabrikayı seviyesi ve 2. ürünü açık başlatır.": "Prestij sonrası ilk fabrikayı seviyesi ve 2. ürünü açık başlatır.",
+    "Prestij sonrası sanayi arsalarının bedelsiz açık başlamasını sağlar.": "Prestij sonrası sanayi arsalarının bedelsiz açık başlamasını sağlar.",
+    "Prestij tasfiyesinde kazanılan RP'ye ek çarpan sağlar.": "Prestij tasfiyesinde kazanılan RP'ye ek çarpan sağlar.",
+    "Prestij tasfiyesinden gelen RP çarpanını ikiye katlar.": "Prestij tasfiyesinden gelen RP çarpanını ikiye katlar.",
+    "Prestij yaparken vergi borcu engelini tek tuşla otomatik çözer.": "Prestij yaparken vergi borcu engelini tek tuşla otomatik çözer.",
+    "Prestij yapıp sıfırlandıktan sonra hazır nakit hibesi verir.": "Prestij yapıp sıfırlandıktan sonra hazır nakit hibesi verir.",
+    "Pule Peyniri": "Pule Peyniri",
+    "REDDET": "REDDET",
+    "Redof Tech": "Redof Tech",
+    "Reklam şu anda kullanılamıyor. Lütfen biraz sonra tekrar deneyin.": "Reklam şu anda kullanılamıyor. Lütfen biraz sonra tekrar deneyin.",
+    "REKLAMLA 2X AL": "REKLAMLA 2X AL",
+    "REKLAMLA 3X AL": "REKLAMLA 3X AL",
+    "REKLAMLA FIRSATI KABUL ET": "REKLAMLA FIRSATI KABUL ET",
+    "REKLAMLA KRİZİ ÖNLE": "REKLAMLA KRİZİ ÖNLE",
+    "REKLAMLA ÇEVİR": "REKLAMLA ÇEVİR",
+    "REKLAMLA ÖDE": "REKLAMLA ÖDE",
+    "REKLAMLA ÖNLE": "REKLAMLA ÖNLE",
+    "Roket Motoru": "Roket Motoru",
+    "Rüzgar Tribünü": "Rüzgar Türbini",
+    "Rüzgar Türbini": "Rüzgar Türbini",
+    "Saatlik hisse temettü oranını kademeli yükseltir.": "Saatlik hisse temettü oranını kademeli yükseltir.",
+    "Sadık Mükellef Primi": "Sadık Mükellef Primi",
+    "Safran": "Safran",
+    "Sahada harici finansman bulundu:": "Sahada harici finansman bulundu:",
+    "Sahip Olunan": "Sahip Olunan",
+    "Sanayi": "Sanayi",
+    "Sanayi Kartel Sinerjisi": "Sanayi Kartel Sinerjisi",
+    "Sanayi Sütun Zirvesi": "Sanayi Sütun Zirvesi",
+    "Sanayi Teşviki (5-8)": "Sanayi Teşviki (5-8)",
+    "Sandalye": "Sandalye",
+    "Saniyelik pasif gelir oranını üretim kazancının yarısından yukarı taşır.": "Saniyelik pasif gelir oranını üretim kazancının yarısından yukarı taşır.",
+    "SATIN AL": "SATIN AL",
+    "Satranç Botu": "Satranç Botu",
+    "SEKTÖR SEÇİMİ": "SEKTÖR SEÇİMİ",
+    "SEKTÖRE GİRİŞ YAP": "SEKTÖRE GİRİŞ YAP",
+    "Serbest Bölge (9-15)": "Serbest Bölge (9-15)",
+    "Sermaye Sütun Zirvesi": "Sermaye Sütun Zirvesi",
+    "Seviye": "Seviye",
+    "Seviye 100 Eşiği": "Seviye 100 Eşiği",
+    "Seviye 150 Eşiği": "Seviye 150 Eşiği",
+    "Seviye 200 Eşiği": "Seviye 200 Eşiği",
+    "Seviye 250 Eşiği": "Seviye 250 Eşiği",
+    "Seviye 300 Maksimum": "Seviye 300 Maksimum",
+    "Seviye 50 Eşiği": "Seviye 50 Eşiği",
+    "Seviye Canavarı": "Seviye Canavarı",
+    "Seçtiğiniz başlangıç sektöründen bağımsız olarak üç temel fabrikanın kârlılığını artırır.": "Seçtiğiniz başlangıç sektöründen bağımsız olarak üç temel fabrikanın kârlılığını artırır.",
+    "Siber Güvenlik": "Siber Güvenlik",
+    "Sigortalı Operasyon": "Sigortalı Operasyon",
+    "Siz yokken üretim bantları çalışmaya devam etti ancak verim düştü!": "Siz yokken üretim bantları çalışmaya devam etti ancak verim düştü!",
+    "SİL VE BAŞLA": "SİL VE BAŞLA",
+    "Sohbet Botu": "Sohbet Botu",
+    "Sosis": "Sosis",
+    "Sosyal Medya Virali": "Sosyal Medya Virali",
+    "Sponsorlu Üçlü Kazanç": "Sponsorlu Üçlü Kazanç",
+    "SVG grafiğinde dipten alımlarda sermaye primi sağlar.": "SVG grafiğinde dipten alımlarda sermaye primi sağlar.",
+    "SVG Terminal Analitiği": "SVG Terminal Analitiği",
+    "Süper Spor Araç": "Süper Spor Araç",
+    "SÜRE DOLDU (HACİZ SÜRECİ)": "SÜRE DOLDU (HACİZ SÜRECİ)",
+    "SÜRE DOLDU — FIRSAT KAÇTI": "SÜRE DOLDU — FIRSAT KAÇTI",
+    "SÜRE DOLDU — KRİZ DEVREDE": "SÜRE DOLDU — KRİZ DEVREDE",
+    "Sürekli Akış Bandı": "Sürekli Akış Bandı",
+    "Sürekli Holding Faaliyeti": "Sürekli Holding Faaliyeti",
+    "Sürekli iyileştirme prensibi ile ürün katsayılarını yükseltir.": "Sürekli iyileştirme prensibi ile ürün katsayılarını yükseltir.",
+    "Süt": "Süt",
+    "Süt Ürünleri": "Süt Ürünleri",
+    "Süt ürünleri fabrikası üretim hattının kârını artırır.": "Süt ürünleri fabrikası üretim hattının kârını artırır.",
+    "Sıfır Kayıp Protokolü": "Sıfır Kayıp Protokolü",
+    "Sıfır Komisyon Ayrıcalığı": "Sıfır Komisyon Ayrıcalığı",
+    "T-shirt": "T-shirt",
+    "TAHSİL ET": "TAHSİL ET",
+    "Takım Elbise": "Takım Elbise",
+    "Tam Otonom Tesis": "Tam Otonom Tesis",
+    "TAMAM": "TAMAM",
+    "TAMAM — UYGULANDI": "TAMAM — UYGULANDI",
+    "TARIM ALANI": "TARIM ALANI",
+    "Tarım": "Tarım",
+    "Tarım Tesisleri": "Tarım Tesisleri",
+    "Tavuk": "Tavuk",
+    "Tedarik zinciri koptu; gelirler geçici olarak düşecek.": "Tedarik zinciri koptu; gelirler geçici olarak düşecek.",
+    "Tekstil": "Tekstil",
+    "Tekstil Atölyesi": "Tekstil Atölyesi",
+    "Tekstil, mobilya ve tarım tesislerinin ortak üretim standardını geliştirir.": "Tekstil, mobilya ve tarım tesislerinin ortak üretim standardını geliştirir.",
+    "Telefon": "Telefon",
+    "Televizyon": "Televizyon",
+    "Temel": "Temel",
+    "Tereyağ": "Tereyağı",
+    "Tereyağı": "Tereyağı",
+    "Terfi Sonrası:": "Terfi Sonrası:",
+    "Tesis Müdürü": "Tesis Müdürü",
+    "Tesis çevresindeki altyapı yatırımları üretkenliği artırır.": "Tesis çevresindeki altyapı yatırımları üretkenliği artırır.",
+    "Tesislerin saniyelik pasif gelir akışını kademeli artırır.": "Tesislerin saniyelik pasif gelir akışını kademeli artırır.",
+    "TESİS GELİŞTİRME": "TESİS GELİŞTİRME",
+    "Timsah Derisi": "Timsah Derisi",
+    "Titan Kimya": "Titan Kimya",
+    "Tokamak Manyetik Alanı": "Tokamak Manyetik Alanı",
+    "Toplu alım anlaşmaları ile tesis geliştirme maliyetini kırar.": "Toplu alım anlaşmaları ile tesis geliştirme maliyetini kırar.",
+    "Toplu Malzeme Siparişi": "Toplu Malzeme Siparişi",
+    "Tutar en az 1 hisse almaya yetmelidir!": "Tutar en az 1 hisse almaya yetmelidir!",
+    "Tuttuğunuz her muhasebeci vergi oranını %0.4 düşürür.": "Tuttuğunuz her muhasebeci vergi oranını %0.4 düşürür.",
+    "Tüm 15 fabrikanın taban gelirine toplu çarpan sağlar.": "Tüm 15 fabrikanın taban gelirine toplu çarpan sağlar.",
+    "Tüm 15 parsel faaliyete geçtiğinde büyük holding kârı verir.": "Tüm 15 parsel faaliyete geçtiğinde büyük holding kârı verir.",
+    "Tüm fabrikaların taban üretim gelirini kalıcı olarak artırır.": "Tüm fabrikaların taban üretim gelirini kalıcı olarak artırır.",
+    "TÜMÜNÜ SAT": "TÜMÜNÜ SAT",
+    "Tıklama Kralı": "Tıklama Kralı",
+    "Uluslararası navlun anlaşmaları ile kurulum masraflarını düşürür.": "Uluslararası navlun anlaşmaları ile kurulum masraflarını düşürür.",
+    "Un": "Un",
+    "Unvan": "Unvan",
+    "Usta Başı Disiplini": "Usta Başı Disiplini",
+    "Uydu": "Uydu",
+    "Uzay Mekiği": "Uzay Mekiği",
+    "Uzay Sanayii": "Uzay Sanayii",
+    "Uzay sanayii fabrikası üretim hattının kârını artırır.": "Uzay sanayii fabrikası üretim hattının kârını artırır.",
+    "Uzlaşma Masası": "Uzlaşma Masası",
+    "Vakıf Gayrimenkul": "Vakıf Gayrimenkul",
+    "Vardiya": "Vardiya",
+    "Vardiya Operasyonu": "Vardiya Operasyonu",
+    "Vardiya Seferberliği": "Vardiya Seferberliği",
+    "Vardiyasız Çalışma": "Vardiyasız Çalışma",
+    "Vergi": "Vergi",
+    "Vergi Barışı Lobiciliği": "Vergi Barışı Lobiciliği",
+    "Vergi borcu oranını en dip seviyeye kilitler.": "Vergi borcu oranını en dip seviyeye kilitler.",
+    "Vergi İadesi Teşviki": "Vergi İadesi Teşviki",
+    "Verginin tahakkuk etme periyodunu uzatarak nakit akışını rahatlatır.": "Verginin tahakkuk etme periyodunu uzatarak nakit akışını rahatlatır.",
+    "Verginizi 12 saat dolmadan zamanında öderseniz 30 dakika boyunca %20 ek gelir takviyesi kazanırsınız!": "Verginizi 12 saat dolmadan zamanında öderseniz 30 dakika boyunca %20 ek gelir takviyesi kazanırsınız!",
+    "Vergisini aksatmayan holdinge ilave gelir çarpanı sağlar.": "Vergisini aksatmayan holdinge ilave gelir çarpanı sağlar.",
+    "VERGİ TAHAKKUKU": "VERGİ TAHAKKUKU",
+    "Verim": "Verim",
+    "VIP Limuzin": "VIP Limuzin",
+    "Vip Limuzin": "VIP Limuzin",
+    "Vitamin Hapı": "Vitamin Hapı",
+    "Wagyu Eti": "Wagyu Eti",
+    "Yalın Kaizen Felsefesi": "Yalın Kaizen Felsefesi",
+    "Yapay Zeka Ar-Ge": "Yapay Zeka Ar-Ge",
+    "Yapay zeka geliştirme fabrikasının kârını artırır.": "Yapay zeka geliştirme fabrikasının kârını artırır.",
+    "Yarı İletken Baskı": "Yarı İletken Baskı",
+    "Yatak": "Yatak",
+    "YATIRILACAK TUTAR:": "YATIRILACAK TUTAR:",
+    "Yatırım fonu için çarkı çevirin.": "Yatırım fonu için çarkı çevirin.",
+    "Yatırımcı Çantası": "Yatırımcı Çantası",
+    "YAZIHANE": "YAZIHANE",
+    "Yazıhane": "Yazıhane",
+    "Yazıhaneden plazaya geçişte yöneticileri güçlendirir.": "Yazıhaneden plazaya geçişte yöneticileri güçlendirir.",
+    "Yeni açılan ürünlerin ilk seviye geliştirme masrafını düşürür.": "Yeni açılan ürünlerin ilk seviye geliştirme masrafını düşürür.",
+    "Yeni bir oyun başlatmak mevcut holdinginizi, tüm şirketlerinizi, fabrikalarınızı ve kasanızı kalıcı olarak silecektir. Emin misiniz?": "Yeni bir oyun başlatmak mevcut holdinginizi, tüm şirketlerinizi, fabrikalarınızı ve kasanızı kalıcı olarak silecektir. Emin misiniz?",
+    "YENİ HOLDİNG KUR": "YENİ HOLDİNG KUR",
+    "Yetersiz Bakiye": "Yetersiz Bakiye",
+    "Yoğurt": "Yoğurt",
+    "Yönetim": "Yönetim",
+    "Yörünge İtki Sistemleri": "Yörünge İtki Sistemleri",
+    "Yıldız Gemisi": "Yıldız Gemisi",
+    "Yıldız Gemisi A.Ş.": "Yıldız Gemisi A.Ş.",
+    "Zirveye Tırmanış": "Zirveye Tırmanış",
+    "Çanta": "Çanta",
+    "Çark": "Çark",
+    "Çark çevrildiğinde vergi affı çıkma olasılığını yükseltir.": "Çark çevrildiğinde vergi affı çıkma olasılığını yükseltir.",
+    "Çarkta 3x çanta ve 2x boost gelme olasılığını yükseltir.": "Çarkta 3x çanta ve 2x boost gelme olasılığını yükseltir.",
+    "Çarktaki nakit ödüllerin taban büyüklüğünü artırır.": "Çarktaki nakit ödüllerin taban büyüklüğünü artırır.",
+    "Çevrimdışı gelir toplama süresi sınırını uzatır.": "Çevrimdışı gelir toplama süresi sınırını uzatır.",
+    "Çevrimdışı süre sınırına ilave saatler ekler.": "Çevrimdışı süre sınırına ilave saatler ekler.",
+    "Çırak-Usta Tasarımı": "Çırak-Usta Tasarımı",
+    "ÖDÜLÜ AL": "ÖDÜLÜ AL",
+    "ÜRET": "ÜRET",
+    "Üretim": "Üretim",
+    "Üretim artıklarını değerlendirerek holding gelirini artırır.": "Üretim artıklarını değerlendirerek holding gelirini artırır.",
+    "Üretim kayıplarını en aza indirerek kalıcı gelir sağlar.": "Üretim kayıplarını en aza indirerek kalıcı gelir sağlar.",
+    "Üretim Müdürlüğü": "Üretim Müdürlüğü",
+    "Üretim Standartlaşması": "Üretim Standartlaşması",
+    "ÜRETİM BANDI": "ÜRETİM BANDI",
+    "Üretme kazancı çarpanını taban değerin üzerine çıkarır.": "Üretme kazancı çarpanını taban değerin üzerine çıkarır.",
+    "Ürün": "Ürün",
+    "Ürünlerimiz trend oldu!": "Ürünlerimiz trend oldu!",
+    "Ürünlerimize yoğun ilgi var!": "Ürünlerimize yoğun ilgi var!",
+    "Üst düzey yönetici transfer masraflarını düşürür.": "Üst düzey yönetici transfer masraflarını düşürür.",
+    "Üç giriş seviyesi fabrikanın esnek üretim kapasitesini artırır.": "Üç giriş seviyesi fabrikanın esnek üretim kapasitesini artırır.",
+    "ŞANS ÇARKI": "ŞANS ÇARKI",
+    "Şeker": "Şeker",
+    "Şirketlerin seni bekliyor": "Şirketlerin seni bekliyor"
+  },
+  "patterns": {
+    "1-4 Nolu Arsa Maliyeti: -%{value}": "1-4 Nolu Arsa Maliyeti: -%{value}",
+    "1. Yönetici Gelir Gücü: +%{value}": "1. Yönetici Gelir Gücü: +%{value}",
+    "10^30 Hedefine Yaklaşırken Ciro Katsayıları 1.5x Katlanır": "10^30 Hedefine Yaklaşırken Ciro Katsayıları 1.5x Katlanır",
+    "10^30 Zirvesi: Maliyetler -%50, Saniyelik Gelir 5x ve Prestij RP Kazanımı 3x!": "10^30 Zirvesi: Maliyetler -%50, Saniyelik Gelir 5x ve Prestij RP Kazanımı 3x!",
+    "15 Arsa Dolduğunda Toplam Holding Geliri: +%30": "15 Arsa Dolduğunda Toplam Holding Geliri: +%30",
+    "15 saniye içinde karar verilmedi. {event} kabul edilmedi. İstersen reklam izleyerek fırsatı geri kazanabilirsin.": "15 saniye içinde karar verilmedi. {event} kabul edilmedi. İstersen reklam izleyerek fırsatı geri kazanabilirsin.",
+    "15 saniye içinde karar verilmedi. {event} otomatik olarak devreye girdi; gelir {multiplier}x seviyesinde {minutes} dakika etkilenecek. İstersen reklam izleyerek krizi şimdi kaldırabilirsin.": "15 saniye içinde karar verilmedi. {event} otomatik olarak devreye girdi; gelir {multiplier}x seviyesinde {minutes} dakika etkilenecek. İstersen reklam izleyerek krizi şimdi kaldırabilirsin.",
+    "2. Yönetici İndirim Gücü: +%{value}": "2. Yönetici İndirim Gücü: +%{value}",
+    "2. Ürün Üretim Kazancı: +%{value}": "2. Ürün Üretim Kazancı: +%{value}",
+    "2x Gelir Boost Süresi: {value} Dakika": "2x Gelir Boost Süresi: {value} Dakika",
+    "3. Yönetici Hız Çarpanı: +%{value}": "3. Yönetici Hız Çarpanı: +%{value}",
+    "3. Ürün Üretim Kazancı: +%{value}": "3. Ürün Üretim Kazancı: +%{value}",
+    "3x Çanta & 2x Boost Şans Artışı: +%{value}": "3x Çanta & 2x Boost Şans Artışı: +%{value}",
+    "4. Ürün Üretim Kazancı: +%{value}": "4. Ürün Üretim Kazancı: +%{value}",
+    "5-8 Nolu Arsa Maliyeti: -%{value}": "5-8 Nolu Arsa Maliyeti: -%{value}",
+    "5. Ürün Üretim Kazancı: +%{value}": "5. Ürün Üretim Kazancı: +%{value}",
+    "7 Şirketin Kâr Eğilimi: %{value}": "7 Şirketin Kâr Eğilimi: %{value}",
+    "9-15 Nolu Arsa Maliyeti: -%{value}": "9-15 Nolu Arsa Maliyeti: -%{value}",
+    "Arsa İndirimi: -%{value}": "Arsa İndirimi: -%{value}",
+    "Aşama {stage}  •  Tesis: {level}/300": "Aşama {stage}  •  Tesis: {level}/300",
+    "Başlangıç Fabrikaları Geliri: +%{value}": "Başlangıç Fabrikaları Geliri: +%{value}",
+    "Başlangıç Nakit Hibesi: ${value}": "Başlangıç Nakit Hibesi: ${value}",
+    "Biyoteknoloji Fabrikası Geliri: +%{value}": "Biyoteknoloji Fabrikası Geliri: +%{value}",
+    "Boost Süresi İlavesi: +{value} Dakika": "Boost Süresi İlavesi: +{value} Dakika",
+    "Borsa Satış Komisyonu: %{value}": "Borsa Satış Komisyonu: %{value}",
+    "Borsa ve Nakit Akışı Kalıcı 2.0x": "Borsa ve Nakit Akışı Kalıcı 2.0x",
+    "Dipten Alımlarda Anında %5 Sermaye Primi": "Dipten Alımlarda Anında %5 Sermaye Primi",
+    "Ekstra Geliştirme İndirimi: -%{value}": "Ekstra Geliştirme İndirimi: -%{value}",
+    "Ekstra Kâr Şansı: +%{value}": "Ekstra Kâr Şansı: +%{value}",
+    "Elektronik Fabrikası Geliri: +%{value}": "Elektronik Fabrikası Geliri: +%{value}",
+    "Erken Ödeme Bonus Süresi: {value} Dakika": "Erken Ödeme Bonus Süresi: {value} Dakika",
+    "Erken Ödeme Gelir Bonusu: %{value}": "Erken Ödeme Gelir Bonusu: %{value}",
+    "Erken Ödeme İlave Çarpanı: +%{value}": "Erken Ödeme İlave Çarpanı: +%{value}",
+    "Esnek Üretim Geliri: +%{value}": "Esnek Üretim Geliri: +%{value}",
+    "Fabrika Geliştirme Maliyeti: -%{value}": "Fabrika Geliştirme Maliyeti: -%{value}",
+    "Fabrika Haciz Erteleme Süresi: {value} Saat": "Fabrika Haciz Erteleme Süresi: {value} Saat",
+    "Füzyon Enerji Fabrikası Geliri: +%{value}": "Füzyon Enerji Fabrikası Geliri: +%{value}",
+    "Fırsat & Kriz Belirme Sıklığı: +%{value}": "Fırsat & Kriz Belirme Sıklığı: +%{value}",
+    "Gece Mesaisi Katkısı: +%{value}": "Gece Mesaisi Katkısı: +%{value}",
+    "Gelir Boost Çarpanı Kalıcı 2.5x Olarak Uygulanır": "Gelir Boost Çarpanı Kalıcı 2.5x Olarak Uygulanır",
+    "Geliştirme İndirimi: -%{value}": "Geliştirme İndirimi: -%{value}",
+    "Giriş Seviyesi Fabrika Geliri: +%{value}": "Giriş Seviyesi Fabrika Geliri: +%{value}",
+    "Global Gelir İlavesi: +%{value}": "Global Gelir İlavesi: +%{value}",
+    "Görsel Değişim Gelir Boost: {value}x": "Görsel Değişim Gelir Boost: {value}x",
+    "Gıda İşleme Geliri: +%{value}": "Gıda İşleme Geliri: +%{value}",
+    "Her Ciro Rütbesi İçin Gelir Bonusu: +%{value}": "Her Ciro Rütbesi İçin Gelir Bonusu: +%{value}",
+    "Hisse Alım Nakit İadesi: %{value}": "Hisse Alım Nakit İadesi: %{value}",
+    "Hisse Değer Artış İvmesi: +%{value}": "Hisse Değer Artış İvmesi: +%{value}",
+    "Hisse Kâr Eğilimi Tavanı: %{value}": "Hisse Kâr Eğilimi Tavanı: %{value}",
+    "Holding Gelir Bonusu: +%5": "Holding Gelir Bonusu: +%5",
+    "Holding Gelir Bonusu: +%{value}": "Holding Gelir Bonusu: +%{value}",
+    "İlk Fabrika Doğrudan Seviye 30 Başlar": "İlk Fabrika Doğrudan Seviye 30 Başlar",
+    "Kalan Süre: {value}": "Kalan Süre: {value}",
+    "Kalan Süre: {value}s": "Kalan Süre: {value}s",
+    "KASA: ${value}": "KASA: ${value}",
+    "Kazanılan Ar-Ge Puanı (RP): +%{value}": "Kazanılan Ar-Ge Puanı (RP): +%{value}",
+    "Kazanılan RP İlavesi: +%{value}": "Kazanılan RP İlavesi: +%{value}",
+    "Kazanılan RP Çarpanı: +%{value}": "Kazanılan RP Çarpanı: +%{value}",
+    "Kriz Süresi: -{value} Dakika": "Kriz Süresi: -{value} Dakika",
+    "Kriz Önleme Bedeli İndirimi: -%{value}": "Kriz Önleme Bedeli İndirimi: -%{value}",
+    "Kriz Önleme Ek İndirimi: -%{value}": "Kriz Önleme Ek İndirimi: -%{value}",
+    "Lvl 100 Fabrika Başına Holding Geliri: +%{value}": "Lvl 100 Fabrika Başına Holding Geliri: +%{value}",
+    "Lvl 150 Fabrika Maliyet İndirimi: -%{value}": "Lvl 150 Fabrika Maliyet İndirimi: -%{value}",
+    "Lvl 200 Fabrika Gelir Bonusu: +%{value}": "Lvl 200 Fabrika Gelir Bonusu: +%{value}",
+    "Lvl 250 Fabrika Prestij RP Katkısı: +%{value}": "Lvl 250 Fabrika Prestij RP Katkısı: +%{value}",
+    "Lvl 300 Fabrikaya Özel Saf 2.0x Gelir Çarpanı": "Lvl 300 Fabrikaya Özel Saf 2.0x Gelir Çarpanı",
+    "Lvl 50 Fabrika Başına Holding Geliri: +%{value}": "Lvl 50 Fabrika Başına Holding Geliri: +%{value}",
+    "Lvl 6+ Rütbelere Özel Gelir Çarpanı: +%{value}": "Lvl 6+ Rütbelere Özel Gelir Çarpanı: +%{value}",
+    "Lvl {value}": "Lvl {value}",
+    "Maden Fabrikası Geliri: +%{value}": "Maden Fabrikası Geliri: +%{value}",
+    "Maksimum Çevrimdışı Süre: {value} Saat": "Maksimum Çevrimdışı Süre: {value} Saat",
+    "Maliyet Çarpanı: {value}x": "Maliyet Çarpanı: {value}x",
+    "Mevcut Kadro: {value}": "Mevcut Kadro: {value}",
+    "Minimum Komisyon: %0.10 (Kilitli)": "Minimum Komisyon: %0.10 (Kilitli)",
+    "Olumlu Olay Geliri: +%{value}": "Olumlu Olay Geliri: +%{value}",
+    "Olumlu Olay Süresi: +{value} Dakika": "Olumlu Olay Süresi: +{value} Dakika",
+    "Otomobil Fabrikası Geliri: +%{value}": "Otomobil Fabrikası Geliri: +%{value}",
+    "Otonom Pasif Gelir Çarpanı: +%{value}": "Otonom Pasif Gelir Çarpanı: +%{value}",
+    "Para Çantası Nakit Artışı: +%{value}": "Para Çantası Nakit Artışı: +%{value}",
+    "Para Çantası Nakit Çarpanı: +%{value}": "Para Çantası Nakit Çarpanı: +%{value}",
+    "Para Çantası Çıkış Sıklığı: +%{value}": "Para Çantası Çıkış Sıklığı: +%{value}",
+    "Plaza Yöneticilerine Kalıcı Güçlendirme: +%25": "Plaza Yöneticilerine Kalıcı Güçlendirme: +%25",
+    "Prestij Sonrası İlk {value} Arsa Bedelsiz Açık": "Prestij Sonrası İlk {value} Arsa Bedelsiz Açık",
+    "Reklamla Alınan 2x AFK Bonusu 3x Olarak Verilir": "Reklamla Alınan 2x AFK Bonusu 3x Olarak Verilir",
+    "Saat Başı Gecikme Faizi: %{value}": "Saat Başı Gecikme Faizi: %{value}",
+    "Saatlik Hisse Temettü Oranı: +%{value}": "Saatlik Hisse Temettü Oranı: +%{value}",
+    "Saatlik Pasif Temettü Getirisi: %{value}": "Saatlik Pasif Temettü Getirisi: %{value}",
+    "Sanayi Sütun Zirvesi: Taban Gelir Kalıcı +%50": "Sanayi Sütun Zirvesi: Taban Gelir Kalıcı +%50",
+    "Saniyelik Gelir Oranı: %{value}": "Saniyelik Gelir Oranı: %{value}",
+    "Saniyelik Pasif Gelir İlavesi: +%{value}": "Saniyelik Pasif Gelir İlavesi: +%{value}",
+    "Satış Komisyonu İlave İndirimi: -%{value}": "Satış Komisyonu İlave İndirimi: -%{value}",
+    "SEKTÖR {id}\nÇİZİM BEKLİYOR": "SEKTÖR {id}\nÇİZİM BEKLİYOR",
+    "Süt Ürünleri Fabrikası Geliri: +%{value}": "Süt Ürünleri Fabrikası Geliri: +%{value}",
+    "Tebrikler! +${reward} kazandınız!": "Tebrikler! +${reward} kazandınız!",
+    "Tebrikler! +${reward} kazandınız! Vergi borcunuz affedildi.": "Tebrikler! +${reward} kazandınız! Vergi borcunuz affedildi.",
+    "TERFİ VER (${value})": "TERFİ VER (${value})",
+    "Tesis Kurulum Maliyet İndirimi: -%{value}": "Tesis Kurulum Maliyet İndirimi: -%{value}",
+    "Tesisi toplam Seviye {value} yapın": "Tesisi toplam Seviye {value} yapın",
+    "Tüm 15 Fabrikanın Geliri: +%{value}": "Tüm 15 Fabrikanın Geliri: +%{value}",
+    "Tüm Fabrika Taban Geliri: +%{value}": "Tüm Fabrika Taban Geliri: +%{value}",
+    "Uzay Sanayii Fabrikası Geliri: +%{value}": "Uzay Sanayii Fabrikası Geliri: +%{value}",
+    "Vergi Borcu İndirim Kalkanı: -%{value}": "Vergi Borcu İndirim Kalkanı: -%{value}",
+    "Vergi Borcu Oranı: %{value}": "Vergi Borcu Oranı: %{value}",
+    "Vergi Borcu Varsa Otomatik Affettirilir": "Vergi Borcu Varsa Otomatik Affettirilir",
+    "Vergi İndirimi: -%{value}": "Vergi İndirimi: -%{value}",
+    "Vergi Oranı Taban Sınırı: %8.0 (Kilitli)": "Vergi Oranı Taban Sınırı: %8.0 (Kilitli)",
+    "Vergi Tahakkuk Periyodu: {value} Saat": "Vergi Tahakkuk Periyodu: {value} Saat",
+    "Yapay Zeka Fabrikası Geliri: +%{value}": "Yapay Zeka Fabrikası Geliri: +%{value}",
+    "Yeni Ürün Başlangıç Maliyeti: -%{value}": "Yeni Ürün Başlangıç Maliyeti: -%{value}",
+    "Yönetici Atama Maliyeti: -%{value}": "Yönetici Atama Maliyeti: -%{value}",
+    "Yönetici Lisans İndirimi: -%{value}": "Yönetici Lisans İndirimi: -%{value}",
+    "{event} devreye girdi. Gelir {multiplier}x seviyesine düştü ve bu etki {minutes} dakika sürecek.": "{event} devreye girdi. Gelir {multiplier}x seviyesine düştü ve bu etki {minutes} dakika sürecek.",
+    "{event} engellendi. ${cost} ödendi ve gelir düşüşü uygulanmadı.": "{event} engellendi. ${cost} ödendi ve gelir düşüşü uygulanmadı.",
+    "{event} etkinleştirildi. Gelir {multiplier}x oldu ve bu etki {minutes} dakika sürecek.": "{event} etkinleştirildi. Gelir {multiplier}x oldu ve bu etki {minutes} dakika sürecek.",
+    "{event} reddedildi. Herhangi bir gelir etkisi uygulanmadı.": "{event} reddedildi. Herhangi bir gelir etkisi uygulanmadı.",
+    "{event} reklam ödülüyle etkinleştirildi. Gelir {multiplier}x oldu ve bu etki {minutes} dakika sürecek.": "{event} reklam ödülüyle etkinleştirildi. Gelir {multiplier}x oldu ve bu etki {minutes} dakika sürecek.",
+    "{event} reklam ödülüyle kabul edildi. Gelir {multiplier}x oldu ve bu etki {minutes} dakika sürecek.": "{event} reklam ödülüyle kabul edildi. Gelir {multiplier}x oldu ve bu etki {minutes} dakika sürecek.",
+    "{event} reklam ödülüyle ücretsiz engellendi. Önleme bedeli ödenmedi ve gelir düşüşü uygulanmadı.": "{event} reklam ödülüyle ücretsiz engellendi. Önleme bedeli ödenmedi ve gelir düşüşü uygulanmadı.",
+    "{event} son anda engellendi. Reklam ödülü sayesinde kriz etkisi kaldırıldı ve önleme bedeli ödenmedi.": "{event} son anda engellendi. Reklam ödülü sayesinde kriz etkisi kaldırıldı ve önleme bedeli ödenmedi.",
+    "{factory} inşası için arsa bedeli:": "{factory} inşası için arsa bedeli:",
+    "{hours} Saat {minutes} Dk": "{hours} Saat {minutes} Dk",
+    "{minutes} Dakika": "{minutes} Dakika",
+    "{name} ürün ikonu": "{name} ürün ikonu",
+    "{title} (Kademe {tier})": "{title} (Kademe {tier})",
+    "Çanta Finansman Primi: +%{value}": "Çanta Finansman Primi: +%{value}",
+    "Çark Nakit Ödül Taban Değeri: +%{value}": "Çark Nakit Ödül Taban Değeri: +%{value}",
+    "Çarktan Vergi Affı Çıkma Şansı: +%{value}": "Çarktan Vergi Affı Çıkma Şansı: +%{value}",
+    "Çevrimdışı Saniyelik Gelir Bonusu: +%{value}": "Çevrimdışı Saniyelik Gelir Bonusu: +%{value}",
+    "Çevrimdışı Süre İlavesi: +{value} Saat": "Çevrimdışı Süre İlavesi: +{value} Saat",
+    "ÖNLE (${value})": "ÖNLE (${value})",
+    "Üretme Kazancı Çarpanı: {value}x": "Üretme Kazancı Çarpanı: {value}x",
+    "Ürün Üretim Kazanç Bonusu: +%{value}": "Ürün Üretim Kazanç Bonusu: +%{value}"
+  },
+  "_meta": {
+    "language": "tr",
+    "schema": 2,
+    "literal_fallback": null,
+    "notes": "Structured keys + literal/pattern catalog for legacy UI migration."
+  },
+  "factory_catalog": {
+    "1": {
+      "name": "Tekstil Atölyesi",
+      "products": [
+        "T-shirt",
+        "Pantolon",
+        "Ayakkabı",
+        "Çanta",
+        "Takım Elbise"
+      ]
+    },
+    "2": {
+      "name": "Mobilya Fabrikası",
+      "products": [
+        "Sandalye",
+        "Masa",
+        "Koltuk",
+        "Yatak",
+        "Dolap"
+      ]
+    },
+    "3": {
+      "name": "Tarım Tesisleri",
+      "products": [
+        "Buğday",
+        "Mısır",
+        "Pamuk",
+        "Safran",
+        "Hibrit Tohum"
+      ]
+    },
+    "4": {
+      "name": "Süt Ürünleri",
+      "products": [
+        "Süt",
+        "Yoğurt",
+        "Tereyağı",
+        "Arı Sütü",
+        "Pule Peyniri"
+      ]
+    },
+    "5": {
+      "name": "Mezbaha",
+      "products": [
+        "Sosis",
+        "Tavuk",
+        "Kebap",
+        "Timsah Derisi",
+        "Wagyu Eti"
+      ]
+    },
+    "6": {
+      "name": "Gıda İşleme",
+      "products": [
+        "Un",
+        "Şeker",
+        "Konserve",
+        "Havyar",
+        "Gurme Çikolata"
+      ]
+    },
+    "7": {
+      "name": "Maden Çıkarma",
+      "products": [
+        "Kömür",
+        "Demir",
+        "Gümüş",
+        "Altın",
+        "Elmas"
+      ]
+    },
+    "8": {
+      "name": "Kimya Tesisleri",
+      "products": [
+        "Gübre",
+        "Plastik",
+        "Boya",
+        "Lüks Parfüm",
+        "Karbonfiber"
+      ]
+    },
+    "9": {
+      "name": "Otomobil Fabrikası",
+      "products": [
+        "Lastik",
+        "Motosiklet",
+        "Otomobil",
+        "VIP Limuzin",
+        "Süper Spor Araç"
+      ]
+    },
+    "10": {
+      "name": "İlaç Fabrikası",
+      "products": [
+        "Vitamin Hapı",
+        "Ağrı Kesici",
+        "Antibiyotik",
+        "COVID-19 Aşısı",
+        "Kanser İlacı"
+      ]
+    },
+    "11": {
+      "name": "Elektronik Eşya",
+      "products": [
+        "Hesap Makinesi",
+        "Telefon",
+        "Televizyon",
+        "İnsansız Hava Aracı",
+        "Kuantum PC"
+      ]
+    },
+    "12": {
+      "name": "Yapay Zeka Ar-Ge",
+      "products": [
+        "Sohbet Botu",
+        "Satranç Botu",
+        "Görsel Oluşturma Botu",
+        "Kodlama Botu",
+        "Humanoid Robot"
+      ]
+    },
+    "13": {
+      "name": "Enerji Santrali",
+      "products": [
+        "Güneş Paneli",
+        "Rüzgar Türbini",
+        "Nükleer Santral",
+        "Parçacık Hızlandırıcı",
+        "Füzyon Çekirdeği"
+      ]
+    },
+    "14": {
+      "name": "Biyoteknoloji",
+      "products": [
+        "Kök Hücre",
+        "3D Biyo-Yazıcı",
+        "Biyonik Organ",
+        "Biyoçip",
+        "Klon Canlı"
+      ]
+    },
+    "15": {
+      "name": "Uzay Sanayii",
+      "products": [
+        "Roket Motoru",
+        "Uydu",
+        "Uzay Mekiği",
+        "Ay İniş Aracı",
+        "Yıldız Gemisi"
+      ]
+    }
   }
 }

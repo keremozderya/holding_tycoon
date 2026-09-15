@@ -2,12 +2,14 @@
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide AnimatedContainer, Container, Icon, Text;
+import '../widgets/adaptive_widgets.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/game_state.dart';
 import '../services/audio_service.dart';
+import '../services/translation_service.dart';
 import '../theme/app_theme.dart';
 
 Color _uiSurface(BuildContext context) => AppColors.surfaceFor(context.watch<GameState>().useDarkTheme);
@@ -196,14 +198,17 @@ class ProductSvgIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       image: true,
-      label: '$name ürün ikonu',
+      label: '$name ürün ikonu'.tl(),
       child: RepaintBoundary(
         child: SizedBox.square(
           dimension: size,
           child: CustomPaint(
             isComplex: true,
             willChange: false,
-            painter: _ProductVectorPainter(name: name, tint: color),
+            painter: _ProductVectorPainter(
+              name: name,
+              tint: adaptiveIconColor(context, color) ?? color,
+            ),
           ),
         ),
       ),
@@ -1110,6 +1115,10 @@ class _FactoryInsideModalState extends State<FactoryInsideModal> with SingleTick
     return Consumer<GameState>(
       builder: (context, gameState, child) {
         final currentFac = gameState.factories.firstWhere((f) => f.id == widget.factoryId);
+        final localizedFactoryName = TranslationService.instance.factoryName(
+          currentFac.id,
+          fallback: currentFac.name,
+        );
         
         return Container(
           height: MediaQuery.of(context).size.height * 0.86, 
@@ -1137,7 +1146,7 @@ class _FactoryInsideModalState extends State<FactoryInsideModal> with SingleTick
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(color: AppColors.neonCyan, borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.black, width: 3)),
-                      child: SizedBox(width: 28, height: 28, child: CustomPaint(painter: _FactoryHeavyIconPainter(type: 'factory', color: Colors.white))),
+                      child: SizedBox(width: 28, height: 28, child: CustomPaint(painter: _FactoryHeavyIconPainter(type: 'factory', color: adaptiveIconColor(context, Colors.white) ?? Colors.white))),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
@@ -1148,7 +1157,7 @@ class _FactoryInsideModalState extends State<FactoryInsideModal> with SingleTick
                             fit: BoxFit.scaleDown,
                             alignment: Alignment.centerLeft,
                             child: Text(
-                              currentFac.name.toUpperCase(), 
+                              localizedFactoryName.toUpperCase(), 
                               style: AppTheme.titleStyle(fontSize: 20).copyWith(color: Colors.black, shadows: []),
                             ),
                           ),
@@ -1204,8 +1213,8 @@ class _FactoryInsideModalState extends State<FactoryInsideModal> with SingleTick
                     labelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w900, letterSpacing: 0.5),
                     dividerColor: Colors.transparent,
                     tabs: [
-                      Tab(child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [SizedBox(width: 18, height: 18, child: CustomPaint(painter: _FactoryHeavyIconPainter(type: 'touch', color: Colors.black))), const SizedBox(width: 8), const Flexible(child: FittedBox(fit: BoxFit.scaleDown, child: Text("ÜRETİM BANDI")))])),
-                      Tab(child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [SizedBox(width: 18, height: 18, child: CustomPaint(painter: _FactoryHeavyIconPainter(type: 'upgrade', color: Colors.black))), const SizedBox(width: 8), const Flexible(child: FittedBox(fit: BoxFit.scaleDown, child: Text("TESİS GELİŞTİRME")))])),
+                      Tab(child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [SizedBox(width: 18, height: 18, child: Builder(builder: (tabContext) => CustomPaint(painter: _FactoryHeavyIconPainter(type: 'touch', color: IconTheme.of(tabContext).color ?? Colors.black)))), const SizedBox(width: 8), const Flexible(child: FittedBox(fit: BoxFit.scaleDown, child: Text("ÜRETİM BANDI")))])),
+                      Tab(child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [SizedBox(width: 18, height: 18, child: Builder(builder: (tabContext) => CustomPaint(painter: _FactoryHeavyIconPainter(type: 'upgrade', color: IconTheme.of(tabContext).color ?? Colors.black)))), const SizedBox(width: 8), const Flexible(child: FittedBox(fit: BoxFit.scaleDown, child: Text("TESİS GELİŞTİRME")))])),
                     ],
                   ),
                 ),
@@ -1225,6 +1234,8 @@ class _FactoryInsideModalState extends State<FactoryInsideModal> with SingleTick
                         if (prod.level == 0) return const SizedBox.shrink(); 
                         return ProductionLineWidget(
                           key: ValueKey('prodline_${currentFac.id}_${prod.name}'),
+                          factoryId: currentFac.id,
+                          productIndex: index,
                           product: prod, 
                           multiplier: gameState.manualProductionMultiplier(currentFac.id, index),
                           formatNum: widget.formatNum, 
@@ -1239,6 +1250,12 @@ class _FactoryInsideModalState extends State<FactoryInsideModal> with SingleTick
                       separatorBuilder: (_, __) => const SizedBox(height: 16),
                       itemBuilder: (context, index) {
                         final prod = currentFac.products[index];
+                        final localizedProductName =
+                            TranslationService.instance.productName(
+                          currentFac.id,
+                          index,
+                          fallback: prod.name,
+                        );
                         const unlockLevels = <int>[0, 30, 60, 90, 120];
                         bool canUnlock = prod.level > 0 || currentFac.totalLevel >= unlockLevels[index];
 
@@ -1275,7 +1292,7 @@ class _FactoryInsideModalState extends State<FactoryInsideModal> with SingleTick
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Text(prod.name, overflow: TextOverflow.ellipsis, maxLines: 1, style: const TextStyle(color: AppColors.textMuted, fontWeight: FontWeight.w900, fontSize: 15)),
+                                      Text(localizedProductName, overflow: TextOverflow.ellipsis, maxLines: 1, style: const TextStyle(color: AppColors.textMuted, fontWeight: FontWeight.w900, fontSize: 15)),
                                       const SizedBox(height: 6),
                                       FittedBox(fit: BoxFit.scaleDown, child: Text('Tesisi toplam Seviye ${unlockLevels[index]} yapın', style: const TextStyle(color: AppColors.textMuted, fontSize: 12, fontWeight: FontWeight.bold))),
                                     ],
@@ -1324,7 +1341,7 @@ class _FactoryInsideModalState extends State<FactoryInsideModal> with SingleTick
                                     child: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        Text(prod.name, overflow: TextOverflow.ellipsis, maxLines: 1, style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 16)),
+                                        Text(localizedProductName, overflow: TextOverflow.ellipsis, maxLines: 1, style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 16)),
                                         const SizedBox(height: 6),
                                         Wrap(
                                           crossAxisAlignment: WrapCrossAlignment.center,
@@ -1356,7 +1373,10 @@ class _FactoryInsideModalState extends State<FactoryInsideModal> with SingleTick
                                     child: Column(
                                       mainAxisAlignment: MainAxisAlignment.center,
                                       children: [
-                                        Text(isMax ? 'MAKS' : 'GELİŞTİR', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 0.5, color: isMax || !canAfford ? Colors.grey.shade600 : Colors.black)),
+                                        FittedBox(
+                                          fit: BoxFit.scaleDown,
+                                          child: Text(isMax ? 'MAKS' : 'GELİŞTİR', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 0.5, color: isMax || !canAfford ? Colors.grey.shade600 : Colors.black)),
+                                        ),
                                         if (!isMax) ...[
                                           const SizedBox(height: 4),
                                           FittedBox(fit: BoxFit.scaleDown, child: Text('\$${widget.formatNum(cost)}', style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w900, fontFamily: 'SpaceMono', color: canAfford ? Colors.black : Colors.grey.shade600))),
@@ -1396,13 +1416,17 @@ class _FactoryInsideModalState extends State<FactoryInsideModal> with SingleTick
 }
 
 class ProductionLineWidget extends StatefulWidget {
+  final String factoryId;
+  final int productIndex;
   final FactoryProduct product; 
   final double multiplier; 
   final String Function(double) formatNum; 
   final VoidCallback onProduceComplete;
   
   const ProductionLineWidget({
-    super.key, 
+    super.key,
+    required this.factoryId,
+    required this.productIndex,
     required this.product, 
     required this.multiplier, 
     required this.formatNum, 
@@ -1464,6 +1488,11 @@ class _ProductionLineWidgetState extends State<ProductionLineWidget> with Ticker
   @override 
   Widget build(BuildContext context) {
     final double incomePerClick = widget.product.manualIncome * widget.multiplier;
+    final localizedProductName = TranslationService.instance.productName(
+      widget.factoryId,
+      widget.productIndex,
+      fallback: widget.product.name,
+    );
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -1485,7 +1514,7 @@ class _ProductionLineWidgetState extends State<ProductionLineWidget> with Ticker
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: Text(widget.product.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 16)),
+                child: Text(localizedProductName, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 16)),
               ),
               const SizedBox(width: 10),
               Flexible(
@@ -1567,7 +1596,12 @@ class _ProductionLineWidgetState extends State<ProductionLineWidget> with Ticker
                           children: [
                             SizedBox(width: 20, height: 20, child: CustomPaint(painter: _FactoryHeavyIconPainter(type: 'touch', color: Colors.black))),
                             const SizedBox(width: 8),
-                            const Text('ÜRET', style: TextStyle(color: Colors.black, fontSize: 14, fontWeight: FontWeight.w900, letterSpacing: 1.0)),
+                            const Flexible(
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text('ÜRET', style: TextStyle(color: Colors.black, fontSize: 14, fontWeight: FontWeight.w900, letterSpacing: 1.0)),
+                              ),
+                            ),
                           ],
                         ),
                       ),

@@ -1,103 +1,148 @@
 // lib/theme/app_theme.dart
-
 import 'package:flutter/material.dart';
 
 class AppColors {
-  // Shared game background. This stays the same in both themes so the theme
-  // option only changes the white/light UI surfaces.
-  static const Color background = Color(0xFF38BDF8); // Vibrant cartoon sky blue
+  static const Color background = Color(0xFF38BDF8);
 
-  // ---------------------------------------------------------------------------
-  // LIGHT THEME SURFACES
-  // ---------------------------------------------------------------------------
+  // Light surfaces.
   static const Color surface = Colors.white;
   static const Color surfaceElevated = Color(0xFFF8FAFC);
   static const Color surfaceSoft = Color(0xFFF1F5F9);
   static const Color surfaceMuted = Color(0xFFE2E8F0);
 
-  // ---------------------------------------------------------------------------
-  // DARK CARTOON-BLUE THEME SURFACES
-  // ---------------------------------------------------------------------------
-  // These are intentionally darker than the previous blue palette while still
-  // remaining bright enough for the game's black text and thick comic outlines.
-  static const Color darkSurface = Color(0xFF4A78B0);
-  static const Color darkSurfaceElevated = Color(0xFF477AB8);
-  static const Color darkSurfaceSoft = Color(0xFF5C90CA);
-  static const Color darkSurfaceMuted = Color(0xFF4779B5);
+  // Dark cartoon-blue surfaces. These replace the old, relatively bright
+  // #4A78B0 family and deliberately provide much stronger contrast.
+  static const Color darkBackground = Color(0xFF071A2F);
+  static const Color darkSurface = Color(0xFF12365C);
+  static const Color darkSurfaceElevated = Color(0xFF19466F);
+  static const Color darkSurfaceSoft = Color(0xFF205783);
+  static const Color darkSurfaceMuted = Color(0xFF173F67);
 
-  // Shared accent colors.
-  static const Color gold = Color(0xFFFBBF24); // Cartoon bright yellow
-  static const Color darkBrown = Colors.black; // Text and borders are strictly black
-  static const Color border = Colors.black; // Thick comic outlines
+  static const Color gold = Color(0xFFFBBF24);
+  static const Color darkBrown = Colors.black;
+  static const Color border = Colors.black;
 
-  static const Color profit = Color(0xFF4ADE80); // Playful green
-  static const Color loss = Color(0xFFF87171); // Playful red
+  static const Color profit = Color(0xFF4ADE80);
+  static const Color loss = Color(0xFFF87171);
+  static const Color neonCyan = Color(0xFF0EA5E9);
+
   static const Color textPrimary = Colors.black;
   static const Color textSecondary = Color(0xFF334155);
   static const Color textMuted = Color(0xFF64748B);
 
-  static const Color neonCyan = Color(0xFF0EA5E9);
+  static const Color darkTextPrimary = Colors.white;
+  static const Color darkTextSecondary = Color(0xFFD7E9FF);
+  static const Color darkTextMuted = Color(0xFFA9C7E6);
 
-  // ---------------------------------------------------------------------------
-  // THEME-AWARE SURFACE HELPERS
-  // ---------------------------------------------------------------------------
-  // Existing screens can call these helpers instead of duplicating theme logic.
-  static Color surfaceFor(bool darkSurfaces) =>
-      darkSurfaces ? darkSurface : surface;
+  static Color backgroundFor(bool dark) =>
+      dark ? darkBackground : background;
 
-  static Color elevatedSurfaceFor(bool darkSurfaces) =>
-      darkSurfaces ? darkSurfaceElevated : surfaceElevated;
+  static Color surfaceFor(bool dark) => dark ? darkSurface : surface;
 
-  static Color softSurfaceFor(bool darkSurfaces) =>
-      darkSurfaces ? darkSurfaceSoft : surfaceSoft;
+  static Color elevatedSurfaceFor(bool dark) =>
+      dark ? darkSurfaceElevated : surfaceElevated;
 
-  static Color mutedSurfaceFor(bool darkSurfaces) =>
-      darkSurfaces ? darkSurfaceMuted : surfaceMuted;
+  static Color softSurfaceFor(bool dark) =>
+      dark ? darkSurfaceSoft : surfaceSoft;
+
+  static Color mutedSurfaceFor(bool dark) =>
+      dark ? darkSurfaceMuted : surfaceMuted;
+
+  static Color textPrimaryFor(bool dark) =>
+      dark ? darkTextPrimary : textPrimary;
+
+  static Color textSecondaryFor(bool dark) =>
+      dark ? darkTextSecondary : textSecondary;
+
+  static Color textMutedFor(bool dark) =>
+      dark ? darkTextMuted : textMuted;
 }
 
 class AppTheme {
-  // Backward-compatible default used by existing code.
   static ThemeData get tycoonTheme => lightTheme;
 
-  // Explicit light theme.
-  static ThemeData get lightTheme => _buildTheme(darkSurfaces: false);
+  static ThemeData get lightTheme => _buildTheme(dark: false);
 
-  // Explicit dark cartoon-blue theme.
-  static ThemeData get darkTheme => _buildTheme(darkSurfaces: true);
+  static ThemeData get darkTheme => _buildTheme(dark: true);
 
-  // Existing theme-aware entry point used by the game.
-  static ThemeData tycoonThemeFor({bool darkSurfaces = false}) {
-    return darkSurfaces ? darkTheme : lightTheme;
-  }
+  static ThemeData tycoonThemeFor({bool darkSurfaces = false}) =>
+      darkSurfaces ? darkTheme : lightTheme;
 
-  static ThemeData _buildTheme({required bool darkSurfaces}) {
-    final Color selectedSurface = AppColors.surfaceFor(darkSurfaces);
-    final Color selectedElevatedSurface =
-        AppColors.elevatedSurfaceFor(darkSurfaces);
+  static ThemeData _buildTheme({required bool dark}) {
+    final surface = AppColors.surfaceFor(dark);
+    final elevated = AppColors.elevatedSurfaceFor(dark);
+    final primaryText = AppColors.textPrimaryFor(dark);
+    final secondaryText = AppColors.textSecondaryFor(dark);
 
-    // Brightness intentionally remains light because this game's visual system
-    // uses black text and heavy black outlines even on its darker cartoon-blue
-    // surfaces. Switching Flutter to Brightness.dark would alter many controls
-    // beyond the intended white -> blue surface change.
+    final scheme = dark
+        ? const ColorScheme.dark(
+            primary: AppColors.gold,
+            secondary: AppColors.neonCyan,
+            surface: AppColors.darkSurface,
+            onSurface: Colors.white,
+            onPrimary: Colors.black,
+            onSecondary: Colors.white,
+            error: AppColors.loss,
+            onError: Colors.black,
+          )
+        : const ColorScheme.light(
+            primary: AppColors.gold,
+            secondary: AppColors.neonCyan,
+            surface: AppColors.surface,
+            onSurface: Colors.black,
+            onPrimary: Colors.black,
+            onSecondary: Colors.white,
+            error: AppColors.loss,
+            onError: Colors.white,
+          );
+
     return ThemeData(
-      brightness: Brightness.light,
-      scaffoldBackgroundColor: AppColors.background,
-      canvasColor: selectedSurface,
-      cardColor: selectedSurface,
-      dialogTheme: DialogThemeData(
-        backgroundColor: selectedSurface,
-      ),
-      popupMenuTheme: PopupMenuThemeData(
-        color: selectedElevatedSurface,
-      ),
-      fontFamily: 'Inter',
-      textTheme: const TextTheme(
-        bodyMedium: TextStyle(
-          color: AppColors.textPrimary,
+      brightness: dark ? Brightness.dark : Brightness.light,
+      colorScheme: scheme,
+      scaffoldBackgroundColor: AppColors.backgroundFor(dark),
+      canvasColor: surface,
+      cardColor: surface,
+      dialogTheme: DialogThemeData(backgroundColor: surface),
+      bottomSheetTheme: BottomSheetThemeData(backgroundColor: surface),
+      popupMenuTheme: PopupMenuThemeData(color: elevated),
+      snackBarTheme: SnackBarThemeData(
+        backgroundColor: elevated,
+        contentTextStyle: TextStyle(
+          color: primaryText,
           fontWeight: FontWeight.w900,
         ),
-        titleLarge: TextStyle(
+      ),
+      iconTheme: IconThemeData(color: dark ? Colors.white : primaryText),
+      primaryIconTheme: IconThemeData(color: dark ? Colors.white : primaryText),
+      appBarTheme: AppBarTheme(
+        iconTheme: IconThemeData(color: dark ? Colors.white : primaryText),
+        actionsIconTheme: IconThemeData(color: dark ? Colors.white : primaryText),
+      ),
+      dividerColor: dark ? const Color(0xFF6E92B8) : Colors.black26,
+      fontFamily: 'Inter',
+      textTheme: TextTheme(
+        bodyLarge: TextStyle(
+          color: primaryText,
+          fontWeight: FontWeight.w700,
+        ),
+        bodyMedium: TextStyle(
+          color: primaryText,
+          fontWeight: FontWeight.w900,
+        ),
+        bodySmall: TextStyle(
+          color: secondaryText,
+          fontWeight: FontWeight.w700,
+        ),
+        titleLarge: const TextStyle(
           color: AppColors.gold,
+          fontWeight: FontWeight.w900,
+        ),
+        titleMedium: TextStyle(
+          color: primaryText,
+          fontWeight: FontWeight.w900,
+        ),
+        labelLarge: TextStyle(
+          color: primaryText,
           fontWeight: FontWeight.w900,
         ),
       ),
@@ -111,7 +156,7 @@ class AppTheme {
       fontWeight: FontWeight.w900,
       letterSpacing: 2.0,
       color: Colors.white,
-      shadows: const [
+      shadows: const <Shadow>[
         Shadow(color: Colors.black, offset: Offset(2, 2)),
       ],
     );

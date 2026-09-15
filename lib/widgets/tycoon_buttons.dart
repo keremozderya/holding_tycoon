@@ -1,5 +1,6 @@
 // lib/widgets/tycoon_buttons.dart
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide AnimatedContainer, Container, Icon, Text;
+import 'adaptive_widgets.dart';
 import 'package:flutter/services.dart';
 
 class HeavyTycoonButton extends StatefulWidget {

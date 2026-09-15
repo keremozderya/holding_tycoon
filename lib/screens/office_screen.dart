@@ -2,7 +2,8 @@
 // ignore_for_file: discarded_futures, curly_braces_in_flow_control_structures
 
 import 'dart:math' as math;
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide AnimatedContainer, Container, Icon, Text;
+import '../widgets/adaptive_widgets.dart';
 import 'package:flutter/services.dart'; 
 import 'package:provider/provider.dart';
 import '../providers/game_state.dart';

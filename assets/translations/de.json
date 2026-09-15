@@ -1,7 +1,1404 @@
 {
-  "app_title":"Holding Tycoon",
-  "settings":{"title":"Einstellungen","sound_settings":"Toneinstellungen","music_volume":"Musiklautstärke","sfx_volume":"Effektlautstärke","language_options":"Sprachoptionen","game_language":"Spielsprache"},
-  "tasks":{"title":"Aufgaben","refresh_info":"Belohnungen abgeschlossener Aufgaben abholen"},
-  "research":{"app_bar_title":"Forschung & Entwicklung","industry_col":"Industrie","finance_col":"Finanzen","max":"Max.","completed":"Abgeschlossen","current_level":"Aktuelle Stufe: {level}","next_level":"Nächste Stufe: {level}","next_effect":"Nächster Effekt: {effect}","not_active":"Nicht aktiv","max_level_reached":"Maximale Stufe erreicht","lock_warning":"Schalte zuerst die erforderliche Forschung frei.","btn_req_unmet":"Anforderungen nicht erfüllt","btn_upgrade":"Für {cost} RP verbessern"},
-  "prestige":{"badge":"Prestige","title":"Holding-Prestige","description":"Löse deine Holding auf, um permanente Forschungspunkte zu erhalten.","current_turnover":"Gesamtumsatz","earnable_rp":"Verdienbare RP","warning":"Geld, Fabriken, Personal und Aktien werden zurückgesetzt; Forschung bleibt.","btn_action":"Prestige (+{rp} RP)","btn_progress":"Fortschritt {percent}%"}
+  "app_title": "Holding Tycoon",
+  "common": {
+    "claim": "ABHOLEN",
+    "claimed": "ABGEHOLT",
+    "waiting": "WARTET",
+    "locked": "GESPERRT",
+    "completed": "ABGESCHLOSSEN",
+    "maximum": "MAXIMUM",
+    "understood": "VERSTANDEN",
+    "cancel": "ABBRECHEN",
+    "close": "SCHLIESSEN"
+  },
+  "settings": {
+    "title": "Einstellungen",
+    "sound_settings": "Audioeinstellungen",
+    "music_volume": "Musiklautstärke",
+    "sfx_volume": "Effektlautstärke",
+    "language_options": "Sprachoptionen",
+    "game_language": "Spielsprache",
+    "appearance": "Darstellung",
+    "interface_theme": "Oberflächenthema",
+    "theme_description": "Wähle die helle oder dunkle Cartoon-Oberfläche.",
+    "light": "Helles Thema",
+    "dark": "Dunkles Thema"
+  },
+  "tasks": {
+    "title": "Aufgaben",
+    "refresh_info": "Belohnungen abgeschlossener Aufgaben abholen",
+    "daily_info": "Täglich neu • für eine 30-Minuten-Sitzung ausbalanciert",
+    "claimed_message": "Aufgabe abgeschlossen!",
+    "progress": "{current} / {target}",
+    "all_clear_bonus": "Alle 4 Tagesaufgaben abschließen: +{rp} RP Bonus",
+    "items": {
+      "0": {
+        "title": "Aktive Schicht • 75 manuelle Produktionen"
+      },
+      "1": {
+        "title": "Produktionsinvestition • 10 Upgrades"
+      },
+      "2": {
+        "title": "Marktbeobachtung • 3 Aktiengeschäfte"
+      },
+      "3": {
+        "title": "Maschinenrad • 1 Dreh"
+      }
+    }
+  },
+  "achievements": {
+    "title": "Erfolge",
+    "reward_claimed": "Stufenbelohnung abgeholt!",
+    "locked_title": "ERFOLGE GESPERRT",
+    "locked_description": "Bringe eine beliebige Fabrik auf Gesamtstufe 30, um Holding-Erfolge freizuschalten.",
+    "total_progress": "GESAMTFORTSCHRITT: {current} / {total}",
+    "tier": "STUFE {current}/{total}",
+    "all_tiers_complete": "Alle Stufen abgeschlossen.",
+    "items": {
+      "0": {
+        "title": "Produktionsmeister",
+        "description": "Führe insgesamt {target} manuelle Produktionen aus."
+      },
+      "1": {
+        "title": "Umsatzimperium",
+        "description": "Erziele insgesamt $ {target} Umsatz."
+      },
+      "2": {
+        "title": "Holding-Erweiterung",
+        "description": "Nimm {target} neue Industrieanlagen in Betrieb."
+      },
+      "3": {
+        "title": "Prestige-Stratege",
+        "description": "Führe {target}-mal Holding-Prestige aus."
+      },
+      "4": {
+        "title": "Industriemaßstab",
+        "description": "Erreiche {target} zusätzliche Produktionsstufen."
+      },
+      "5": {
+        "title": "Marktakteur",
+        "description": "Führe {target} Börsengeschäfte aus."
+      },
+      "6": {
+        "title": "Liquiditätsspitze",
+        "description": "Erreiche $ {target} Bargeld."
+      }
+    }
+  },
+  "research": {
+    "app_bar_title": "Forschung & Entwicklung",
+    "industry_col": "Industrie",
+    "finance_col": "Finanzen",
+    "max": "Max.",
+    "completed": "Abgeschlossen",
+    "current_level": "Aktuelle Stufe: {level}",
+    "next_level": "Nächste Stufe: {level}",
+    "next_effect": "Nächster Effekt: {effect}",
+    "not_active": "Inaktiv",
+    "max_level_reached": "Maximale Stufe erreicht",
+    "lock_warning": "Schalte zuerst die erforderlichen Forschungen frei.",
+    "btn_req_unmet": "Voraussetzungen nicht erfüllt",
+    "btn_upgrade": "Für {cost} RP verbessern",
+    "nodes": {
+      "node_001": {
+        "title": "Holding-Charta",
+        "category": "Basis",
+        "description": "Erhöht dauerhaft das Basisproduktionseinkommen aller Fabriken."
+      },
+      "node_002": {
+        "title": "Schwerindustrie-Doktrin",
+        "category": "Industrie",
+        "description": "Senkt dauerhaft die Ausbaukosten der Fabriken."
+      },
+      "node_003": {
+        "title": "Industrieplattform für Einsteiger",
+        "category": "Fabrik",
+        "description": "Verbessert den gemeinsamen Produktionsstandard von Textil-, Möbel- und Landwirtschaftsanlagen."
+      },
+      "node_004": {
+        "title": "Pasteurisierungsanlagen",
+        "category": "Fabrik",
+        "description": "Erhöht den Gewinn der Produktionslinie der Molkerei."
+      },
+      "node_005": {
+        "title": "Flexible Produktionszellen",
+        "category": "Fabrik",
+        "description": "Erhöht die flexible Produktionskapazität aller drei Startfabriken."
+      },
+      "node_006": {
+        "title": "Lebensmittel-Serienproduktion",
+        "category": "Fabrik",
+        "description": "Erhöht den Gewinn der Produktionslinie in der Lebensmittelverarbeitung."
+      },
+      "node_007": {
+        "title": "Meisterschaft im Startsektor",
+        "category": "Fabrik",
+        "description": "Steigert die Rentabilität aller drei Startfabriken unabhängig vom gewählten Startsektor."
+      },
+      "node_008": {
+        "title": "Roboter-Karosserielinie",
+        "category": "Fabrik",
+        "description": "Erhöht den Gewinn der Produktionslinie der Automobilfabrik."
+      },
+      "node_009": {
+        "title": "Tiefbohrung",
+        "category": "Fabrik",
+        "description": "Erhöht den Gewinn der Produktionslinie der Bergbauanlage."
+      },
+      "node_010": {
+        "title": "Halbleiter-Lithografie",
+        "category": "Fabrik",
+        "description": "Erhöht den Gewinn der Produktionslinie der Elektronikfabrik."
+      },
+      "node_011": {
+        "title": "Neuronale Netzoptimierung",
+        "category": "Fabrik",
+        "description": "Erhöht den Gewinn der KI-Entwicklungsanlage."
+      },
+      "node_012": {
+        "title": "Genetische Rekombination",
+        "category": "Fabrik",
+        "description": "Erhöht den Gewinn der Produktionslinie der Biotechnologiefabrik."
+      },
+      "node_013": {
+        "title": "Tokamak-Magnetfeld",
+        "category": "Fabrik",
+        "description": "Erhöht den Gewinn der Produktionslinie der Fusionsenergieanlage."
+      },
+      "node_014": {
+        "title": "Orbitale Antriebssysteme",
+        "category": "Fabrik",
+        "description": "Erhöht den Gewinn der Produktionslinie der Raumfahrtindustrie."
+      },
+      "node_015": {
+        "title": "Industriekartell-Synergie",
+        "category": "Industrie",
+        "description": "Wendet einen gemeinsamen Multiplikator auf das Basiseinkommen aller 15 Fabriken an."
+      },
+      "node_016": {
+        "title": "Vergünstigte Beschaffung",
+        "category": "Kosten",
+        "description": "Senkt den Kostenmultiplikator für Fabrikausbauten unter den Basiswert."
+      },
+      "node_017": {
+        "title": "Großbestellungen von Material",
+        "category": "Kosten",
+        "description": "Senkt die Ausbaukosten durch Großabnahmeverträge."
+      },
+      "node_018": {
+        "title": "Globale Lieferkette",
+        "category": "Kosten",
+        "description": "Senkt Installationskosten durch internationale Frachtabkommen."
+      },
+      "node_019": {
+        "title": "Produktionsstandardisierung",
+        "category": "Ertrag",
+        "description": "Erhöht den Multiplikator für manuelle Produktion über den Basiswert."
+      },
+      "node_020": {
+        "title": "Lean-Kaizen-Philosophie",
+        "category": "Ertrag",
+        "description": "Erhöht Produktmultiplikatoren durch kontinuierliche Verbesserung."
+      },
+      "node_021": {
+        "title": "Kontinuierliche Fließlinie",
+        "category": "Passiv",
+        "description": "Hebt das passive Einkommen pro Sekunde auf mehr als die Hälfte des Produktionsertrags."
+      },
+      "node_022": {
+        "title": "Schichtloser Betrieb",
+        "category": "Passiv",
+        "description": "Erhöht schrittweise das passive Einkommen pro Sekunde der Anlagen."
+      },
+      "node_023": {
+        "title": "Vollautonome Anlage",
+        "category": "Passiv",
+        "description": "Vervielfacht das Einkommen pro Sekunde durch unbemannte Produktion."
+      },
+      "node_024": {
+        "title": "Schrottverwertung",
+        "category": "Effizienz",
+        "description": "Erhöht das Holding-Einkommen durch Verwertung von Produktionsresten."
+      },
+      "node_025": {
+        "title": "Versicherter Betrieb",
+        "category": "Effizienz",
+        "description": "Erhöht das Nettoeinkommen durch geringere Betriebsverluste."
+      },
+      "node_026": {
+        "title": "Stadterneuerung",
+        "category": "Effizienz",
+        "description": "Infrastrukturinvestitionen rund um die Anlagen steigern die Produktivität."
+      },
+      "node_027": {
+        "title": "Nullverlust-Protokoll",
+        "category": "Effizienz",
+        "description": "Sichert dauerhaftes Einkommen durch Minimierung von Produktionsverlusten."
+      },
+      "node_028": {
+        "title": "F&E für Produkt 2",
+        "category": "Produkt",
+        "description": "Erhöht den Produktionsertrag der zweiten Produkte, die auf Stufe 30 freigeschaltet werden."
+      },
+      "node_029": {
+        "title": "Fertigung von Produkt 3",
+        "category": "Produkt",
+        "description": "Erhöht den Produktionsertrag der dritten Produkte, die auf Stufe 60 freigeschaltet werden."
+      },
+      "node_030": {
+        "title": "Montage von Produkt 4",
+        "category": "Produkt",
+        "description": "Erhöht den Produktionsertrag der vierten Produkte, die auf Stufe 90 freigeschaltet werden."
+      },
+      "node_031": {
+        "title": "5. Flaggschiff-Produkt",
+        "category": "Produkt",
+        "description": "Erhöht den Produktionsertrag der fünften Produkte, die auf Stufe 120 freigeschaltet werden."
+      },
+      "node_032": {
+        "title": "Formstandardisierung",
+        "category": "Produkt",
+        "description": "Senkt die Kosten des ersten Upgrades neu freigeschalteter Produkte."
+      },
+      "node_033": {
+        "title": "HR-Rekrutierungsnetzwerk",
+        "category": "Management",
+        "description": "Senkt die Kosten für Managerzuweisung und Verträge in Fabriken."
+      },
+      "node_034": {
+        "title": "Headhunter-Vertrag",
+        "category": "Management",
+        "description": "Senkt die Transferkosten für Führungskräfte."
+      },
+      "node_035": {
+        "title": "Vorarbeiter-Disziplin",
+        "category": "Management",
+        "description": "Erhöht das vom ersten Manager bereitgestellte Produktionseinkommen."
+      },
+      "node_036": {
+        "title": "Werksleiter",
+        "category": "Management",
+        "description": "Verstärkt den Kostensenkungseffekt des zweiten Managers in der Fabrik."
+      },
+      "node_037": {
+        "title": "Generalkoordinator",
+        "category": "Management",
+        "description": "Erhöht den Produktionsgeschwindigkeits-Multiplikator des dritten Managers."
+      },
+      "node_038": {
+        "title": "Plaza-Architekturumbau",
+        "category": "Management",
+        "description": "Stärkt Manager beim Ausbau des Büros zum Firmenplaza."
+      },
+      "node_039": {
+        "title": "Baugenehmigung (1-4)",
+        "category": "Grundstück",
+        "description": "Senkt die Kaufpreise der Industriegrundstücke 1-4."
+      },
+      "node_040": {
+        "title": "Industrieförderung (5-8)",
+        "category": "Grundstück",
+        "description": "Senkt die Kaufpreise der Industriegrundstücke 5-8."
+      },
+      "node_041": {
+        "title": "Freihandelszone (9-15)",
+        "category": "Grundstück",
+        "description": "Senkt die Kaufpreise der fortgeschrittenen Industriegrundstücke 9-15."
+      },
+      "node_042": {
+        "title": "Volle Kapazität: 15 Parzellen",
+        "category": "Grundstück",
+        "description": "Gewährt einen großen Holding-Gewinnbonus, wenn alle 15 Parzellen aktiv sind."
+      },
+      "node_043": {
+        "title": "Stufe-50-Schwelle",
+        "category": "Stufe",
+        "description": "Jede Fabrik auf Stufe 50 liefert der gesamten Holding zusätzliche Erträge."
+      },
+      "node_044": {
+        "title": "Stufe-100-Schwelle",
+        "category": "Stufe",
+        "description": "Jede Fabrik auf Stufe 100 liefert der gesamten Holding zusätzliche Erträge."
+      },
+      "node_045": {
+        "title": "Stufe-150-Schwelle",
+        "category": "Stufe",
+        "description": "Senkt die Ausbaukosten von Fabriken ab Stufe 150."
+      },
+      "node_046": {
+        "title": "Stufe-200-Schwelle",
+        "category": "Stufe",
+        "description": "Gewährt für jede Fabrik auf Stufe 200 einen großen Produktionsbonus."
+      },
+      "node_047": {
+        "title": "Stufe-250-Schwelle",
+        "category": "Stufe",
+        "description": "Fabriken auf Stufe 250 erzeugen bei der Prestige-Liquidation zusätzliche RP."
+      },
+      "node_048": {
+        "title": "Stufe 300 Maximum",
+        "category": "Stufe",
+        "description": "Fixiert einen reinen Gewinnmultiplikator, sobald eine Fabrik Stufe 300 erreicht."
+      },
+      "node_049": {
+        "title": "Lehrling-Meister-Design",
+        "category": "Stufe",
+        "description": "Gewährt bei jeder visuellen Änderung alle 50 Stufen einen temporären Produktionsschub."
+      },
+      "node_050": {
+        "title": "Industriesäulen-Gipfel",
+        "category": "Apex-Zweig 1",
+        "description": "Apex-Zweig 1: Vervielfacht dauerhaft den Basisproduktionsfaktor aller Fabriken."
+      },
+      "node_051": {
+        "title": "Finanzingenieurwesen",
+        "category": "Finanzen",
+        "description": "Senkt den Basissteuerschuldsatz, der alle 5 Stunden festgesetzt wird."
+      },
+      "node_052": {
+        "title": "Kostenrechnung",
+        "category": "Steuer",
+        "description": "Verbessert den Cashflow durch Verlängerung des Steuerfestsetzungsintervalls."
+      },
+      "node_053": {
+        "title": "Körperschaftsteuerbefreiung",
+        "category": "Steuer",
+        "description": "Verringert die berechnete Gesamtsteuerschuld direkt."
+      },
+      "node_054": {
+        "title": "Holding-Steuerdeckel",
+        "category": "Steuer",
+        "description": "Fixiert den Steuerschuldsatz auf dem Mindestwert."
+      },
+      "node_055": {
+        "title": "Bonus für treue Steuerzahler",
+        "category": "Steuer",
+        "description": "Erhöht den Einkommensbonus für innerhalb von 12 Stunden gezahlte Steuern."
+      },
+      "node_056": {
+        "title": "Finanzförderungsprotokoll",
+        "category": "Steuer",
+        "description": "Verlängert die Dauer des Bonus für vorzeitige Steuerzahlung."
+      },
+      "node_057": {
+        "title": "Goldenes Steuerzahler-Abzeichen",
+        "category": "Steuer",
+        "description": "Gewährt einer Holding mit pünktlichen Steuerzahlungen einen zusätzlichen Einkommensmultiplikator."
+      },
+      "node_058": {
+        "title": "Vergleichsstelle",
+        "category": "Steuer",
+        "description": "Senkt den stündlichen Zins auf Steuern, die nach 12 Stunden noch offen sind."
+      },
+      "node_059": {
+        "title": "Pfändungsaufschub",
+        "category": "Steuer",
+        "description": "Verlängert die Frist bis zur Pfändungsversteigerung der wertvollsten Fabrik."
+      },
+      "node_060": {
+        "title": "Lobbyarbeit für Steueramnestie",
+        "category": "Steuer",
+        "description": "Erhöht die Chance auf eine Steueramnestie beim Drehen des Rads."
+      },
+      "node_061": {
+        "title": "Broker-Lizenz",
+        "category": "Börse",
+        "description": "Senkt die Transaktionsgebühr beim Verkauf von Aktien."
+      },
+      "node_062": {
+        "title": "Direkter Marktzugang",
+        "category": "Börse",
+        "description": "Senkt Brokerprovisionen noch weiter."
+      },
+      "node_063": {
+        "title": "Institutioneller Routing-Desk",
+        "category": "Börse",
+        "description": "Erzeugt eine direkte Provisionsrückerstattung bei Aktienkäufen."
+      },
+      "node_064": {
+        "title": "Nullprovisions-Privileg",
+        "category": "Börse",
+        "description": "Fixiert den Börsenprovisionssatz auf dem Mindestwert."
+      },
+      "node_065": {
+        "title": "Markttiefe",
+        "category": "Börse",
+        "description": "Erhöht die alle 5 Sekunden angewandte Gewinnneigung von 51 % bei 7 Unternehmen."
+      },
+      "node_066": {
+        "title": "Algorithmische Preisbildung",
+        "category": "Börse",
+        "description": "Erhöht die Gewinnwachstumsgeschwindigkeit von Aktien und die Renditeobergrenze."
+      },
+      "node_067": {
+        "title": "Market-Maker-Monopol",
+        "category": "Börse",
+        "description": "Hebt die Gewinnwahrscheinlichkeit der Börsenunternehmen auf ihr Maximum."
+      },
+      "node_068": {
+        "title": "Portfolio-Dividendenpool",
+        "category": "Börse",
+        "description": "Erzeugt stündlich passives Bargeld aus gehaltenen Aktien."
+      },
+      "node_069": {
+        "title": "Bevorzugter Börsenanteil",
+        "category": "Börse",
+        "description": "Erhöht schrittweise die stündliche Aktiendividendenrate."
+      },
+      "node_070": {
+        "title": "SVG-Terminalanalyse",
+        "category": "Börse",
+        "description": "Gewährt einen Kapitalbonus für Käufe am Tiefpunkt im SVG-Chart."
+      },
+      "node_071": {
+        "title": "Investorenkoffer",
+        "category": "Chance",
+        "description": "Erhöht den Bargeldbetrag in den auf dem Bildschirm erscheinenden Geldkoffern."
+      },
+      "node_072": {
+        "title": "Risikokapital",
+        "category": "Chance",
+        "description": "Erhöht Geldkoffer-Belohnungen mit einem zusätzlichen Multiplikator."
+      },
+      "node_073": {
+        "title": "Besuch eines Business Angels",
+        "category": "Chance",
+        "description": "Lässt Geldkoffer häufiger auf dem Bildschirm erscheinen."
+      },
+      "node_074": {
+        "title": "Goldenes Glücksrad",
+        "category": "Rad",
+        "description": "Erhöht den Basiswert der Bargeldbelohnungen auf dem Rad."
+      },
+      "node_075": {
+        "title": "Jackpot-Raum",
+        "category": "Rad",
+        "description": "Erhöht die Chance auf 3x-Geldkoffer und 2x-Boost am Rad."
+      },
+      "node_076": {
+        "title": "Energieschub",
+        "category": "Boost",
+        "description": "Verlängert die Dauer des 3-minütigen 2x-Einkommensboosts."
+      },
+      "node_077": {
+        "title": "Schichtmobilisierung",
+        "category": "Boost",
+        "description": "Fügt dem 2x-Einkommensboost zusätzliche Minuten hinzu."
+      },
+      "node_078": {
+        "title": "Übersteuerung",
+        "category": "Boost",
+        "description": "Erhöht dauerhaft den 2x-Boost-Multiplikator."
+      },
+      "node_079": {
+        "title": "Notfallfonds",
+        "category": "Krise",
+        "description": "Senkt die Bargeldkosten zur Verhinderung einer Logistikkrise."
+      },
+      "node_080": {
+        "title": "Krisenversicherung",
+        "category": "Krise",
+        "description": "Senkt die Kosten zur Abwehr von Logistikkrisen weiter."
+      },
+      "node_081": {
+        "title": "Schnelle Krisenlösung",
+        "category": "Krise",
+        "description": "Verkürzt die Dauer akzeptierter Krisen."
+      },
+      "node_082": {
+        "title": "Außenhandelsattaché",
+        "category": "Chance",
+        "description": "Erhöht den Einkommensmultiplikator positiver Marktereignisse."
+      },
+      "node_083": {
+        "title": "Exportkorridor",
+        "category": "Chance",
+        "description": "Verlängert die aktive Dauer positiver Marktereignisse."
+      },
+      "node_084": {
+        "title": "Globales Markt-Radar",
+        "category": "Chance",
+        "description": "Erhöht die Häufigkeit von Chancen und Krisen auf dem Bildschirm."
+      },
+      "node_085": {
+        "title": "Autonome Nachtschicht",
+        "category": "AFK",
+        "description": "Erhöht das Einkommen pro Sekunde während deiner Abwesenheit."
+      },
+      "node_086": {
+        "title": "Geldspeicher",
+        "category": "AFK",
+        "description": "Verlängert die maximale Sammelzeit für Offline-Einkommen."
+      },
+      "node_087": {
+        "title": "Kontinuierlicher Holding-Betrieb",
+        "category": "AFK",
+        "description": "Fügt dem Offline-Zeitlimit zusätzliche Stunden hinzu."
+      },
+      "node_088": {
+        "title": "Gesponserter Dreifachgewinn",
+        "category": "AFK",
+        "description": "Erhöht den werbebasierten 2x-Offline-Rückkehrbonus auf 3x."
+      },
+      "node_089": {
+        "title": "Prestige-F&E-Beschleunigung",
+        "category": "Prestige",
+        "description": "Erhöht die aus dem Umsatz gewonnenen RP beim Prestige ab 100 Qi."
+      },
+      "node_090": {
+        "title": "Patentkonsortium",
+        "category": "Prestige",
+        "description": "Gewährt einen zusätzlichen Multiplikator auf RP aus der Prestige-Liquidation."
+      },
+      "node_091": {
+        "title": "Denkfabrik",
+        "category": "Prestige",
+        "description": "Verdoppelt den RP-Multiplikator der Prestige-Liquidation."
+      },
+      "node_092": {
+        "title": "Angel-Capital-Erbe",
+        "category": "Prestige",
+        "description": "Gewährt Startkapital nach einem Prestige-Reset."
+      },
+      "node_093": {
+        "title": "Grundstückszuschuss",
+        "category": "Prestige",
+        "description": "Lässt Industriegrundstücke nach Prestige kostenlos freigeschaltet starten."
+      },
+      "node_094": {
+        "title": "Industrielles Erbe",
+        "category": "Prestige",
+        "description": "Startet die erste Fabrik nach Prestige mit erhöhtem Level und freigeschaltetem zweiten Produkt."
+      },
+      "node_095": {
+        "title": "Unternehmer-Titel",
+        "category": "Titel",
+        "description": "Gewährt für jeden erreichten Umsatzrang einen dauerhaften Einkommensbonus."
+      },
+      "node_096": {
+        "title": "Galaktischer Tycoon",
+        "category": "Titel",
+        "description": "Gewährt Galaktischer Tycoon Stufe 6 und höheren Rängen einen massiven Einkommensmultiplikator."
+      },
+      "node_097": {
+        "title": "10^30-Beschleuniger",
+        "category": "Titel",
+        "description": "Steigert Einkommensmultiplikatoren beim Annähern an das finale Umsatzziel von 10^30."
+      },
+      "node_098": {
+        "title": "Automatisches Liquidationsprotokoll",
+        "category": "Prestige",
+        "description": "Beseitigt beim Prestige automatisch die Steuerschulden-Sperre."
+      },
+      "node_099": {
+        "title": "Kapitalsäulen-Gipfel",
+        "category": "Apex-Zweig 2",
+        "description": "Apex-Zweig 2: Verdoppelt dauerhaft Börsenerträge, Gewinn und Cashflow."
+      },
+      "node_100": {
+        "title": "Herr der Welten",
+        "category": "Apex",
+        "description": "10^30-Umsatzgipfel: Bringt alle Systeme auf maximale Effizienz."
+      }
+    }
+  },
+  "prestige": {
+    "badge": "Prestige",
+    "title": "Holding-Prestige",
+    "description": "Liquidieren Sie die Holding, um permanente F&E-Punkte zu erhalten.",
+    "current_turnover": "Gesamtumsatz",
+    "earnable_rp": "Erhältliche RP",
+    "warning": "Bargeld, Fabriken, Personal und Aktien werden zurückgesetzt; Forschung bleibt erhalten.",
+    "btn_action": "Prestige (+{rp} RP)",
+    "btn_progress": "Fortschritt %{percent}"
+  },
+  "main_menu": {
+    "tagline": "Baue ein globales Imperium!",
+    "loading": "HOLDING WIRD VORBEREITET...",
+    "loading_sub": "Deine Unternehmen warten",
+    "create": "HOLDING GRÜNDEN",
+    "manage": "HOLDING VERWALTEN",
+    "new": "NEUE HOLDING GRÜNDEN",
+    "settings": "SPIELEINSTELLUNGEN",
+    "setup_title": "HOLDING-EINRICHTUNG",
+    "setup_desc": "Wähle Namen und Logo deiner Holding und baue dein Wirtschaftsimperium auf.",
+    "holding_name": "Holding-Name",
+    "holding_logo": "HOLDING-LOGO",
+    "confirm_create": "HOLDING GRÜNDEN",
+    "delete_title": "HOLDING LIQUIDIEREN",
+    "delete_warning": "Ein neues Spiel löscht deine aktuelle Holding, Unternehmen, Fabriken und dein Bargeld dauerhaft. Fortfahren?",
+    "delete_confirm": "LÖSCHEN UND STARTEN"
+  },
+  "literals": {
+    "1-4 numaralı sanayi arsalarının satın alma bedelini düşürür.": "Senkt die Kaufpreise der Industriegrundstücke 1-4.",
+    "1. yöneticinin fabrikaya sağladığı üretim gelirini artırır.": "Erhöht das vom ersten Manager bereitgestellte Produktionseinkommen.",
+    "100 Qi prestijinde ciroya oranla kazanılan RP miktarını artırır.": "Erhöht die aus dem Umsatz gewonnenen RP beim Prestige ab 100 Qi.",
+    "10^30 ciro zirvesi: Tüm sistemleri maksimum verimle taçlandırır.": "10^30-Umsatzgipfel: Bringt alle Systeme auf maximale Effizienz.",
+    "10^30 İvmelendiricisi": "10^30-Beschleuniger",
+    "10^30 nihai ciro hedefine yaklaşırken gelir çarpanlarını katlar.": "Steigert Einkommensmultiplikatoren beim Annähern an das finale Umsatzziel von 10^30.",
+    "12 saat içinde ödenen verginin sağladığı gelir bonusunu artırır.": "Erhöht den Einkommensbonus für innerhalb von 12 Stunden gezahlte Steuern.",
+    "12 saat ödenmeyen vergide saat başı işleyen faiz oranını kırar.": "Senkt den stündlichen Zins auf Steuern, die nach 12 Stunden noch offen sind.",
+    "15 Parsel Tam Kapasite": "Volle Kapazität: 15 Parzellen",
+    "2. yöneticinin fabrikadaki maliyet indirim etkisini artırır.": "Verstärkt den Kostensenkungseffekt des zweiten Managers in der Fabrik.",
+    "2. Ürün Ar-Ge'si": "F&E für Produkt 2",
+    "2X": "2X",
+    "2x boost çarpanının katsayısını kalıcı olarak artırır.": "Erhöht dauerhaft den 2x-Boost-Multiplikator.",
+    "2x gelir boost süresine ilave dakikalar ekler.": "Fügt dem 2x-Einkommensboost zusätzliche Minuten hinzu.",
+    "3 dakikalık 2x gelir boost süresini uzatır.": "Verlängert die Dauer des 3-minütigen 2x-Einkommensboosts.",
+    "3. yöneticinin üretim hızlandırma çarpanını artırır.": "Erhöht den Produktionsgeschwindigkeits-Multiplikator des dritten Managers.",
+    "3. Ürün İmalatı": "Fertigung von Produkt 3",
+    "3D Biyo-Yazıcı": "3D-Biodrucker",
+    "3X KATLA": "VERDREIFACHEN",
+    "4. Ürün Montajı": "Montage von Produkt 4",
+    "5 saatte bir tahakkuk eden temel vergi borcu oranını düşürür.": "Senkt den Basissteuerschuldsatz, der alle 5 Stunden festgesetzt wird.",
+    "5-8 numaralı sanayi arsalarının satın alma bedelini düşürür.": "Senkt die Kaufpreise der Industriegrundstücke 5-8.",
+    "5. Amiral Gemisi": "5. Flaggschiff-Produkt",
+    "7 şirketin 5 saniyede bir işleyen %51 kâr eğilimini artırır.": "Erhöht die alle 5 Sekunden angewandte Gewinnneigung von 51 % bei 7 Unternehmen.",
+    "9-15 numaralı ileri sanayi arsalarının satın alma bedelini düşürür.": "Senkt die Kaufpreise der fortgeschrittenen Industriegrundstücke 9-15.",
+    "Acil Durum Fonu": "Notfallfonds",
+    "AFK": "AFK",
+    "Algoritmik Fiyatlama": "Algorithmische Preisbildung",
+    "ALIM YAP": "KAUFEN",
+    "Altın": "Gold",
+    "Altın Mükellef Rozeti": "Goldenes Steuerzahler-Abzeichen",
+    "Altın Şans Çarkı": "Goldenes Glücksrad",
+    "Anadolu Ağır Sanayi": "Anatolische Schwerindustrie",
+    "Antibiyotik": "Antibiotikum",
+    "Apex": "Apex",
+    "Apex Biyoteknoloji": "Apex Biotechnologie",
+    "Apex Kol 1": "Apex-Zweig 1",
+    "Apex Kol 2": "Apex-Zweig 2",
+    "Ar-Ge": "F&E",
+    "Aracı komisyonlarını daha da aşağı çeker.": "Senkt Brokerprovisionen noch weiter.",
+    "Arsa": "Grundstück",
+    "ARSA SATIN ALIMI": "GRUNDSTÜCKSKAUF",
+    "Arı Sütü": "Gelée Royale",
+    "Astro-Biyoloji": "Astrobiologie",
+    "Atlas Lojistik": "Atlas Logistik",
+    "Aura Yarı İletken": "Aura Halbleiter",
+    "Ay İniş Aracı": "Mondlandefähre",
+    "Ayakkabı": "Schuhe",
+    "Ayarlar": "Einstellungen",
+    "Ağrı Kesici": "Schmerzmittel",
+    "Ağır Sanayi Doktrini": "Schwerindustrie-Doktrin",
+    "Aşırı Yükleme": "Übersteuerung",
+    "BAŞARIM TAMAMLANDI": "ERFOLG ABGESCHLOSSEN",
+    "Başlangıç Sektörü Ustalığı": "Meisterschaft im Startsektor",
+    "BEDELSİZ": "KOSTENLOS",
+    "Beklemede": "Wartet",
+    "BEKLENİYOR...": "WARTET...",
+    "Birim Fiyat:": "Stückpreis:",
+    "Biyonik Organ": "Bionisches Organ",
+    "Biyoteknoloji": "Biotechnologie",
+    "Biyoteknoloji fabrikası üretim hattının kârını artırır.": "Erhöht den Gewinn der Produktionslinie der Biotechnologiefabrik.",
+    "Biyoçip": "Biochip",
+    "Boost": "Boost",
+    "Borsa": "Börse",
+    "Borsa Analistleri": "Börsenanalysten",
+    "Borsa komisyon oranını taban seviyeye sabitler.": "Fixiert den Börsenprovisionssatz auf dem Mindestwert.",
+    "Borsa şirketlerinin kâr olasılığını zirveye taşır.": "Hebt die Gewinnwahrscheinlichkeit der Börsenunternehmen auf ihr Maximum.",
+    "Borsada hisse satarken kesilen işlem komisyonunu düşürür.": "Senkt die Transaktionsgebühr beim Verkauf von Aktien.",
+    "Boya": "Farbe",
+    "Broker Lisansı": "Broker-Lizenz",
+    "Buğday": "Weizen",
+    "Büyük İkramiye Odası": "Jackpot-Raum",
+    "Covi-19 Aşısı": "COVID-19-Impfstoff",
+    "COVID-19 Aşısı": "COVID-19-Impfstoff",
+    "Demir": "Eisen",
+    "Departmanları genişletmek ve personeli terfi ettirmek için odalara dokun!": "Tippe auf Räume, um Abteilungen auszubauen und Personal zu befördern!",
+    "Derin Kuyu Sondajı": "Tiefbohrung",
+    "Devlet teşviki onaylandı!": "Staatliche Förderung genehmigt!",
+    "Dolap": "Schrank",
+    "Doğrudan Piyasa Erişimi": "Direkter Marktzugang",
+    "Dönüşte reklamla alınan 2x çevrimdışı bonusunu 3x yapar.": "Erhöht den werbebasierten 2x-Offline-Rückkehrbonus auf 3x.",
+    "Dünyaların Sahibi": "Herr der Welten",
+    "Düşünce Kuruluşu": "Denkfabrik",
+    "Dış Ticaret Ataşeliği": "Außenhandelsattaché",
+    "Ekrana gelen fırsat ve krizlerin sıklığını artırır.": "Erhöht die Häufigkeit von Chancen und Krisen auf dem Bildschirm.",
+    "Ekranda beliren para çantasındaki nakit miktarını artırır.": "Erhöht den Bargeldbetrag in den auf dem Bildschirm erscheinenden Geldkoffern.",
+    "Elde tutulan hisselerden saat başı pasif nakit üretir.": "Erzeugt stündlich passives Bargeld aus gehaltenen Aktien.",
+    "Elektronik Eşya": "Elektronikfabrik",
+    "Elektronik fabrikası üretim hattının kârını artırır.": "Erhöht den Gewinn der Produktionslinie der Elektronikfabrik.",
+    "Elmas": "Diamant",
+    "En değerli fabrikanın haciz ile satılma süresini uzatır.": "Verlängert die Frist bis zur Pfändungsversteigerung der wertvollsten Fabrik.",
+    "Endüstriyel Miras": "Industrielles Erbe",
+    "Enerji Santrali": "Kraftwerk",
+    "Enerji Takviyesi": "Energieschub",
+    "Erken vergi ödeme bonusunun aktif kalma süresini uzatır.": "Verlängert die Dauer des Bonus für vorzeitige Steuerzahlung.",
+    "Esnek Üretim Hücreleri": "Flexible Produktionszellen",
+    "Etki Yok": "Keine Wirkung",
+    "Evrensel Enerji": "Universelle Energie",
+    "Fabrika": "Fabrik",
+    "Fabrika 300. seviyeye ulaştığında saf kâr çarpanı kilitlenir.": "Fixiert einen reinen Gewinnmultiplikator, sobald eine Fabrik Stufe 300 erreicht.",
+    "Fabrika geliştirme maliyet çarpanını tabandan aşağı çeker.": "Senkt den Kostenmultiplikator für Fabrikausbauten unter den Basiswert.",
+    "Fabrika geliştirme maliyetlerini kalıcı olarak düşürür.": "Senkt dauerhaft die Ausbaukosten der Fabriken.",
+    "Fabrikalara yönetici atama ve sözleşme bedelini azaltır.": "Senkt die Kosten für Managerzuweisung und Verträge in Fabriken.",
+    "Finans": "Finanzen",
+    "Finansal Mühendislik": "Finanzingenieurwesen",
+    "FIRSAT GERİ KAZANILDI": "CHANCE ZURÜCKGEHOLT",
+    "FIRSAT KABUL EDİLDİ": "CHANCE AKZEPTIERT",
+    "FIRSAT REDDEDİLDİ": "CHANCE ABGELEHNT",
+    "FIRSAT REKLAMLA KABUL EDİLDİ": "CHANCE MIT WERBUNG AKZEPTIERT",
+    "FİNANSMAN": "FINANZIERUNG",
+    "Füzyon enerji fabrikası üretim hattının kârını artırır.": "Erhöht den Gewinn der Produktionslinie der Fusionsenergieanlage.",
+    "Füzyon Çekirdeği": "Fusionskern",
+    "Fırsat": "Chance",
+    "Galaktik Lojistik": "Galaktische Logistik",
+    "Galaktik Madencilik": "Galaktischer Bergbau",
+    "Galaktik Tycoon": "Galaktischer Tycoon",
+    "GECE MESAİSİ": "NACHTSCHICHT",
+    "GELİŞTİR": "VERBESSERN",
+    "Genel Koordinatör": "Generalkoordinator",
+    "Genetik Rekombinasyon": "Genetische Rekombination",
+    "Gider Muhasebesi": "Kostenrechnung",
+    "Giga İnşaat": "Giga Bau",
+    "Giriş Seviyesi Sanayi Platformu": "Industrieplattform für Einsteiger",
+    "Girişim Sermayesi": "Risikokapital",
+    "Girişimci Unvanı": "Unternehmer-Titel",
+    "Global Pazar Radarı": "Globales Markt-Radar",
+    "Gurme Çikolata": "Gourmet-Schokolade",
+    "GÖREV TAMAMLANDI": "AUFGABE ABGESCHLOSSEN",
+    "Görsel Oluşturma Botu": "Bildgenerator-Bot",
+    "Gübre": "Dünger",
+    "Gümüş": "Silber",
+    "Güneş Paneli": "Solarmodul",
+    "Gıda işleme tesisinin üretim hattı kârını artırır.": "Erhöht den Gewinn der Produktionslinie in der Lebensmittelverarbeitung.",
+    "Gıda İşleme": "Lebensmittelverarbeitung",
+    "Gıda Seri Üretimi": "Lebensmittel-Serienproduktion",
+    "Haciz Erteleme Kararı": "Pfändungsaufschub",
+    "Hammadde Ambargosu": "Rohstoffembargo",
+    "Havyar": "Kaviar",
+    "Hazır Arsa Hibesi": "Grundstückszuschuss",
+    "Headhunter Sözleşmesi": "Headhunter-Vertrag",
+    "Her 50 seviye görsel değişiminde geçici üretim takviyesi verir.": "Gewährt bei jeder visuellen Änderung alle 50 Stufen einen temporären Produktionsschub.",
+    "Her analist borsada kâr etme olasılığını %0.1 artırır.": "Jeder Analyst erhöht die Chance auf profitable Börsenbewegungen um 0,1 %.",
+    "Her direktör fabrika üretim bantlarının seviye geliştirme masrafını %0.4 düşürür.": "Jeder Direktor senkt die Ausbaukosten der Produktionslinien um 0,4 %.",
+    "Her müdür fabrikaların saniyelik gelirini kalıcı %2 artırır.": "Jeder Manager erhöht das Fabrikeinkommen pro Sekunde dauerhaft um 2 %.",
+    "Her saha şefi siz oyunda yokken biriken çevrimdışı gece mesaisi gelirini %10 artırır.": "Jeder Schichtleiter erhöht das Offline-Nachtschichteinkommen um 10 %.",
+    "Her uzman sahada bulunan para çantalarındaki nakit ödül miktarını %10 artırır.": "Jeder Spezialist erhöht die Geldkoffer-Belohnungen um 10 %.",
+    "Her uzman yeni arsa alımlarında maliyeti %0.5 düşürür.": "Jeder Spezialist senkt die Kosten neuer Grundstückskäufe um 0,5 %.",
+    "Hesap Makinesi": "Taschenrechner",
+    "Hesaplanan toplam vergi borcundan doğrudan kesinti yapar.": "Verringert die berechnete Gesamtsteuerschuld direkt.",
+    "Hibrit Tohum": "Hybridsaatgut",
+    "Hisse Avcısı": "Aktienjäger",
+    "Hisse senedi alımlarında doğrudan komisyon iadesi üretir.": "Erzeugt eine direkte Provisionsrückerstattung bei Aktienkäufen.",
+    "Hisselerin kâr artış hızını ve getiri tavanını büyütür.": "Erhöht die Gewinnwachstumsgeschwindigkeit von Aktien und die Renditeobergrenze.",
+    "Holding": "Holding",
+    "Holding Adı": "Holding-Name",
+    "Holding Beratı": "Holding-Charta",
+    "Holding Genişlemesi": "Holding-Erweiterung",
+    "Holding Vergi Tavanı": "Holding-Steuerdeckel",
+    "Holdinginizin faaliyetlerine başlayacağı ilk sanayi kolunu seçin. Seçtiğiniz ilk tesis size bedelsiz olarak tahsis edilecektir.": "Wähle den ersten Industriezweig, in dem deine Holding tätig wird. Die ausgewählte erste Anlage wird kostenlos bereitgestellt.",
+    "HOLDİNG": "HOLDING",
+    "HOLDİNG HAZIRLANIYOR...": "HOLDING WIRD VORBEREITET...",
+    "HOLDİNG KUR": "HOLDING GRÜNDEN",
+    "HOLDİNG KURULUMU": "HOLDING-EINRICHTUNG",
+    "HOLDİNG LOGOSU": "HOLDING-LOGO",
+    "HOLDİNG MERKEZİ": "HOLDING-ZENTRALE",
+    "HOLDİNGİ KUR": "HOLDING GRÜNDEN",
+    "HOLDİNGİ TASFİYE ET": "HOLDING LIQUIDIEREN",
+    "HOLDİNGİ YÖNET": "HOLDING VERWALTEN",
+    "Humanoid Robot": "Humanoider Roboter",
+    "Hurda Değerleme": "Schrottverwertung",
+    "Hızlı Kriz Çözümü": "Schnelle Krisenlösung",
+    "İhracat Koridoru": "Exportkorridor",
+    "İK İşe Alım Ağı": "HR-Rekrutierungsnetzwerk",
+    "İKRAMİYE": "BONUS",
+    "İlaç Fabrikası": "Pharmafabrik",
+    "İmar Ruhsatı (1-4)": "Baugenehmigung (1-4)",
+    "İmtiyazlı Borsa Payı": "Bevorzugter Börsenanteil",
+    "İndirimli Tedarik": "Vergünstigte Beschaffung",
+    "İnsan Kaynakları": "Personalwesen",
+    "İnsansız Hava Aracı": "Unbemanntes Luftfahrzeug",
+    "İnsansız üretim ile saniyelik gelir çarpanını katlar.": "Vervielfacht das Einkommen pro Sekunde durch unbemannte Produktion.",
+    "İPTAL": "ABBRECHEN",
+    "Kabul edilen krizlerin süresini kısaltır.": "Verkürzt die Dauer akzeptierter Krisen.",
+    "KABUL ET": "AKZEPTIEREN",
+    "Kalıp Standardizasyonu": "Formstandardisierung",
+    "Kanser İlacı": "Krebsmedikament",
+    "Karbonfiber": "Carbonfaser",
+    "Karoser Robot Hattı": "Roboter-Karosserielinie",
+    "Kasa Bekçisi": "Kassenhüter",
+    "Kasa Birikim Deposu": "Geldspeicher",
+    "KATLAN": "HINNEHMEN",
+    "Kayıtlı Mesai:": "Erfasste Schicht:",
+    "Kazanç": "Ertrag",
+    "Kazanılan her ciro rütbesi için kalıcı ciro primi sağlar.": "Gewährt für jeden erreichten Umsatzrang einen dauerhaften Einkommensbonus.",
+    "Kebap": "Kebab",
+    "Kendi holdinginin adını belirle, logosunu seç ve ticari imparatorluğunu kurmaya başla.": "Wähle Namen und Logo deiner Holding und baue dein Wirtschaftsimperium auf.",
+    "Kentsel Dönüşüm": "Stadterneuerung",
+    "Kimya Tesisleri": "Chemiewerk",
+    "Klon Canlı": "Klonorganismus",
+    "Kodlama Botu": "Coding-Bot",
+    "Kol 1 Apex: Tüm fabrikaların taban üretim katsayısını kalıcı katlar.": "Apex-Zweig 1: Vervielfacht dauerhaft den Basisproduktionsfaktor aller Fabriken.",
+    "Kol 2 Apex: Borsa, kâr ve nakit akışını kalıcı olarak ikiye katlar.": "Apex-Zweig 2: Verdoppelt dauerhaft Börsenerträge, Gewinn und Cashflow.",
+    "Koltuk": "Sofa",
+    "Konserve": "Konserven",
+    "Kriz": "Krise",
+    "Kriz Sigortası": "Krisenversicherung",
+    "KRİZ KABUL EDİLDİ": "KRISE AKZEPTIERT",
+    "KRİZ REKLAMLA ÖNLENDİ": "KRISE DURCH WERBUNG VERHINDERT",
+    "KRİZ ÖNLENDİ": "KRISE VERHINDERT",
+    "Kuantum Finans": "Quantenfinanz",
+    "Kuantum PC": "Quanten-PC",
+    "Kullanılabilir Bakiye": "Verfügbares Guthaben",
+    "Kurumlar Vergisi Muafiyeti": "Körperschaftsteuerbefreiung",
+    "Kurumsal İletim Masası": "Institutioneller Routing-Desk",
+    "Kök Hücre": "Stammzelle",
+    "Kömür": "Kohle",
+    "Köse Holding": "Köse Holding",
+    "Küresel Bir İmparatorluk Kur!": "Baue ein globales Imperium!",
+    "Küresel Talep Patlaması": "Globaler Nachfrageschub",
+    "Küresel Tedarik Zinciri": "Globale Lieferkette",
+    "Lastik": "Reifen",
+    "Liman grevleri gelirleri geçici olarak düşürecek.": "Hafenstreiks werden die Einnahmen vorübergehend senken.",
+    "Lojistik & Tedarik": "Logistik & Beschaffung",
+    "Lojistik Krizi": "Logistikkrise",
+    "Lojistik krizini parayla önleme bedelini düşürür.": "Senkt die Bargeldkosten zur Verhinderung einer Logistikkrise.",
+    "Lojistik krizini savuşturma masraflarını kırar.": "Senkt die Kosten zur Abwehr von Logistikkrisen weiter.",
+    "Lunar Havacılık": "Lunar Luftfahrt",
+    "Lvl 100'e ulaşan her fabrika tüm holdinge ek getiri sağlar.": "Jede Fabrik auf Stufe 100 liefert der gesamten Holding zusätzliche Erträge.",
+    "Lvl 120'de açılan 5. ürünlerin üretim kazancını artırır.": "Erhöht den Produktionsertrag der fünften Produkte, die auf Stufe 120 freigeschaltet werden.",
+    "Lvl 150'ye ulaşan fabrikaların geliştirme maliyetini kırar.": "Senkt die Ausbaukosten von Fabriken ab Stufe 150.",
+    "Lvl 200'e ulaşan her fabrika için büyük üretim primi verir.": "Gewährt für jede Fabrik auf Stufe 200 einen großen Produktionsbonus.",
+    "Lvl 250 fabrikalar prestij tasfiyesinde ilave RP üretir.": "Fabriken auf Stufe 250 erzeugen bei der Prestige-Liquidation zusätzliche RP.",
+    "Lvl 30'da açılan 2. ürünlerin üretim kazancını artırır.": "Erhöht den Produktionsertrag der zweiten Produkte, die auf Stufe 30 freigeschaltet werden.",
+    "Lvl 50'ye ulaşan her fabrika tüm holdinge ek getiri sağlar.": "Jede Fabrik auf Stufe 50 liefert der gesamten Holding zusätzliche Erträge.",
+    "Lvl 6 Galaktik Tycoon ve üzeri rütbelere dev gelir çarpanı verir.": "Gewährt Galaktischer Tycoon Stufe 6 und höheren Rängen einen massiven Einkommensmultiplikator.",
+    "Lvl 60'ta açılan 3. ürünlerin üretim kazancını artırır.": "Erhöht den Produktionsertrag der dritten Produkte, die auf Stufe 60 freigeschaltet werden.",
+    "Lvl 90'da açılan 4. ürünlerin üretim kazancını artırır.": "Erhöht den Produktionsertrag der vierten Produkte, die auf Stufe 90 freigeschaltet werden.",
+    "Lüks Parfüm": "Luxusparfüm",
+    "Maden fabrikası üretim hattının kârını artırır.": "Erhöht den Gewinn der Produktionslinie der Bergbauanlage.",
+    "Maden Çıkarma": "Bergbauanlage",
+    "MAKS": "MAX",
+    "Maksimum Seviye": "Maximale Stufe",
+    "MAKSİMUM KAPASİTE": "MAXIMALE KAPAZITÄT",
+    "Mali Teşvik Protokolü": "Finanzförderungsprotokoll",
+    "Maliyet": "Kosten",
+    "Masa": "Tisch",
+    "MAX": "MAX",
+    "Melek Sermaye Mirası": "Angel-Capital-Erbe",
+    "Melek Yatırımcı Ziyareti": "Besuch eines Business Angels",
+    "MENKUL KIYMETLER": "WERTPAPIERE",
+    "Menü": "Menü",
+    "Mevcut Etki:": "Aktueller Effekt:",
+    "Mezbaha": "Schlachthof",
+    "Miktar girin...": "Betrag eingeben...",
+    "Mobilya": "Möbel",
+    "Mobilya Fabrikası": "Möbelfabrik",
+    "Motorsiklet": "Motorrad",
+    "Motosiklet": "Motorrad",
+    "Muhasebe": "Buchhaltung",
+    "Muhasebe Departmanı": "Buchhaltung",
+    "Mısır": "Mais",
+    "NAKİT": "BARGELD",
+    "NAKİT ÖDE": "BAR ZAHLEN",
+    "Nano-Medikal": "Nano-Medizin",
+    "Neo-Tarım A.Ş.": "Neo-Landwirtschaft AG",
+    "Net Kâr/Zarar": "Nettogewinn/-verlust",
+    "Nova Enerji": "Nova Energie",
+    "Nöral Ağ Optimizasyonu": "Neuronale Netzoptimierung",
+    "Nükleer Santral": "Kernkraftwerk",
+    "Okyanus Madencilik": "Ozeanbergbau",
+    "Olumlu piyasa olaylarının aktif kalma süresini uzatır.": "Verlängert die aktive Dauer positiver Marktereignisse.",
+    "Olumlu piyasa olaylarının gelir çarpanını artırır.": "Erhöht den Einkommensmultiplikator positiver Marktereignisse.",
+    "ONAYLA": "BESTÄTIGEN",
+    "Operasyon kayıplarını azaltarak net geliri yükseltir.": "Erhöht das Nettoeinkommen durch geringere Betriebsverluste.",
+    "Otomatik Tasfiye Protokolü": "Automatisches Liquidationsprotokoll",
+    "Otomobil": "Automobil",
+    "Otomobil Fabrikası": "Automobilfabrik",
+    "Otomobil fabrikası üretim hattının kârını artırır.": "Erhöht den Gewinn der Produktionslinie der Automobilfabrik.",
+    "Otonom Gece Vardiyası": "Autonome Nachtschicht",
+    "Otonom Verimlilik:": "Autonome Effizienz:",
+    "Oturumu Kapat": "Sitzung beenden",
+    "OYUN AYARLARI": "SPIELEINSTELLUNGEN",
+    "Oyunda değilken kazanılan saniyelik geliri artırır.": "Erhöht das Einkommen pro Sekunde während deiner Abwesenheit.",
+    "Pamuk": "Baumwolle",
+    "Pantolon": "Hose",
+    "Para çantasındaki ödül miktarını ek çarpanla büyütür.": "Erhöht Geldkoffer-Belohnungen mit einem zusätzlichen Multiplikator.",
+    "Para çantasının ekranda daha sık çıkmasını sağlar.": "Lässt Geldkoffer häufiger auf dem Bildschirm erscheinen.",
+    "Parçacık Hızlandırıcı": "Teilchenbeschleuniger",
+    "Pasif": "Passiv",
+    "Pastörizasyon Hatları": "Pasteurisierungsanlagen",
+    "Patent Konsorsiyumu": "Patentkonsortium",
+    "Pazarlama": "Marketing",
+    "Pazarlama Departmanı": "Marketing",
+    "Piyasa Derinliği": "Markttiefe",
+    "Piyasa Yapıcı Tekeli": "Market-Maker-Monopol",
+    "Plastik": "Kunststoff",
+    "Plaza Mimari Dönüşümü": "Plaza-Architekturumbau",
+    "Portföy Temettü Havuzu": "Portfolio-Dividendenpool",
+    "Prestij": "Prestige",
+    "Prestij Ar-Ge İvmesi": "Prestige-F&E-Beschleunigung",
+    "Prestij Lordu": "Prestige-Lord",
+    "Prestij sonrası ilk fabrikayı seviyesi ve 2. ürünü açık başlatır.": "Startet die erste Fabrik nach Prestige mit erhöhtem Level und freigeschaltetem zweiten Produkt.",
+    "Prestij sonrası sanayi arsalarının bedelsiz açık başlamasını sağlar.": "Lässt Industriegrundstücke nach Prestige kostenlos freigeschaltet starten.",
+    "Prestij tasfiyesinde kazanılan RP'ye ek çarpan sağlar.": "Gewährt einen zusätzlichen Multiplikator auf RP aus der Prestige-Liquidation.",
+    "Prestij tasfiyesinden gelen RP çarpanını ikiye katlar.": "Verdoppelt den RP-Multiplikator der Prestige-Liquidation.",
+    "Prestij yaparken vergi borcu engelini tek tuşla otomatik çözer.": "Beseitigt beim Prestige automatisch die Steuerschulden-Sperre.",
+    "Prestij yapıp sıfırlandıktan sonra hazır nakit hibesi verir.": "Gewährt Startkapital nach einem Prestige-Reset.",
+    "Pule Peyniri": "Pule-Käse",
+    "REDDET": "ABLEHNEN",
+    "Redof Tech": "Redof Tech",
+    "Reklam şu anda kullanılamıyor. Lütfen biraz sonra tekrar deneyin.": "Die Werbung ist derzeit nicht verfügbar. Bitte versuche es gleich noch einmal.",
+    "REKLAMLA 2X AL": "2X MIT WERBUNG",
+    "REKLAMLA 3X AL": "3X MIT WERBUNG",
+    "REKLAMLA FIRSATI KABUL ET": "CHANCE MIT WERBUNG AKZEPTIEREN",
+    "REKLAMLA KRİZİ ÖNLE": "KRISE MIT WERBUNG VERHINDERN",
+    "REKLAMLA ÇEVİR": "MIT WERBUNG DREHEN",
+    "REKLAMLA ÖDE": "MIT WERBUNG ZAHLEN",
+    "REKLAMLA ÖNLE": "MIT WERBUNG VERHINDERN",
+    "Roket Motoru": "Raketentriebwerk",
+    "Rüzgar Tribünü": "Windturbine",
+    "Rüzgar Türbini": "Windturbine",
+    "Saatlik hisse temettü oranını kademeli yükseltir.": "Erhöht schrittweise die stündliche Aktiendividendenrate.",
+    "Sadık Mükellef Primi": "Bonus für treue Steuerzahler",
+    "Safran": "Safran",
+    "Sahada harici finansman bulundu:": "Externe Finanzierung vor Ort gefunden:",
+    "Sahip Olunan": "Im Besitz",
+    "Sanayi": "Industrie",
+    "Sanayi Kartel Sinerjisi": "Industriekartell-Synergie",
+    "Sanayi Sütun Zirvesi": "Industriesäulen-Gipfel",
+    "Sanayi Teşviki (5-8)": "Industrieförderung (5-8)",
+    "Sandalye": "Stuhl",
+    "Saniyelik pasif gelir oranını üretim kazancının yarısından yukarı taşır.": "Hebt das passive Einkommen pro Sekunde auf mehr als die Hälfte des Produktionsertrags.",
+    "SATIN AL": "KAUFEN",
+    "Satranç Botu": "Schachbot",
+    "SEKTÖR SEÇİMİ": "SEKTORAUSWAHL",
+    "SEKTÖRE GİRİŞ YAP": "SEKTOR STARTEN",
+    "Serbest Bölge (9-15)": "Freihandelszone (9-15)",
+    "Sermaye Sütun Zirvesi": "Kapitalsäulen-Gipfel",
+    "Seviye": "Stufe",
+    "Seviye 100 Eşiği": "Stufe-100-Schwelle",
+    "Seviye 150 Eşiği": "Stufe-150-Schwelle",
+    "Seviye 200 Eşiği": "Stufe-200-Schwelle",
+    "Seviye 250 Eşiği": "Stufe-250-Schwelle",
+    "Seviye 300 Maksimum": "Stufe 300 Maximum",
+    "Seviye 50 Eşiği": "Stufe-50-Schwelle",
+    "Seviye Canavarı": "Level-Monster",
+    "Seçtiğiniz başlangıç sektöründen bağımsız olarak üç temel fabrikanın kârlılığını artırır.": "Steigert die Rentabilität aller drei Startfabriken unabhängig vom gewählten Startsektor.",
+    "Siber Güvenlik": "Cybersicherheit",
+    "Sigortalı Operasyon": "Versicherter Betrieb",
+    "Siz yokken üretim bantları çalışmaya devam etti ancak verim düştü!": "Die Produktionslinien liefen während deiner Abwesenheit weiter, aber die Effizienz sank!",
+    "SİL VE BAŞLA": "LÖSCHEN UND STARTEN",
+    "Sohbet Botu": "Chatbot",
+    "Sosis": "Wurst",
+    "Sosyal Medya Virali": "Social-Media-Viraltrend",
+    "Sponsorlu Üçlü Kazanç": "Gesponserter Dreifachgewinn",
+    "SVG grafiğinde dipten alımlarda sermaye primi sağlar.": "Gewährt einen Kapitalbonus für Käufe am Tiefpunkt im SVG-Chart.",
+    "SVG Terminal Analitiği": "SVG-Terminalanalyse",
+    "Süper Spor Araç": "Supersportwagen",
+    "SÜRE DOLDU (HACİZ SÜRECİ)": "ZEIT ABGELAUFEN (PFÄNDUNG)",
+    "SÜRE DOLDU — FIRSAT KAÇTI": "ZEIT ABGELAUFEN — CHANCE VERPASST",
+    "SÜRE DOLDU — KRİZ DEVREDE": "ZEIT ABGELAUFEN — KRISE AKTIV",
+    "Sürekli Akış Bandı": "Kontinuierliche Fließlinie",
+    "Sürekli Holding Faaliyeti": "Kontinuierlicher Holding-Betrieb",
+    "Sürekli iyileştirme prensibi ile ürün katsayılarını yükseltir.": "Erhöht Produktmultiplikatoren durch kontinuierliche Verbesserung.",
+    "Süt": "Milch",
+    "Süt Ürünleri": "Molkerei",
+    "Süt ürünleri fabrikası üretim hattının kârını artırır.": "Erhöht den Gewinn der Produktionslinie der Molkerei.",
+    "Sıfır Kayıp Protokolü": "Nullverlust-Protokoll",
+    "Sıfır Komisyon Ayrıcalığı": "Nullprovisions-Privileg",
+    "T-shirt": "T-Shirt",
+    "TAHSİL ET": "EINSAMMELN",
+    "Takım Elbise": "Anzug",
+    "Tam Otonom Tesis": "Vollautonome Anlage",
+    "TAMAM": "OK",
+    "TAMAM — UYGULANDI": "OK — ANGEWENDET",
+    "TARIM ALANI": "LANDWIRTSCHAFTSFLÄCHE",
+    "Tarım": "Landwirtschaft",
+    "Tarım Tesisleri": "Landwirtschaftsanlage",
+    "Tavuk": "Hähnchen",
+    "Tedarik zinciri koptu; gelirler geçici olarak düşecek.": "Die Lieferkette ist unterbrochen; die Einnahmen werden vorübergehend sinken.",
+    "Tekstil": "Textil",
+    "Tekstil Atölyesi": "Textilwerkstatt",
+    "Tekstil, mobilya ve tarım tesislerinin ortak üretim standardını geliştirir.": "Verbessert den gemeinsamen Produktionsstandard von Textil-, Möbel- und Landwirtschaftsanlagen.",
+    "Telefon": "Telefon",
+    "Televizyon": "Fernseher",
+    "Temel": "Basis",
+    "Tereyağ": "Butter",
+    "Tereyağı": "Butter",
+    "Terfi Sonrası:": "Nach Beförderung:",
+    "Tesis Müdürü": "Werksleiter",
+    "Tesis çevresindeki altyapı yatırımları üretkenliği artırır.": "Infrastrukturinvestitionen rund um die Anlagen steigern die Produktivität.",
+    "Tesislerin saniyelik pasif gelir akışını kademeli artırır.": "Erhöht schrittweise das passive Einkommen pro Sekunde der Anlagen.",
+    "TESİS GELİŞTİRME": "ANLAGENAUSBAU",
+    "Timsah Derisi": "Krokodilleder",
+    "Titan Kimya": "Titan Chemie",
+    "Tokamak Manyetik Alanı": "Tokamak-Magnetfeld",
+    "Toplu alım anlaşmaları ile tesis geliştirme maliyetini kırar.": "Senkt die Ausbaukosten durch Großabnahmeverträge.",
+    "Toplu Malzeme Siparişi": "Großbestellungen von Material",
+    "Tutar en az 1 hisse almaya yetmelidir!": "Der Betrag muss für mindestens 1 Aktie reichen!",
+    "Tuttuğunuz her muhasebeci vergi oranını %0.4 düşürür.": "Jeder Buchhalter senkt den Steuersatz um 0,4 %.",
+    "Tüm 15 fabrikanın taban gelirine toplu çarpan sağlar.": "Wendet einen gemeinsamen Multiplikator auf das Basiseinkommen aller 15 Fabriken an.",
+    "Tüm 15 parsel faaliyete geçtiğinde büyük holding kârı verir.": "Gewährt einen großen Holding-Gewinnbonus, wenn alle 15 Parzellen aktiv sind.",
+    "Tüm fabrikaların taban üretim gelirini kalıcı olarak artırır.": "Erhöht dauerhaft das Basisproduktionseinkommen aller Fabriken.",
+    "TÜMÜNÜ SAT": "ALLES VERKAUFEN",
+    "Tıklama Kralı": "Klick-König",
+    "Uluslararası navlun anlaşmaları ile kurulum masraflarını düşürür.": "Senkt Installationskosten durch internationale Frachtabkommen.",
+    "Un": "Mehl",
+    "Unvan": "Titel",
+    "Usta Başı Disiplini": "Vorarbeiter-Disziplin",
+    "Uydu": "Satellit",
+    "Uzay Mekiği": "Space Shuttle",
+    "Uzay Sanayii": "Raumfahrtindustrie",
+    "Uzay sanayii fabrikası üretim hattının kârını artırır.": "Erhöht den Gewinn der Produktionslinie der Raumfahrtindustrie.",
+    "Uzlaşma Masası": "Vergleichsstelle",
+    "Vakıf Gayrimenkul": "Vakıf Immobilien",
+    "Vardiya": "Schichtbetrieb",
+    "Vardiya Operasyonu": "Schichtbetrieb",
+    "Vardiya Seferberliği": "Schichtmobilisierung",
+    "Vardiyasız Çalışma": "Schichtloser Betrieb",
+    "Vergi": "Steuer",
+    "Vergi Barışı Lobiciliği": "Lobbyarbeit für Steueramnestie",
+    "Vergi borcu oranını en dip seviyeye kilitler.": "Fixiert den Steuerschuldsatz auf dem Mindestwert.",
+    "Vergi İadesi Teşviki": "Steuerrückerstattungs-Anreiz",
+    "Verginin tahakkuk etme periyodunu uzatarak nakit akışını rahatlatır.": "Verbessert den Cashflow durch Verlängerung des Steuerfestsetzungsintervalls.",
+    "Verginizi 12 saat dolmadan zamanında öderseniz 30 dakika boyunca %20 ek gelir takviyesi kazanırsınız!": "Zahle deine Steuer innerhalb von 12 Stunden und erhalte 30 Minuten lang 20 % zusätzliches Einkommen!",
+    "Vergisini aksatmayan holdinge ilave gelir çarpanı sağlar.": "Gewährt einer Holding mit pünktlichen Steuerzahlungen einen zusätzlichen Einkommensmultiplikator.",
+    "VERGİ TAHAKKUKU": "STEUERFESTSETZUNG",
+    "Verim": "Effizienz",
+    "VIP Limuzin": "VIP-Limousine",
+    "Vip Limuzin": "VIP-Limousine",
+    "Vitamin Hapı": "Vitaminpille",
+    "Wagyu Eti": "Wagyu-Rind",
+    "Yalın Kaizen Felsefesi": "Lean-Kaizen-Philosophie",
+    "Yapay Zeka Ar-Ge": "KI-F&E",
+    "Yapay zeka geliştirme fabrikasının kârını artırır.": "Erhöht den Gewinn der KI-Entwicklungsanlage.",
+    "Yarı İletken Baskı": "Halbleiter-Lithografie",
+    "Yatak": "Bett",
+    "YATIRILACAK TUTAR:": "ANLAGEBETRAG:",
+    "Yatırım fonu için çarkı çevirin.": "Drehe das Rad für Investitionskapital.",
+    "Yatırımcı Çantası": "Investorenkoffer",
+    "YAZIHANE": "BÜRO",
+    "Yazıhane": "Büro",
+    "Yazıhaneden plazaya geçişte yöneticileri güçlendirir.": "Stärkt Manager beim Ausbau des Büros zum Firmenplaza.",
+    "Yeni açılan ürünlerin ilk seviye geliştirme masrafını düşürür.": "Senkt die Kosten des ersten Upgrades neu freigeschalteter Produkte.",
+    "Yeni bir oyun başlatmak mevcut holdinginizi, tüm şirketlerinizi, fabrikalarınızı ve kasanızı kalıcı olarak silecektir. Emin misiniz?": "Ein neues Spiel löscht deine aktuelle Holding, Unternehmen, Fabriken und dein Bargeld dauerhaft. Fortfahren?",
+    "YENİ HOLDİNG KUR": "NEUE HOLDING GRÜNDEN",
+    "Yetersiz Bakiye": "Unzureichendes Guthaben",
+    "Yoğurt": "Joghurt",
+    "Yönetim": "Management",
+    "Yörünge İtki Sistemleri": "Orbitale Antriebssysteme",
+    "Yıldız Gemisi": "Sternenschiff",
+    "Yıldız Gemisi A.Ş.": "Sternenschiff AG",
+    "Zirveye Tırmanış": "Aufstieg zum Gipfel",
+    "Çanta": "Tasche",
+    "Çark": "Rad",
+    "Çark çevrildiğinde vergi affı çıkma olasılığını yükseltir.": "Erhöht die Chance auf eine Steueramnestie beim Drehen des Rads.",
+    "Çarkta 3x çanta ve 2x boost gelme olasılığını yükseltir.": "Erhöht die Chance auf 3x-Geldkoffer und 2x-Boost am Rad.",
+    "Çarktaki nakit ödüllerin taban büyüklüğünü artırır.": "Erhöht den Basiswert der Bargeldbelohnungen auf dem Rad.",
+    "Çevrimdışı gelir toplama süresi sınırını uzatır.": "Verlängert die maximale Sammelzeit für Offline-Einkommen.",
+    "Çevrimdışı süre sınırına ilave saatler ekler.": "Fügt dem Offline-Zeitlimit zusätzliche Stunden hinzu.",
+    "Çırak-Usta Tasarımı": "Lehrling-Meister-Design",
+    "ÖDÜLÜ AL": "BELOHNUNG ABHOLEN",
+    "ÜRET": "PRODUZIEREN",
+    "Üretim": "Produktion",
+    "Üretim artıklarını değerlendirerek holding gelirini artırır.": "Erhöht das Holding-Einkommen durch Verwertung von Produktionsresten.",
+    "Üretim kayıplarını en aza indirerek kalıcı gelir sağlar.": "Sichert dauerhaftes Einkommen durch Minimierung von Produktionsverlusten.",
+    "Üretim Müdürlüğü": "Produktionsleitung",
+    "Üretim Standartlaşması": "Produktionsstandardisierung",
+    "ÜRETİM BANDI": "PRODUKTIONSLINIE",
+    "Üretme kazancı çarpanını taban değerin üzerine çıkarır.": "Erhöht den Multiplikator für manuelle Produktion über den Basiswert.",
+    "Ürün": "Produkt",
+    "Ürünlerimiz trend oldu!": "Unsere Produkte liegen im Trend!",
+    "Ürünlerimize yoğun ilgi var!": "Die Nachfrage nach unseren Produkten steigt stark!",
+    "Üst düzey yönetici transfer masraflarını düşürür.": "Senkt die Transferkosten für Führungskräfte.",
+    "Üç giriş seviyesi fabrikanın esnek üretim kapasitesini artırır.": "Erhöht die flexible Produktionskapazität aller drei Startfabriken.",
+    "ŞANS ÇARKI": "GLÜCKSRAD",
+    "Şeker": "Zucker",
+    "Şirketlerin seni bekliyor": "Deine Unternehmen warten"
+  },
+  "patterns": {
+    "1-4 Nolu Arsa Maliyeti: -%{value}": "Grundstückskosten 1-4: -{value}%",
+    "1. Yönetici Gelir Gücü: +%{value}": "Einkommensstärke Manager 1: +{value}%",
+    "10^30 Hedefine Yaklaşırken Ciro Katsayıları 1.5x Katlanır": "Umsatzmultiplikatoren steigen nahe dem 10^30-Ziel um 1,5x",
+    "10^30 Zirvesi: Maliyetler -%50, Saniyelik Gelir 5x ve Prestij RP Kazanımı 3x!": "10^30-Gipfel: Kosten -50 %, Einkommen/Sek. 5x und Prestige-RP 3x!",
+    "15 Arsa Dolduğunda Toplam Holding Geliri: +%30": "Gesamte Holding-Einnahmen bei 15 Parzellen: +30%",
+    "15 saniye içinde karar verilmedi. {event} kabul edilmedi. İstersen reklam izleyerek fırsatı geri kazanabilirsin.": "Innerhalb von 15 Sekunden wurde keine Entscheidung getroffen. {event} wurde nicht angenommen. Mit einer Werbung kannst du die Chance zurückholen.",
+    "15 saniye içinde karar verilmedi. {event} otomatik olarak devreye girdi; gelir {multiplier}x seviyesinde {minutes} dakika etkilenecek. İstersen reklam izleyerek krizi şimdi kaldırabilirsin.": "Innerhalb von 15 Sekunden wurde keine Entscheidung getroffen. {event} wurde automatisch aktiviert; das Einkommen bleibt {minutes} Minuten bei {multiplier}x. Mit einer Werbung kannst du die Krise jetzt beenden.",
+    "2. Yönetici İndirim Gücü: +%{value}": "Rabattstärke Manager 2: +{value}%",
+    "2. Ürün Üretim Kazancı: +%{value}": "Produktionsertrag Produkt 2: +{value}%",
+    "2x Gelir Boost Süresi: {value} Dakika": "Dauer des 2x-Einkommensboosts: {value} Minuten",
+    "3. Yönetici Hız Çarpanı: +%{value}": "Geschwindigkeitsmultiplikator Manager 3: +{value}%",
+    "3. Ürün Üretim Kazancı: +%{value}": "Produktionsertrag Produkt 3: +{value}%",
+    "3x Çanta & 2x Boost Şans Artışı: +%{value}": "Chance auf 3x Koffer & 2x Boost: +{value}%",
+    "4. Ürün Üretim Kazancı: +%{value}": "Produktionsertrag Produkt 4: +{value}%",
+    "5-8 Nolu Arsa Maliyeti: -%{value}": "Grundstückskosten 5-8: -{value}%",
+    "5. Ürün Üretim Kazancı: +%{value}": "Produktionsertrag Produkt 5: +{value}%",
+    "7 Şirketin Kâr Eğilimi: %{value}": "Gewinntendenz von 7 Unternehmen: {value}%",
+    "9-15 Nolu Arsa Maliyeti: -%{value}": "Grundstückskosten 9-15: -{value}%",
+    "Arsa İndirimi: -%{value}": "Grundstücksrabatt: -{value}%",
+    "Aşama {stage}  •  Tesis: {level}/300": "Stufe {stage}  •  Anlage: {level}/300",
+    "Başlangıç Fabrikaları Geliri: +%{value}": "Einkommen der Startfabriken: +{value}%",
+    "Başlangıç Nakit Hibesi: ${value}": "Startkapital-Zuschuss: ${value}",
+    "Biyoteknoloji Fabrikası Geliri: +%{value}": "Einkommen Biotechnologiefabrik: +{value}%",
+    "Boost Süresi İlavesi: +{value} Dakika": "Zusätzliche Boost-Dauer: +{value} Minuten",
+    "Borsa Satış Komisyonu: %{value}": "Börsen-Verkaufsprovision: {value}%",
+    "Borsa ve Nakit Akışı Kalıcı 2.0x": "Börse & Cashflow dauerhaft 2,0x",
+    "Dipten Alımlarda Anında %5 Sermaye Primi": "Sofortiger 5-%-Kapitalbonus bei Käufen am Tief",
+    "Ekstra Geliştirme İndirimi: -%{value}": "Zusätzlicher Ausbau-Rabatt: -{value}%",
+    "Ekstra Kâr Şansı: +%{value}": "Zusätzliche Gewinnchance: +{value}%",
+    "Elektronik Fabrikası Geliri: +%{value}": "Einkommen Elektronikfabrik: +{value}%",
+    "Erken Ödeme Bonus Süresi: {value} Dakika": "Dauer des Frühzahlungsbonus: {value} Minuten",
+    "Erken Ödeme Gelir Bonusu: %{value}": "Einkommensbonus für Frühzahlung: {value}%",
+    "Erken Ödeme İlave Çarpanı: +%{value}": "Zusätzlicher Frühzahlungs-Multiplikator: +{value}%",
+    "Esnek Üretim Geliri: +%{value}": "Einkommen aus flexibler Produktion: +{value}%",
+    "Fabrika Geliştirme Maliyeti: -%{value}": "Fabrikausbaukosten: -{value}%",
+    "Fabrika Haciz Erteleme Süresi: {value} Saat": "Aufschub der Fabrikpfändung: {value} Stunden",
+    "Füzyon Enerji Fabrikası Geliri: +%{value}": "Einkommen Fusionsenergieanlage: +{value}%",
+    "Fırsat & Kriz Belirme Sıklığı: +%{value}": "Häufigkeit von Chancen & Krisen: +{value}%",
+    "Gece Mesaisi Katkısı: +%{value}": "Nachtschicht-Beitrag: +{value}%",
+    "Gelir Boost Çarpanı Kalıcı 2.5x Olarak Uygulanır": "Einkommensboost-Multiplikator wird dauerhaft 2,5x",
+    "Geliştirme İndirimi: -%{value}": "Ausbaurabatt: -{value}%",
+    "Giriş Seviyesi Fabrika Geliri: +%{value}": "Einkommen der Startfabriken: +{value}%",
+    "Global Gelir İlavesi: +%{value}": "Globaler Einkommensbonus: +{value}%",
+    "Görsel Değişim Gelir Boost: {value}x": "Einkommensboost durch visuelle Entwicklung: {value}x",
+    "Gıda İşleme Geliri: +%{value}": "Einkommen Lebensmittelverarbeitung: +{value}%",
+    "Her Ciro Rütbesi İçin Gelir Bonusu: +%{value}": "Einkommensbonus je Umsatzrang: +{value}%",
+    "Hisse Alım Nakit İadesi: %{value}": "Cashback auf Aktienkäufe: {value}%",
+    "Hisse Değer Artış İvmesi: +%{value}": "Beschleunigung der Aktienwertsteigerung: +{value}%",
+    "Hisse Kâr Eğilimi Tavanı: %{value}": "Obergrenze der Aktien-Gewinntendenz: {value}%",
+    "Holding Gelir Bonusu: +%5": "Holding-Einkommensbonus: +5%",
+    "Holding Gelir Bonusu: +%{value}": "Holding-Einkommensbonus: +{value}%",
+    "İlk Fabrika Doğrudan Seviye 30 Başlar": "Erste Fabrik startet direkt auf Stufe 30",
+    "Kalan Süre: {value}": "Restzeit: {value}",
+    "Kalan Süre: {value}s": "Restzeit: {value}s",
+    "KASA: ${value}": "KASSE: ${value}",
+    "Kazanılan Ar-Ge Puanı (RP): +%{value}": "Verdiente F&E-Punkte (RP): +{value}%",
+    "Kazanılan RP İlavesi: +%{value}": "Zusätzliche verdiente RP: +{value}%",
+    "Kazanılan RP Çarpanı: +%{value}": "RP-Ertragsmultiplikator: +{value}%",
+    "Kriz Süresi: -{value} Dakika": "Krisendauer: -{value} Minuten",
+    "Kriz Önleme Bedeli İndirimi: -%{value}": "Rabatt auf Krisenpräventionskosten: -{value}%",
+    "Kriz Önleme Ek İndirimi: -%{value}": "Zusätzlicher Krisenpräventionsrabatt: -{value}%",
+    "Lvl 100 Fabrika Başına Holding Geliri: +%{value}": "Holding-Einkommen je Fabrik Stufe 100: +{value}%",
+    "Lvl 150 Fabrika Maliyet İndirimi: -%{value}": "Kostenrabatt für Fabriken Stufe 150: -{value}%",
+    "Lvl 200 Fabrika Gelir Bonusu: +%{value}": "Einkommensbonus für Fabriken Stufe 200: +{value}%",
+    "Lvl 250 Fabrika Prestij RP Katkısı: +%{value}": "Prestige-RP-Beitrag Fabrik Stufe 250: +{value}%",
+    "Lvl 300 Fabrikaya Özel Saf 2.0x Gelir Çarpanı": "Fabrik Stufe 300: Reiner 2,0x-Einkommensmultiplikator",
+    "Lvl 50 Fabrika Başına Holding Geliri: +%{value}": "Holding-Einkommen je Fabrik Stufe 50: +{value}%",
+    "Lvl 6+ Rütbelere Özel Gelir Çarpanı: +%{value}": "Spezial-Einkommensmultiplikator für Rang 6+: +{value}%",
+    "Lvl {value}": "Stufe {value}",
+    "Maden Fabrikası Geliri: +%{value}": "Einkommen Bergbauanlage: +{value}%",
+    "Maksimum Çevrimdışı Süre: {value} Saat": "Maximale Offline-Zeit: {value} Stunden",
+    "Maliyet Çarpanı: {value}x": "Kostenmultiplikator: {value}x",
+    "Mevcut Kadro: {value}": "Aktuelles Personal: {value}",
+    "Minimum Komisyon: %0.10 (Kilitli)": "Mindestprovision: 0,10 % (Fixiert)",
+    "Olumlu Olay Geliri: +%{value}": "Einkommen positiver Ereignisse: +{value}%",
+    "Olumlu Olay Süresi: +{value} Dakika": "Dauer positiver Ereignisse: +{value} Minuten",
+    "Otomobil Fabrikası Geliri: +%{value}": "Einkommen Automobilfabrik: +{value}%",
+    "Otonom Pasif Gelir Çarpanı: +%{value}": "Autonomer passiver Einkommensmultiplikator: +{value}%",
+    "Para Çantası Nakit Artışı: +%{value}": "Geldkoffer-Betrag: +{value}%",
+    "Para Çantası Nakit Çarpanı: +%{value}": "Geldkoffer-Multiplikator: +{value}%",
+    "Para Çantası Çıkış Sıklığı: +%{value}": "Erscheinungsrate des Geldkoffers: +{value}%",
+    "Plaza Yöneticilerine Kalıcı Güçlendirme: +%25": "Dauerhafte Verstärkung für Plaza-Manager: +25%",
+    "Prestij Sonrası İlk {value} Arsa Bedelsiz Açık": "Erste {value} Grundstücke nach Prestige kostenlos",
+    "Reklamla Alınan 2x AFK Bonusu 3x Olarak Verilir": "Der 2x-AFK-Werbebonus wird als 3x gewährt",
+    "Saat Başı Gecikme Faizi: %{value}": "Stündlicher Verzugszins: {value}%",
+    "Saatlik Hisse Temettü Oranı: +%{value}": "Stündliche Aktiendividendenrate: +{value}%",
+    "Saatlik Pasif Temettü Getirisi: %{value}": "Stündliche passive Dividendenrendite: {value}%",
+    "Sanayi Sütun Zirvesi: Taban Gelir Kalıcı +%50": "Industriesäulen-Gipfel: Basiseinkommen dauerhaft +50%",
+    "Saniyelik Gelir Oranı: %{value}": "Einkommensrate pro Sekunde: {value}%",
+    "Saniyelik Pasif Gelir İlavesi: +%{value}": "Bonus auf passives Einkommen pro Sekunde: +{value}%",
+    "Satış Komisyonu İlave İndirimi: -%{value}": "Zusätzlicher Rabatt auf Verkaufsprovision: -{value}%",
+    "SEKTÖR {id}\nÇİZİM BEKLİYOR": "SEKTOR {id}\nGRAFIK AUSSTEHEND",
+    "Süt Ürünleri Fabrikası Geliri: +%{value}": "Molkerei-Einkommen: +{value}%",
+    "Tebrikler! +${reward} kazandınız!": "Glückwunsch! Du hast +${reward} gewonnen!",
+    "Tebrikler! +${reward} kazandınız! Vergi borcunuz affedildi.": "Glückwunsch! Du hast +${reward} gewonnen! Deine Steuerschulden wurden erlassen.",
+    "TERFİ VER (${value})": "BEFÖRDERN (${value})",
+    "Tesis Kurulum Maliyet İndirimi: -%{value}": "Rabatt auf Anlagenerrichtung: -{value}%",
+    "Tesisi toplam Seviye {value} yapın": "Gesamtstufe der Anlage auf {value} bringen",
+    "Tüm 15 Fabrikanın Geliri: +%{value}": "Einkommen aller 15 Fabriken: +{value}%",
+    "Tüm Fabrika Taban Geliri: +%{value}": "Basiseinkommen aller Fabriken: +{value}%",
+    "Uzay Sanayii Fabrikası Geliri: +%{value}": "Einkommen Raumfahrtindustrie: +{value}%",
+    "Vergi Borcu İndirim Kalkanı: -%{value}": "Steuerschulden-Rabattschutz: -{value}%",
+    "Vergi Borcu Oranı: %{value}": "Steuerschuldenquote: {value}%",
+    "Vergi Borcu Varsa Otomatik Affettirilir": "Steuerschulden werden automatisch erlassen",
+    "Vergi İndirimi: -%{value}": "Steuerreduzierung: -{value}%",
+    "Vergi Oranı Taban Sınırı: %8.0 (Kilitli)": "Untergrenze Steuersatz: 8,0 % (Fixiert)",
+    "Vergi Tahakkuk Periyodu: {value} Saat": "Steuerfestsetzungszeitraum: {value} Stunden",
+    "Yapay Zeka Fabrikası Geliri: +%{value}": "Einkommen KI-Fabrik: +{value}%",
+    "Yeni Ürün Başlangıç Maliyeti: -%{value}": "Startkosten neuer Produkte: -{value}%",
+    "Yönetici Atama Maliyeti: -%{value}": "Manager-Zuweisungskosten: -{value}%",
+    "Yönetici Lisans İndirimi: -%{value}": "Managerlizenz-Rabatt: -{value}%",
+    "{event} devreye girdi. Gelir {multiplier}x seviyesine düştü ve bu etki {minutes} dakika sürecek.": "{event} ist aktiv. Das Einkommen fällt für {minutes} Minuten auf {multiplier}x.",
+    "{event} engellendi. ${cost} ödendi ve gelir düşüşü uygulanmadı.": "{event} wurde verhindert. ${cost} wurden bezahlt und die Einkommenssenkung wurde vermieden.",
+    "{event} etkinleştirildi. Gelir {multiplier}x oldu ve bu etki {minutes} dakika sürecek.": "{event} wurde aktiviert. Das Einkommen beträgt {multiplier}x für {minutes} Minuten.",
+    "{event} reddedildi. Herhangi bir gelir etkisi uygulanmadı.": "{event} wurde abgelehnt. Es wurde kein Einkommenseffekt angewendet.",
+    "{event} reklam ödülüyle etkinleştirildi. Gelir {multiplier}x oldu ve bu etki {minutes} dakika sürecek.": "{event} wurde mit einer Werbebelohnung aktiviert. Das Einkommen beträgt {multiplier}x für {minutes} Minuten.",
+    "{event} reklam ödülüyle kabul edildi. Gelir {multiplier}x oldu ve bu etki {minutes} dakika sürecek.": "{event} wurde mit einer Werbebelohnung angenommen. Das Einkommen beträgt {multiplier}x für {minutes} Minuten.",
+    "{event} reklam ödülüyle ücretsiz engellendi. Önleme bedeli ödenmedi ve gelir düşüşü uygulanmadı.": "{event} wurde durch eine Werbebelohnung kostenlos verhindert. Es entstanden keine Präventionskosten und keine Einkommenssenkung.",
+    "{event} son anda engellendi. Reklam ödülü sayesinde kriz etkisi kaldırıldı ve önleme bedeli ödenmedi.": "{event} wurde im letzten Moment verhindert. Die Werbebelohnung hob die Krisenwirkung auf und es wurden keine Präventionskosten berechnet.",
+    "{factory} inşası için arsa bedeli:": "Grundstückspreis für den Bau von {factory}:",
+    "{hours} Saat {minutes} Dk": "{hours} Std. {minutes} Min.",
+    "{minutes} Dakika": "{minutes} Minuten",
+    "{name} ürün ikonu": "Produktsymbol {name}",
+    "{title} (Kademe {tier})": "{title} (Stufe {tier})",
+    "Çanta Finansman Primi: +%{value}": "Geldkoffer-Finanzbonus: +{value}%",
+    "Çark Nakit Ödül Taban Değeri: +%{value}": "Basiswert der Rad-Geldbelohnung: +{value}%",
+    "Çarktan Vergi Affı Çıkma Şansı: +%{value}": "Chance auf Steueramnestie am Rad: +{value}%",
+    "Çevrimdışı Saniyelik Gelir Bonusu: +%{value}": "Offline-Einkommensbonus pro Sekunde: +{value}%",
+    "Çevrimdışı Süre İlavesi: +{value} Saat": "Zusätzliche Offline-Zeit: +{value} Stunden",
+    "ÖNLE (${value})": "VERHINDERN (${value})",
+    "Üretme Kazancı Çarpanı: {value}x": "Produktionsertrags-Multiplikator: {value}x",
+    "Ürün Üretim Kazanç Bonusu: +%{value}": "Bonus auf Produktproduktion: +{value}%"
+  },
+  "_meta": {
+    "language": "de",
+    "schema": 2,
+    "literal_fallback": "en",
+    "notes": "Structured keys + literal/pattern catalog for legacy UI migration."
+  },
+  "factory_catalog": {
+    "1": {
+      "name": "Textilwerkstatt",
+      "products": [
+        "T-Shirt",
+        "Hose",
+        "Schuhe",
+        "Tasche",
+        "Anzug"
+      ]
+    },
+    "2": {
+      "name": "Möbelfabrik",
+      "products": [
+        "Stuhl",
+        "Tisch",
+        "Sofa",
+        "Bett",
+        "Schrank"
+      ]
+    },
+    "3": {
+      "name": "Landwirtschaftsanlage",
+      "products": [
+        "Weizen",
+        "Mais",
+        "Baumwolle",
+        "Safran",
+        "Hybridsaatgut"
+      ]
+    },
+    "4": {
+      "name": "Molkerei",
+      "products": [
+        "Milch",
+        "Joghurt",
+        "Butter",
+        "Gelée Royale",
+        "Pule-Käse"
+      ]
+    },
+    "5": {
+      "name": "Schlachthof",
+      "products": [
+        "Wurst",
+        "Hähnchen",
+        "Kebab",
+        "Krokodilleder",
+        "Wagyu-Rind"
+      ]
+    },
+    "6": {
+      "name": "Lebensmittelverarbeitung",
+      "products": [
+        "Mehl",
+        "Zucker",
+        "Konserven",
+        "Kaviar",
+        "Gourmet-Schokolade"
+      ]
+    },
+    "7": {
+      "name": "Bergbauanlage",
+      "products": [
+        "Kohle",
+        "Eisen",
+        "Silber",
+        "Gold",
+        "Diamant"
+      ]
+    },
+    "8": {
+      "name": "Chemiewerk",
+      "products": [
+        "Dünger",
+        "Kunststoff",
+        "Farbe",
+        "Luxusparfüm",
+        "Carbonfaser"
+      ]
+    },
+    "9": {
+      "name": "Automobilfabrik",
+      "products": [
+        "Reifen",
+        "Motorrad",
+        "Automobil",
+        "VIP-Limousine",
+        "Supersportwagen"
+      ]
+    },
+    "10": {
+      "name": "Pharmafabrik",
+      "products": [
+        "Vitaminpille",
+        "Schmerzmittel",
+        "Antibiotikum",
+        "COVID-19-Impfstoff",
+        "Krebsmedikament"
+      ]
+    },
+    "11": {
+      "name": "Elektronikfabrik",
+      "products": [
+        "Taschenrechner",
+        "Telefon",
+        "Fernseher",
+        "Unbemanntes Luftfahrzeug",
+        "Quanten-PC"
+      ]
+    },
+    "12": {
+      "name": "KI-F&E",
+      "products": [
+        "Chatbot",
+        "Schachbot",
+        "Bildgenerator-Bot",
+        "Coding-Bot",
+        "Humanoider Roboter"
+      ]
+    },
+    "13": {
+      "name": "Kraftwerk",
+      "products": [
+        "Solarmodul",
+        "Windturbine",
+        "Kernkraftwerk",
+        "Teilchenbeschleuniger",
+        "Fusionskern"
+      ]
+    },
+    "14": {
+      "name": "Biotechnologie",
+      "products": [
+        "Stammzelle",
+        "3D-Biodrucker",
+        "Bionisches Organ",
+        "Biochip",
+        "Klonorganismus"
+      ]
+    },
+    "15": {
+      "name": "Raumfahrtindustrie",
+      "products": [
+        "Raketentriebwerk",
+        "Satellit",
+        "Space Shuttle",
+        "Mondlandefähre",
+        "Sternenschiff"
+      ]
+    }
+  }
 }

@@ -2,11 +2,13 @@
 // ignore_for_file: discarded_futures, prefer_const_declarations
 
 import 'dart:math' as math;
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide AnimatedContainer, Container, Icon, Text;
+import '../widgets/adaptive_widgets.dart';
 import 'package:flutter/services.dart'; 
 import 'package:provider/provider.dart';
 import '../providers/game_state.dart';
 import '../services/audio_service.dart';
+import '../services/translation_service.dart';
 import '../theme/app_theme.dart';
 
 class StockScreen extends StatelessWidget {
@@ -107,7 +109,7 @@ class StockScreen extends StatelessWidget {
                     filled: true,
                     fillColor: Colors.white,
                     prefixIcon: const Icon(Icons.attach_money_rounded, color: Colors.black, size: 28),
-                    hintText: 'Miktar girin...',
+                    hintText: 'Miktar girin...'.tl(),
                     hintStyle: const TextStyle(color: AppColors.textMuted),
                     enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: Colors.black, width: 3)),
                     focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: AppColors.neonCyan, width: 3)),
@@ -154,7 +156,7 @@ class StockScreen extends StatelessWidget {
             height: 55, width: 100, 
             color: Colors.white, shadowColor: Colors.grey.shade400, 
             onPressed: () { AudioService.instance.playSfx('click.mp3'); Navigator.pop(c); }, 
-            child: const Text('İPTAL', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 14))
+            child: const FittedBox(fit: BoxFit.scaleDown, child: Text('İPTAL', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 14)))
           ),
           StockHeavyButton(
             height: 55, width: 140,
@@ -172,7 +174,7 @@ class StockScreen extends StatelessWidget {
                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Tutar en az 1 hisse almaya yetmelidir!', style: TextStyle(fontWeight: FontWeight.bold)), backgroundColor: AppColors.loss));
               }
             },
-            child: const Text('SATIN AL', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 16)),
+            child: const FittedBox(fit: BoxFit.scaleDown, child: Text('SATIN AL', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 16))),
           ),
         ],
       ),
@@ -198,7 +200,7 @@ class StockScreen extends StatelessWidget {
             ctrl.selection = TextSelection.fromPosition(TextPosition(offset: ctrl.text.length));
           }
         },
-        child: Text(label, style: const TextStyle(color: Colors.black, fontSize: 16, fontWeight: FontWeight.w900, fontFamily: 'SpaceMono')),
+        child: FittedBox(fit: BoxFit.scaleDown, child: Text(label, style: const TextStyle(color: Colors.black, fontSize: 16, fontWeight: FontWeight.w900, fontFamily: 'SpaceMono'))),
       ),
     );
   }
@@ -211,7 +213,7 @@ class StockScreen extends StatelessWidget {
         color: AppColors.neonCyan,
         shadowColor: Colors.blue.shade700,
         onPressed: onTap,
-        child: Text(label, style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w900, shadows: [Shadow(color: Colors.black26, offset: Offset(1,1))])),
+        child: FittedBox(fit: BoxFit.scaleDown, child: Text(label, style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w900, shadows: [Shadow(color: Colors.black26, offset: Offset(1,1))]))),
       ),
     );
   }
@@ -221,7 +223,7 @@ class StockScreen extends StatelessWidget {
     final gameState = context.watch<GameState>();
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text('MENKUL KIYMETLER', style: AppTheme.titleStyle(fontSize: 22)),
         backgroundColor: Colors.transparent,
@@ -362,7 +364,7 @@ class StockScreen extends StatelessWidget {
                                 AudioService.instance.playSfx('click.mp3');
                                 _showBuyDialog(context, gameState, stock);
                               },
-                              child: const Text('ALIM YAP', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 15, letterSpacing: 1.0, shadows: [Shadow(color: Colors.black26, offset: Offset(1,1))])),
+                              child: const FittedBox(fit: BoxFit.scaleDown, child: Text('ALIM YAP', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 15, letterSpacing: 1.0, shadows: [Shadow(color: Colors.black26, offset: Offset(1,1))]))),
                             ),
                           ),
                           if (stock.ownedShares > 0) ...[
@@ -376,7 +378,7 @@ class StockScreen extends StatelessWidget {
                                   AudioService.instance.playSfx('cash.mp3');
                                   gameState.sellAllStock(stock.id); 
                                 },
-                                child: const Text('TÜMÜNÜ SAT', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 15, letterSpacing: 1.0, shadows: [Shadow(color: Colors.black26, offset: Offset(1,1))])),
+                                child: const FittedBox(fit: BoxFit.scaleDown, child: Text('TÜMÜNÜ SAT', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 15, letterSpacing: 1.0, shadows: [Shadow(color: Colors.black26, offset: Offset(1,1))]))),
                               ),
                             ),
                           ]
