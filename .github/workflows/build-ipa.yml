@@ -21,10 +21,15 @@ jobs:
       - name: Paketleri İndir
         run: flutter pub get
 
-      - name: iOS Uygulamasını Derle ( unsigned / ipa )
+      - name: iOS Uygulamasını Derle ve Paketle
         run: |
-          # Ücretsiz test için imzasız/development modunda build alıyoruz
-          flutter build ipa --release --no-codesign
+          flutter build ios --release --no-codesign
+          mkdir -p build/ios/ipa
+          cd build/ios/iphoneos
+          mkdir Payload
+          mv Runner.app Payload/
+          zip -r ../ipa/HoldingTycoon.ipa Payload
+          cd ../../..
 
       - name: IPA Dosyasını GitHub'a Yükle (Artifacts)
         uses: actions/upload-artifact@v4
