@@ -74,7 +74,13 @@ class FactoryData {
   final String id; final String name; double price; bool isUnlocked; List<FactoryProduct> products;
   FactoryData({required this.id, required this.name, required this.price, this.isUnlocked = false, required this.products});
   int get totalLevel => products.fold(0, (sum, p) => sum + p.level);
-  int get currentStage => totalLevel < 100 ? 0 : (totalLevel < 200 ? 1 : 2);
+  int get currentStage {
+    if (totalLevel >= 120) return 4;
+    if (totalLevel >= 90) return 3;
+    if (totalLevel >= 60) return 2;
+    if (totalLevel >= 30) return 1;
+    return 0;
+  }
   double get basePassiveIncome => isUnlocked ? products.fold(0.0, (sum, p) => sum + p.passiveIncome) : 0.0;
 }
 
@@ -103,6 +109,7 @@ ResearchNode _n(String id, String title, String category, String description, Ic
 
 class GameState extends ChangeNotifier {
   static const double prestigeThreshold = 1.0e20;
+  static const Duration _newGameEventGracePeriod = Duration(minutes: 30);
 
   double _money = 0.0; 
   int _researchPoints = 0;
@@ -377,6 +384,7 @@ class GameState extends ChangeNotifier {
   DateTime? _boostEndTime; 
   GameEvent? activeEvent; 
   DateTime? _eventEndTime;
+  DateTime? _newGameStartedAt;
   GameEvent? _unhandledEvent; 
   double _unhandledBagReward = 0.0; 
   double offlineEarningsToClaim = 0.0; 
@@ -706,6 +714,7 @@ class GameState extends ChangeNotifier {
       _lastPenaltyCompoundTime = _tryParseDate(data['lastPenaltyCompoundTime']);
       _lastSaveTime = _tryParseDate(data['lastSaveTime']);
       _boostEndTime = _tryParseDate(data['boostEndTime']);
+      _newGameStartedAt = _tryParseDate(data['newGameStartedAt']);
       if (data['eventEndTime'] != null && data['activeEvent'] != null) { 
         _eventEndTime = _tryParseDate(data['eventEndTime']);
         var ev = data['activeEvent']; 
@@ -833,6 +842,7 @@ class GameState extends ChangeNotifier {
       'lastPenaltyCompoundTime': _lastPenaltyCompoundTime?.toIso8601String(),
       'lastSaveTime': _lastSaveTime?.toIso8601String(), 
       'boostEndTime': _boostEndTime?.toIso8601String(), 
+      'newGameStartedAt': _newGameStartedAt?.toIso8601String(),
       'eventEndTime': _eventEndTime?.toIso8601String(),
       'activeEvent': activeEvent != null ? {'title': activeEvent!.title, 'desc': activeEvent!.description, 'mult': activeEvent!.multiplier, 'dur': activeEvent!.durationMinutes, 'cost': activeEvent!.preventCost} : null,
       'isUnderPenalty': _isUnderPenalty,
@@ -863,6 +873,7 @@ class GameState extends ChangeNotifier {
     _taxBonusEndTime = null;
     _lastPenaltyCompoundTime = null;
     _boostEndTime = null;
+    _newGameStartedAt = DateTime.now();
     activeEvent = null;
     _eventEndTime = null;
     _unhandledEvent = null;
@@ -1157,36 +1168,50 @@ class GameState extends ChangeNotifier {
   }
 
   void _checkRandomEvents() {
-    if (activeEvent != null && _eventEndTime != null && DateTime.now().isAfter(_eventEndTime!)) {
+    final now = DateTime.now();
+
+    if (activeEvent != null && _eventEndTime != null && now.isAfter(_eventEndTime!)) {
       activeEvent = null; 
       _eventEndTime = null; 
       _saveGame(); 
     }
-    final eventChance = 0.002 * (1.0 + _nodeLevel('node_084') * 0.25);
-    if (baseIncomePerSecond > 0 && activeEvent == null && _unhandledEvent == null && _random.nextDouble() < eventChance) {
-      int eventType = _random.nextInt(5);
-      final positiveBonus = 1.0 + (_nodeLevel('node_082') * 0.05);
-      final positiveDuration = _nodeLevel('node_083') * 5;
-      final crisisCostFactor = (1.0 - (_nodeLevel('node_079') * 0.20) -
-          (_nodeLevel('node_080') * 0.25)).clamp(0.1, 1.0);
-      switch (eventType) {
-        case 0:
-          _unhandledEvent = GameEvent('Küresel Talep Patlaması', 'Ürünlerimize yoğun ilgi var!', 2.0 * positiveBonus, 2 + positiveDuration, 0);
-          break;
-        case 1:
-          _unhandledEvent = GameEvent('Vergi İadesi Teşviki', 'Devlet teşviki onaylandı!', 2.5 * positiveBonus, 3 + positiveDuration, 0);
-          break;
-        case 2:
-          _unhandledEvent = GameEvent('Sosyal Medya Virali', 'Ürünlerimiz trend oldu!', 3.0 * positiveBonus, 2 + positiveDuration, 0);
-          break;
-        case 3:
-          _unhandledEvent = GameEvent('Lojistik Krizi', 'Liman grevleri gelirleri geçici olarak düşürecek.', 0.5, math.max(1, 3 - _nodeLevel('node_081')).toInt(), baseIncomePerSecond * 120 * crisisCostFactor);
-          break;
-        case 4:
-          _unhandledEvent = GameEvent('Hammadde Ambargosu', 'Tedarik zinciri koptu; gelirler geçici olarak düşecek.', 0.4, math.max(1, 5 - _nodeLevel('node_081')).toInt(), baseIncomePerSecond * 180 * crisisCostFactor);
-          break;
+
+    // A brand-new holding gets a protected onboarding window. The timestamp is
+    // persisted, so closing/reopening the app cannot reset or bypass the 30-minute
+    // grace period. Legacy saves without this field keep their existing behavior.
+    final bool worldEventsUnlocked = _newGameStartedAt == null ||
+        !now.isBefore(_newGameStartedAt!.add(_newGameEventGracePeriod));
+
+    if (worldEventsUnlocked) {
+      final eventChance = 0.002 * (1.0 + _nodeLevel('node_084') * 0.25);
+      if (baseIncomePerSecond > 0 && activeEvent == null && _unhandledEvent == null && _random.nextDouble() < eventChance) {
+        int eventType = _random.nextInt(5);
+        final positiveBonus = 1.0 + (_nodeLevel('node_082') * 0.05);
+        final positiveDuration = _nodeLevel('node_083') * 5;
+        final crisisCostFactor = (1.0 - (_nodeLevel('node_079') * 0.20) -
+            (_nodeLevel('node_080') * 0.25)).clamp(0.1, 1.0);
+        switch (eventType) {
+          case 0:
+            _unhandledEvent = GameEvent('Küresel Talep Patlaması', 'Ürünlerimize yoğun ilgi var!', 2.0 * positiveBonus, 2 + positiveDuration, 0);
+            break;
+          case 1:
+            _unhandledEvent = GameEvent('Vergi İadesi Teşviki', 'Devlet teşviki onaylandı!', 2.5 * positiveBonus, 3 + positiveDuration, 0);
+            break;
+          case 2:
+            _unhandledEvent = GameEvent('Sosyal Medya Virali', 'Ürünlerimiz trend oldu!', 3.0 * positiveBonus, 2 + positiveDuration, 0);
+            break;
+          case 3:
+            _unhandledEvent = GameEvent('Lojistik Krizi', 'Liman grevleri gelirleri geçici olarak düşürecek.', 0.5, math.max(1, 3 - _nodeLevel('node_081')).toInt(), baseIncomePerSecond * 120 * crisisCostFactor);
+            break;
+          case 4:
+            _unhandledEvent = GameEvent('Hammadde Ambargosu', 'Tedarik zinciri koptu; gelirler geçici olarak düşecek.', 0.4, math.max(1, 5 - _nodeLevel('node_081')).toInt(), baseIncomePerSecond * 180 * crisisCostFactor);
+            break;
+        }
       }
     }
+
+    // Money bags are not world crises/opportunities, so they remain available
+    // during the protected first 30 minutes.
     final bagChance = 0.005 * (1.0 + _nodeLevel('node_073') * 0.20);
     if (baseIncomePerSecond > 0 && _unhandledBagReward == 0 && _random.nextDouble() < bagChance) {
       _unhandledBagReward = baseIncomePerSecond * 300; 

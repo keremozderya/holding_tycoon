@@ -155,8 +155,8 @@ class FactoryDrawingRenderer {
       dirtPath.lineTo(125, 75);
     }
 
-    // Seviye 45'ten itibaren toprak patika taş(kaldırım) yol rengini alır
-    Color pathColor = stage >= 45 ? const Color(0xFF9CA3AF) : const Color(0xFFD4A373);
+    // 5. görünümde (toplam fabrika seviyesi 120+) patika gelişmiş taş/kaldırım yoluna dönüşür.
+    Color pathColor = stage >= 4 ? const Color(0xFF9CA3AF) : const Color(0xFFD4A373);
 
     canvas.drawPath(dirtPath, Paint()..color = Colors.black..style = PaintingStyle.stroke..strokeWidth = 14..strokeCap = StrokeCap.round..strokeJoin = StrokeJoin.round);
     canvas.drawPath(dirtPath, Paint()..color = pathColor..style = PaintingStyle.stroke..strokeWidth = 10..strokeCap = StrokeCap.round..strokeJoin = StrokeJoin.round);

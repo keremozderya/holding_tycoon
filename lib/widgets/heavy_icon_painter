@@ -1,0 +1,217 @@
+// lib/widgets/heavy_icon_painter.dart
+import 'dart:math' as math;
+import 'package:flutter/material.dart';
+
+class HeavyIconPainter extends CustomPainter {
+  final String type;
+  final Color color;
+
+  HeavyIconPainter({required this.type, required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas.save();
+    canvas.scale(size.width / 24.0, size.height / 24.0);
+
+    final Paint stroke = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.5 
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+
+    final Paint fill = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill;
+
+    switch (type) {
+      case 'boost':
+        final textPainter = TextPainter(
+          text: TextSpan(text: '2X', style: TextStyle(color: color, fontSize: 15, fontWeight: FontWeight.w900, fontFamily: 'SpaceMono')),
+          textDirection: TextDirection.ltr,
+        )..layout();
+        textPainter.paint(canvas, Offset(12 - textPainter.width / 2, 12 - textPainter.height / 2));
+        break;
+      case 'wheel':
+        canvas.drawCircle(const Offset(12, 12), 10, stroke);
+        for(int i=0; i<8; i++) {
+          canvas.save(); canvas.translate(12, 12); canvas.rotate(i * math.pi / 4);
+          canvas.drawLine(const Offset(0, 7), const Offset(0, 10), stroke);
+          canvas.restore();
+        }
+        final qText = TextPainter(
+          text: TextSpan(text: '?', style: TextStyle(color: color, fontSize: 14, fontWeight: FontWeight.w900, fontFamily: 'SpaceMono')),
+          textDirection: TextDirection.ltr,
+        )..layout();
+        qText.paint(canvas, Offset(12 - qText.width / 2, 12 - qText.height / 2));
+        break;
+      case 'achievements':
+        canvas.drawPath(Path()..moveTo(6, 4)..lineTo(18, 4)..lineTo(18, 10)..quadraticBezierTo(18, 16, 12, 16)..quadraticBezierTo(6, 16, 6, 10)..close(), stroke);
+        canvas.drawPath(Path()..moveTo(12, 16)..lineTo(12, 20), stroke..strokeWidth = 3.0);
+        canvas.drawPath(Path()..moveTo(8, 20)..lineTo(16, 20), stroke..strokeWidth = 3.0);
+        canvas.drawPath(Path()..moveTo(6, 6)..lineTo(3, 6)..lineTo(3, 10)..lineTo(6, 12), stroke);
+        canvas.drawPath(Path()..moveTo(18, 6)..lineTo(21, 6)..lineTo(21, 10)..lineTo(18, 12), stroke);
+        break;
+      case 'tasks':
+        canvas.drawRect(const Rect.fromLTWH(4, 5, 5, 5), stroke);
+        canvas.drawPath(Path()..moveTo(3, 7)..lineTo(5, 9)..lineTo(10, 3), stroke..strokeWidth=2.5);
+        canvas.drawLine(const Offset(12, 7), const Offset(20, 7), stroke);
+        
+        canvas.drawRect(const Rect.fromLTWH(4, 15, 5, 5), stroke);
+        canvas.drawLine(const Offset(12, 17), const Offset(20, 17), stroke);
+        break;
+      case 'prestige':
+        // Five-piece faceted diamond. The outer silhouette now reads clearly
+        // as a gemstone while preserving the reference image's bold cutouts.
+        final topLeft = Path()
+          ..moveTo(2.4, 10.55)
+          ..lineTo(6.45, 4.15)
+          ..lineTo(10.25, 4.15)
+          ..lineTo(8.55, 10.55)
+          ..close();
+
+        final topCenter = Path()
+          ..moveTo(12.0, 3.35)
+          ..lineTo(15.0, 10.55)
+          ..lineTo(9.0, 10.55)
+          ..close();
+
+        final topRight = Path()
+          ..moveTo(13.75, 4.15)
+          ..lineTo(17.55, 4.15)
+          ..lineTo(21.6, 10.55)
+          ..lineTo(15.45, 10.55)
+          ..close();
+
+        final bottomLeft = Path()
+          ..moveTo(2.75, 12.65)
+          ..lineTo(10.85, 12.65)
+          ..lineTo(11.45, 21.65)
+          ..close();
+
+        final bottomRight = Path()
+          ..moveTo(13.15, 12.65)
+          ..lineTo(21.25, 12.65)
+          ..lineTo(12.55, 21.65)
+          ..close();
+
+        canvas.drawPath(topLeft, fill);
+        canvas.drawPath(topCenter, fill);
+        canvas.drawPath(topRight, fill);
+        canvas.drawPath(bottomLeft, fill);
+        canvas.drawPath(bottomRight, fill);
+        break;
+      case 'research':
+        canvas.drawPath(Path()..moveTo(12, 22)..lineTo(12, 8)..lineTo(6, 2), stroke..strokeWidth = 3.0);
+        canvas.drawLine(const Offset(12, 8), const Offset(18, 2), stroke..strokeWidth = 3.0);
+        canvas.drawLine(const Offset(12, 14), const Offset(6, 8), stroke..strokeWidth = 3.0);
+        canvas.drawRect(Rect.fromCenter(center: const Offset(12, 22), width: 6, height: 2), fill);
+        canvas.drawRect(Rect.fromCenter(center: const Offset(6, 2), width: 4, height: 4), fill);
+        canvas.drawRect(Rect.fromCenter(center: const Offset(18, 2), width: 4, height: 4), fill);
+        canvas.drawRect(Rect.fromCenter(center: const Offset(6, 8), width: 4, height: 4), fill);
+        break;
+      case 'stock':
+        canvas.drawLine(const Offset(4, 2), const Offset(4, 20), stroke..strokeWidth = 3.0);
+        canvas.drawLine(const Offset(4, 20), const Offset(22, 20), stroke..strokeWidth = 3.0);
+        canvas.drawPath(Path()..moveTo(6, 16)..lineTo(11, 10)..lineTo(15, 14)..lineTo(21, 6), stroke..strokeWidth=2.5);
+        canvas.drawCircle(const Offset(6, 16), 2.0, fill);
+        canvas.drawCircle(const Offset(11, 10), 2.0, fill);
+        canvas.drawCircle(const Offset(15, 14), 2.0, fill);
+        canvas.drawCircle(const Offset(21, 6), 2.0, fill);
+        break;
+      case 'office':
+        canvas.drawRect(const Rect.fromLTWH(8, 2, 8, 20), stroke);
+        canvas.drawRect(const Rect.fromLTWH(3, 8, 5, 14), stroke);
+        canvas.drawRect(const Rect.fromLTWH(16, 12, 5, 10), stroke);
+        for(int y=6; y<=16; y+=4) {
+          canvas.drawRect(Rect.fromLTWH(10, y.toDouble(), 4, 2), fill);
+        }
+        break;
+      case 'warning':
+        canvas.drawPath(Path()..moveTo(12, 2)..lineTo(22, 20)..lineTo(2, 20)..close(), stroke);
+        canvas.drawLine(const Offset(12, 8), const Offset(12, 14), stroke);
+        canvas.drawRect(const Rect.fromLTWH(11, 16, 2, 2), fill);
+        break;
+      case 'factory':
+        canvas.drawRect(const Rect.fromLTWH(4, 10, 16, 12), stroke);
+        canvas.drawPath(Path()..moveTo(4, 10)..lineTo(8, 4)..lineTo(8, 10)..lineTo(14, 4)..lineTo(14, 10)..lineTo(20, 4)..lineTo(20, 10), stroke);
+        canvas.drawLine(const Offset(16, 10), const Offset(16, 2), stroke);
+        canvas.drawLine(const Offset(18, 10), const Offset(18, 2), stroke);
+        break;
+      case 'land':
+        canvas.drawPath(Path()..moveTo(12, 6)..lineTo(22, 12)..lineTo(12, 18)..lineTo(2, 12)..close(), stroke);
+        canvas.drawLine(const Offset(7, 9), const Offset(17, 15), stroke);
+        canvas.drawLine(const Offset(7, 15), const Offset(17, 9), stroke);
+        break;
+      case 'chart':
+        canvas.drawRect(const Rect.fromLTWH(4, 4, 16, 16), stroke);
+        canvas.drawRect(const Rect.fromLTWH(6, 14, 3, 6), fill);
+        canvas.drawRect(const Rect.fromLTWH(10, 10, 3, 10), fill);
+        canvas.drawRect(const Rect.fromLTWH(14, 6, 3, 14), fill);
+        break;
+      case 'receipt':
+        canvas.drawRect(const Rect.fromLTWH(6, 2, 12, 20), stroke);
+        canvas.drawLine(const Offset(6, 22), const Offset(8, 20), stroke);
+        canvas.drawLine(const Offset(8, 20), const Offset(10, 22), stroke);
+        canvas.drawLine(const Offset(10, 22), const Offset(12, 20), stroke);
+        canvas.drawLine(const Offset(12, 20), const Offset(14, 22), stroke);
+        canvas.drawLine(const Offset(14, 22), const Offset(16, 20), stroke);
+        canvas.drawLine(const Offset(16, 20), const Offset(18, 22), stroke);
+        canvas.drawLine(const Offset(9, 6), const Offset(15, 6), stroke);
+        canvas.drawLine(const Offset(9, 10), const Offset(15, 10), stroke);
+        canvas.drawLine(const Offset(9, 14), const Offset(12, 14), stroke);
+        break;
+      case 'speed':
+        canvas.drawPath(Path()..moveTo(6, 4)..lineTo(14, 12)..lineTo(6, 20), stroke..strokeWidth=3.0);
+        canvas.drawPath(Path()..moveTo(12, 4)..lineTo(20, 12)..lineTo(12, 20), stroke..strokeWidth=3.0);
+        break;
+      case 'trend_up':
+        canvas.drawLine(const Offset(4, 18), const Offset(10, 12), stroke..strokeWidth=3.0);
+        canvas.drawLine(const Offset(10, 12), const Offset(14, 16), stroke..strokeWidth=3.0);
+        canvas.drawLine(const Offset(14, 16), const Offset(20, 6), stroke..strokeWidth=3.0);
+        canvas.drawPath(Path()..moveTo(14, 6)..lineTo(20, 6)..lineTo(20, 12), stroke..strokeWidth=3.0);
+        break;
+      case 'trend_down':
+        canvas.drawLine(const Offset(4, 6), const Offset(10, 12), stroke..strokeWidth=3.0);
+        canvas.drawLine(const Offset(10, 12), const Offset(14, 8), stroke..strokeWidth=3.0);
+        canvas.drawLine(const Offset(14, 8), const Offset(20, 18), stroke..strokeWidth=3.0);
+        canvas.drawPath(Path()..moveTo(14, 18)..lineTo(20, 18)..lineTo(20, 12), stroke..strokeWidth=3.0);
+        break;
+      case 'upgrade':
+        canvas.drawPath(Path()..moveTo(6, 12)..lineTo(12, 4)..lineTo(18, 12), stroke..strokeWidth=3.0);
+        canvas.drawPath(Path()..moveTo(6, 20)..lineTo(12, 12)..lineTo(18, 20), stroke..strokeWidth=3.0);
+        break;
+      case 'touch':
+        canvas.drawPath(Path()..moveTo(12, 2)..lineTo(6, 12)..lineTo(10, 12)..lineTo(10, 22)..lineTo(14, 22)..lineTo(14, 12)..lineTo(18, 12)..close(), stroke..strokeWidth=2.5);
+        break;
+      case 'tekstil':
+        canvas.drawRect(const Rect.fromLTWH(7, 3, 10, 3), stroke);
+        canvas.drawRect(const Rect.fromLTWH(7, 18, 10, 3), stroke);
+        canvas.drawRect(const Rect.fromLTWH(9, 6, 6, 12), stroke);
+        canvas.drawLine(const Offset(9, 8), const Offset(15, 12), stroke);
+        canvas.drawLine(const Offset(15, 8), const Offset(9, 12), stroke);
+        canvas.drawLine(const Offset(9, 12), const Offset(15, 16), stroke);
+        canvas.drawLine(const Offset(15, 12), const Offset(9, 16), stroke);
+        break;
+      case 'mobilya':
+        canvas.drawRect(const Rect.fromLTWH(3, 16, 18, 5), stroke);
+        canvas.drawArc(const Rect.fromLTWH(7, 7, 10, 10), math.pi, math.pi, false, stroke);
+        canvas.drawLine(const Offset(7, 12), const Offset(5, 9), stroke);
+        canvas.drawLine(const Offset(10, 8), const Offset(9, 5), stroke);
+        canvas.drawLine(const Offset(14, 8), const Offset(15, 5), stroke);
+        canvas.drawLine(const Offset(17, 12), const Offset(19, 9), stroke);
+        break;
+      case 'tarim':
+        canvas.drawRect(const Rect.fromLTWH(3, 10, 7, 6), stroke); 
+        canvas.drawRect(const Rect.fromLTWH(10, 5, 9, 11), stroke); 
+        canvas.drawRect(const Rect.fromLTWH(12, 7, 5, 4), fill); 
+        canvas.drawRect(const Rect.fromLTWH(2, 16, 5, 5), stroke); 
+        canvas.drawRect(const Rect.fromLTWH(12, 14, 7, 7), stroke); 
+        break;
+    }
+    canvas.restore();
+  }
+
+  @override
+  bool shouldRepaint(covariant HeavyIconPainter oldDelegate) => oldDelegate.type != type || oldDelegate.color != color;
+}

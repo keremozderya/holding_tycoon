@@ -1072,67 +1072,82 @@ class CartoonStyleBackgroundPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.2;
 
-    final double roofBaseY = rect.top + rect.height * 0.34;
-    final double roofPeakY = rect.top + rect.height * 0.12;
-    final double step = rect.width / 3.0;
-    final List<double> peaks = [];
+    final double roofTopY = rect.top + rect.height * 0.16;
+    final double parapetBottomY = rect.top + rect.height * 0.34;
+    final double roofInset = rect.width * 0.05;
+    final Rect roofDeck = Rect.fromLTWH(
+      rect.left + roofInset,
+      roofTopY + rect.height * 0.03,
+      rect.width - roofInset * 2,
+      parapetBottomY - roofTopY - rect.height * 0.05,
+    );
 
-    final Path body = Path()
-      ..moveTo(rect.left, roofBaseY)
-      ..lineTo(rect.right, roofBaseY)
-      ..lineTo(rect.right, rect.bottom)
-      ..lineTo(rect.left, rect.bottom)
-      ..close();
-    canvas.drawPath(body, Paint()..color = _withOpacity(bodyColor, opacity));
-    canvas.drawPath(body, outlinePaint);
+    final RRect body = RRect.fromRectAndRadius(
+      Rect.fromLTWH(rect.left, parapetBottomY, rect.width, rect.bottom - parapetBottomY),
+      const Radius.circular(8),
+    );
+    canvas.drawRRect(body, Paint()..color = _withOpacity(bodyColor, opacity));
+    canvas.drawRRect(body, outlinePaint);
 
-    final Path roof = Path()..moveTo(rect.left, roofBaseY);
+    final RRect parapet = RRect.fromRectAndRadius(
+      Rect.fromLTWH(rect.left, roofTopY, rect.width, parapetBottomY - roofTopY + rect.height * 0.02),
+      const Radius.circular(8),
+    );
+    canvas.drawRRect(
+      parapet,
+      Paint()..color = _withOpacity(Color.lerp(roofColor, Colors.white, 0.08)!, opacity),
+    );
+    canvas.drawRRect(parapet, outlinePaint);
+
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(roofDeck, const Radius.circular(5)),
+      Paint()..color = _withOpacity(Color.lerp(roofColor, Colors.black, 0.04)!, opacity),
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(roofDeck, const Radius.circular(5)),
+      Paint()
+        ..color = _withOpacity(Colors.black, 0.08 * opacity)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.0,
+    );
+
+    final Rect accentBand = Rect.fromLTWH(
+      rect.left + rect.width * 0.06,
+      parapetBottomY + rect.height * 0.08,
+      rect.width * 0.88,
+      rect.height * 0.035,
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(accentBand, const Radius.circular(4)),
+      Paint()..color = _withOpacity(Color.lerp(accentColor, Colors.white, 0.45)!, opacity),
+    );
+
     for (int i = 0; i < 3; i++) {
-      final double x0 = rect.left + step * i;
-      final double xp = x0 + step * 0.45;
-      final double x1 = x0 + step;
-      peaks.add(xp);
-      roof
-        ..lineTo(xp, roofPeakY)
-        ..lineTo(x1, roofBaseY);
-
-      final Path face = Path()
-        ..moveTo(x0, roofBaseY)
-        ..lineTo(xp, roofPeakY)
-        ..lineTo(x1, roofBaseY)
-        ..close();
-      final Color faceColor = i.isEven
-          ? Color.lerp(roofColor, Colors.white, 0.10)!
-          : Color.lerp(roofColor, Colors.black, 0.04)!;
-      canvas.drawPath(face, Paint()..color = _withOpacity(faceColor, opacity));
-      canvas.drawPath(
-        face,
-        Paint()
-          ..color = _withOpacity(Colors.black, 0.06 * opacity)
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 1.2,
+      final Rect rooftopUnit = Rect.fromLTWH(
+        rect.left + rect.width * (0.10 + i * 0.27),
+        roofDeck.top + rect.height * 0.01,
+        rect.width * 0.16,
+        roofDeck.height * 0.58,
       );
-    }
-    canvas.drawPath(roof, outlinePaint);
-
-    final Paint ridgePaint = Paint()
-      ..color = _withOpacity(Color.lerp(roofColor, Colors.black, 0.05)!, opacity)
-      ..strokeWidth = 2.4
-      ..strokeCap = StrokeCap.round;
-    for (int i = 0; i < 3; i++) {
-      final double x0 = rect.left + step * i;
-      final double xp = peaks[i];
-      final double x1 = x0 + step;
-      canvas.drawLine(Offset(x0, roofBaseY), Offset(xp, roofPeakY), ridgePaint);
-      canvas.drawLine(Offset(xp, roofPeakY), Offset(x1, roofBaseY), ridgePaint);
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(rooftopUnit, const Radius.circular(4)),
+        Paint()..color = _withOpacity(Color.lerp(roofColor, Colors.white, 0.14)!, opacity),
+      );
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(rooftopUnit, const Radius.circular(4)),
+        Paint()
+          ..color = _withOpacity(Colors.black, 0.08 * opacity)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.0,
+      );
     }
 
     final double annexWidth = rect.width * 0.15;
     final Rect annex = Rect.fromLTWH(
       mirror ? rect.right - annexWidth : rect.left,
-      roofBaseY + rect.height * 0.12,
+      parapetBottomY + rect.height * 0.10,
       annexWidth,
-      rect.height * 0.54,
+      rect.height * 0.56,
     );
     canvas.drawRRect(
       RRect.fromRectAndRadius(annex, const Radius.circular(6)),
@@ -1178,18 +1193,18 @@ class CartoonStyleBackgroundPainter extends CustomPainter {
         ..strokeWidth = 1.4,
     );
 
-    final List<int> chimneyPeaks = chimneyCount == 1
-        ? [2]
+    final List<double> chimneyXs = chimneyCount == 1
+        ? [rect.left + rect.width * 0.74]
         : chimneyCount == 2
-            ? [0, 2]
-            : [0, 1, 2];
+            ? [rect.left + rect.width * 0.22, rect.left + rect.width * 0.76]
+            : [rect.left + rect.width * 0.20, rect.left + rect.width * 0.50, rect.left + rect.width * 0.80];
 
     for (int i = 0; i < chimneyCount; i++) {
-      final double peakX = peaks[chimneyPeaks[i]];
+      final double stackX = chimneyXs[i];
       final Rect stackBase = Rect.fromCenter(
-        center: Offset(peakX, roofPeakY + rect.height * 0.020),
-        width: step * 0.30,
-        height: rect.height * 0.055,
+        center: Offset(stackX, roofDeck.center.dy),
+        width: rect.width * 0.12,
+        height: rect.height * 0.048,
       );
       canvas.drawRRect(
         RRect.fromRectAndRadius(stackBase, const Radius.circular(3)),
@@ -1203,8 +1218,8 @@ class CartoonStyleBackgroundPainter extends CustomPainter {
           ..strokeWidth = 1.0,
       );
 
-      final double stackHeight = rect.height * (0.22 + (i.isOdd ? 0.04 : 0.0));
-      final double stackWidth = step * 0.16;
+      final double stackHeight = rect.height * (0.20 + (i.isOdd ? 0.04 : 0.0));
+      final double stackWidth = rect.width * 0.055;
       final Rect chimney = Rect.fromLTWH(
         stackBase.center.dx - stackWidth / 2,
         stackBase.top - stackHeight + 1.5,
@@ -1284,64 +1299,75 @@ class CartoonStyleBackgroundPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 3.2;
 
-    final double roofBaseY = rect.top + rect.height * 0.38;
-    final double roofPeakY = rect.top + rect.height * 0.15;
-    final double step = rect.width / 4.0;
-    final List<double> peaks = [];
+    final double roofTopY = rect.top + rect.height * 0.14;
+    final double parapetBottomY = rect.top + rect.height * 0.38;
+    final Rect roofDeck = Rect.fromLTWH(
+      rect.left + rect.width * 0.04,
+      roofTopY + rect.height * 0.035,
+      rect.width * 0.92,
+      parapetBottomY - roofTopY - rect.height * 0.055,
+    );
 
-    // Main body.
-    final Path body = Path()
-      ..moveTo(rect.left, roofBaseY)
-      ..lineTo(rect.right, roofBaseY)
-      ..lineTo(rect.right, rect.bottom)
-      ..lineTo(rect.left, rect.bottom)
-      ..close();
-    canvas.drawPath(body, Paint()..color = _withOpacity(bodyColor, opacity));
-    canvas.drawPath(body, outlinePaint);
+    final RRect body = RRect.fromRectAndRadius(
+      Rect.fromLTWH(rect.left, parapetBottomY, rect.width, rect.bottom - parapetBottomY),
+      const Radius.circular(12),
+    );
+    canvas.drawRRect(body, Paint()..color = _withOpacity(bodyColor, opacity));
+    canvas.drawRRect(body, outlinePaint);
 
-    // Sawtooth roof redrawn from scratch.
+    final RRect parapet = RRect.fromRectAndRadius(
+      Rect.fromLTWH(rect.left, roofTopY, rect.width, parapetBottomY - roofTopY + rect.height * 0.025),
+      const Radius.circular(12),
+    );
+    canvas.drawRRect(
+      parapet,
+      Paint()..color = _withOpacity(Color.lerp(roofColor, Colors.white, 0.10)!, opacity),
+    );
+    canvas.drawRRect(parapet, outlinePaint);
+
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(roofDeck, const Radius.circular(6)),
+      Paint()..color = _withOpacity(Color.lerp(roofColor, Colors.black, 0.04)!, opacity),
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(roofDeck, const Radius.circular(6)),
+      Paint()
+        ..color = _withOpacity(Colors.black, 0.09 * opacity)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.3,
+    );
+
+    final Rect upperBand = Rect.fromLTWH(
+      rect.left + rect.width * 0.04,
+      parapetBottomY + rect.height * 0.04,
+      rect.width * 0.92,
+      rect.height * 0.05,
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(upperBand, const Radius.circular(5)),
+      Paint()..color = _withOpacity(Color.lerp(accentColor, Colors.white, 0.55)!, opacity),
+    );
+
     for (int i = 0; i < 4; i++) {
-      final double x0 = rect.left + step * i;
-      final double xp = x0 + step * 0.44;
-      final double x1 = x0 + step;
-      peaks.add(xp);
-
-      final Path face = Path()
-        ..moveTo(x0, roofBaseY)
-        ..lineTo(xp, roofPeakY)
-        ..lineTo(x1, roofBaseY)
-        ..close();
-      final Color faceColor = i.isEven
-          ? Color.lerp(roofColor, Colors.white, 0.12)!
-          : Color.lerp(roofColor, Colors.black, 0.05)!;
-      canvas.drawPath(face, Paint()..color = _withOpacity(faceColor, opacity));
-      canvas.drawPath(
-        face,
+      final Rect rooftopBlock = Rect.fromLTWH(
+        rect.left + rect.width * (0.05 + i * 0.23),
+        roofDeck.top + rect.height * (i.isEven ? 0.01 : 0.025),
+        rect.width * 0.15,
+        roofDeck.height * (i.isEven ? 0.55 : 0.42),
+      );
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(rooftopBlock, const Radius.circular(5)),
+        Paint()..color = _withOpacity(Color.lerp(roofColor, Colors.white, i.isEven ? 0.16 : 0.08)!, opacity),
+      );
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(rooftopBlock, const Radius.circular(5)),
         Paint()
           ..color = _withOpacity(Colors.black, 0.08 * opacity)
           ..style = PaintingStyle.stroke
-          ..strokeWidth = 1.5,
-      );
-
-      canvas.drawLine(
-        Offset(x0, roofBaseY),
-        Offset(xp, roofPeakY),
-        Paint()
-          ..color = _withOpacity(Color.lerp(roofColor, Colors.black, 0.06)!, opacity)
-          ..strokeWidth = 3
-          ..strokeCap = StrokeCap.round,
-      );
-      canvas.drawLine(
-        Offset(xp, roofPeakY),
-        Offset(x1, roofBaseY),
-        Paint()
-          ..color = _withOpacity(Color.lerp(roofColor, Colors.black, 0.06)!, opacity)
-          ..strokeWidth = 3
-          ..strokeCap = StrokeCap.round,
+          ..strokeWidth = 1.1,
       );
     }
 
-    // Window rows.
     final double blink = 0.50 + 0.50 * math.sin((time + windowBlink) * math.pi * 2);
     final Color litWindow = _withOpacity(Color.lerp(const Color(0xFFCDEFFF), const Color(0xFFF3FCFF), blink)!, opacity);
     for (int row = 0; row < 2; row++) {
@@ -1363,11 +1389,10 @@ class CartoonStyleBackgroundPainter extends CustomPainter {
       }
     }
 
-    // Brand/sign strip.
     final Rect sign = Rect.fromLTWH(
-      rect.left + rect.width * 0.32,
+      rect.left + rect.width * 0.31,
       rect.top + rect.height * 0.45,
-      rect.width * 0.20,
+      rect.width * 0.22,
       rect.height * 0.07,
     );
     canvas.drawRRect(
@@ -1456,19 +1481,18 @@ class CartoonStyleBackgroundPainter extends CustomPainter {
       );
     }
 
-    // Chimneys explicitly anchored to roof peaks to avoid floating or shifted positions.
-    final List<int> chimneyPeaks = chimneyCount == 1
-        ? [3]
+    final List<double> chimneyXs = chimneyCount == 1
+        ? [rect.left + rect.width * 0.84]
         : chimneyCount == 2
-            ? [1, 3]
-            : [0, 2, 3];
+            ? [rect.left + rect.width * 0.36, rect.left + rect.width * 0.84]
+            : [rect.left + rect.width * 0.18, rect.left + rect.width * 0.58, rect.left + rect.width * 0.84];
 
     for (int i = 0; i < chimneyCount; i++) {
-      final double peakX = peaks[chimneyPeaks[i]];
+      final double stackX = chimneyXs[i];
       final Rect stackBase = Rect.fromCenter(
-        center: Offset(peakX, roofPeakY + rect.height * 0.022),
-        width: step * 0.28,
-        height: rect.height * 0.058,
+        center: Offset(stackX, roofDeck.center.dy),
+        width: rect.width * 0.11,
+        height: rect.height * 0.055,
       );
       canvas.drawRRect(
         RRect.fromRectAndRadius(stackBase, const Radius.circular(4)),
@@ -1482,7 +1506,7 @@ class CartoonStyleBackgroundPainter extends CustomPainter {
           ..strokeWidth = 1.2,
       );
 
-      final double stackWidth = step * 0.15;
+      final double stackWidth = rect.width * 0.045;
       final double stackHeight = rect.height * (0.25 + (i.isOdd ? 0.05 : 0.0));
       final Rect chimney = Rect.fromLTWH(
         stackBase.center.dx - stackWidth / 2,
